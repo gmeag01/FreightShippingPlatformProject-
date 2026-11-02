@@ -284,7 +284,7 @@ C가 만드는 `Order`와 상태 전이를 D와 E가 씁니다. 그래서 상태
 
 **첫 주에 함께 만드는 것**
 
-- [ ] 저장소 생성, 브랜치 규칙(`main` 보호, 기능 브랜치 + PR 리뷰 1명 이상)
+- [ ] 저장소 생성, 브랜치 규칙(`main` 보호, 기능 브랜치 + PR, 승인은 필수 아님)
 - [ ] ERD: 회원, 차량, 오더, 상태 이력, 단가표, 할증률
 - [ ] 오더 상태 enum과 상태 전이 메서드 시그니처
 - [ ] global: 공통 응답, `ErrorCode`, 전역 예외 처리, BaseEntity(생성·수정 시각)
@@ -301,7 +301,7 @@ C가 만드는 `Order`와 상태 전이를 D와 E가 씁니다. 그래서 상태
 | 브랜치 | 용도 | 규칙 |
 | --- | --- | --- |
 | `main` | 매주 끝날과 최종 발표 시점의 완성본 | 직접 push 금지. `develop`에서만 PR로 합치고, 합칠 때 `v0.1`, `v0.2` … 태그 |
-| `develop` | 팀 전체 작업을 모으는 통합 브랜치 | 직접 push 금지. PR + 리뷰 1명 승인 + CI 통과 시에만 합침 |
+| `develop` | 팀 전체 작업을 모으는 통합 브랜치 | 직접 push 금지. PR + CI 통과 시에만 합침. 승인은 필수가 아니어서 올린 사람이 직접 합친다 |
 | `feat/<도메인>-<기능>` | 기능 개발 (예: `feat/order-create`, `feat/matching-accept`) | `develop`에서 따고 하루~이틀 안에 PR. 기능 하나씩 작게 나눈다 |
 | `fix/<내용>` | 버그 수정 | 위와 같음 |
 | `chore/<내용>` | 설정, 문서, 빌드 (예: `chore/archunit`) | 위와 같음 |
@@ -309,16 +309,16 @@ C가 만드는 `Order`와 상태 전이를 D와 E가 씁니다. 그래서 상태
 - **합치는 방식**: PR은 Squash merge로 합쳐 `develop` 이력을 기능 단위 한 줄씩으로 유지합니다. 합친 브랜치는 삭제합니다.
 - **충돌 줄이기**: 작업 전마다 `develop`을 받아 자기 브랜치에 합칩니다. `global` 폴더나 `ErrorCode`처럼 모두가 고치는 파일은 기능 PR과 분리해 작은 PR로 먼저 합칩니다.
 - **커밋 메시지**: `feat: 오더 등록 API 추가`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:` 접두어를 씁니다.
-- **GitHub 설정**: `main`과 `develop`에 브랜치 보호 규칙(PR 필수, 승인 1명, CI 통과 필수)을 겁니다. PR 템플릿에는 '무엇을 바꿨나 / 어떻게 확인했나 / 다른 도메인에 영향' 세 칸을 둡니다.
+- **GitHub 설정**: `main`과 `develop`에 브랜치 보호 규칙(PR 필수, 승인 0명, CI 통과 필수)을 겁니다. PR 템플릿에는 '무엇을 바꿨나 / 어떻게 확인했나 / 다른 도메인에 영향' 세 칸을 둡니다.
 
 ## 10. AI 작업 규칙과 AGENTS.md
 
 팀원마다 AI 모델이 달라도 같은 규칙을 읽게 하고, 어기면 기계가 걸러내게 합니다. 앞의 것일수록 효과가 큽니다.
 
-1. **공통 지시 파일**: 저장소 루트에 `AGENTS.md`를 둡니다. Claude Code는 `CLAUDE.md`, Gemini CLI는 `GEMINI.md`를 읽으므로, 그 파일에는 AGENTS.md를 따르라는 한 줄만 씁니다.
+1. **공통 지시 파일**: 저장소 루트에 `AGENTS.md`를 둡니다. Codex, Copilot, Antigravity는 AGENTS.md를 직접 읽습니다. Claude Code는 `CLAUDE.md`를 먼저 읽으므로, 그 파일에는 `@AGENTS.md`로 AGENTS.md를 불러오는 내용만 씁니다.
 2. **견본 도메인**: AI에게 "member 도메인과 같은 방식으로 만들어"라고 시킵니다.
 3. **자동 검사**: Spotless·Prettier로 형식, ArchUnit으로 패키지 규칙, 핵심 로직 테스트, PR마다 GitHub Actions로 전부 실행합니다.
-4. **사람 리뷰**: PR은 다른 팀원 1명 이상이 승인해야 합칩니다.
+4. **사람 리뷰**: 소규모 팀이라 PR 승인은 필수가 아닙니다. 올린 사람이 직접 합치고, 봐 줄 사람이 필요하면 PR에서 리뷰어를 지정합니다.
 
 **superpowers 플러그인** *(팀 결정: 전원 설치, 사용 규칙은 제안)*
 
@@ -330,7 +330,7 @@ C가 만드는 `Order`와 상태 전이를 D와 E가 씁니다. 그래서 상태
 | 계획 | writing-plans | 계획 파일은 `docs/superpowers/plans/`에 커밋합니다. 다른 팀원도 누가 무엇을 하는지 볼 수 있습니다 |
 | 구현 | test-driven-development | 상태 전이, 동시 수락, 추천 운임은 반드시 테스트 먼저 작성합니다 |
 | 완료 전 | verification-before-completion | `./gradlew spotlessApply test`와 `npm run lint` 결과를 확인한 뒤에만 완료라고 합니다 |
-| PR 전 | requesting-code-review | AI 리뷰를 한 번 돌린 뒤 PR을 올리고, 사람 리뷰 1명은 그대로 필수입니다 |
+| PR 전 | requesting-code-review | AI 리뷰를 한 번 돌린 뒤 PR을 올립니다. 사람 승인은 필수가 아닙니다 |
 
 스킬이 만드는 설계·계획 문서의 기본 저장 위치는 `docs/superpowers/` 아래입니다. 이 설계 문서는 `docs/superpowers/specs/2026-11-02-freight-platform-design.md`에 둡니다.
 

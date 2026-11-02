@@ -24,7 +24,7 @@
 - 테이블·컬럼 snake_case, 엔티티 필드 camelCase
 - 비밀번호·API 키는 커밋하지 않는다. `application-local.yml`은 `.gitignore`, `application-local.example.yml`만 공유
 - 로컬 DB: MySQL, DB 이름 `freight`, 계정 `freight`. `ddl-auto: update`, 시드는 `data.sql`
-- 브랜치: `main`, `develop` 보호. 작업은 `feat|fix|chore/<도메인>-<기능>` → `develop` PR(리뷰 1명 + CI 통과), Squash merge
+- 브랜치: `main`, `develop` 보호. 작업은 `feat|fix|chore/<도메인>-<기능>` → `develop` PR(CI 통과, 승인 필수 아님), Squash merge
 - 커밋 접두어: `feat:` `fix:` `refactor:` `test:` `docs:` `chore:`
 - 완료 조건: `./gradlew spotlessApply test`, `npm run lint`, `npm run build` 통과
 
@@ -72,7 +72,7 @@ Task 2·3·7은 동시에, 그다음 4·5를 동시에 진행한다. 각 Task는
 
 - [ ] **Step 1: 저장소와 브랜치 규칙**
 
-GitHub 저장소를 만들고 `main`에서 `develop`을 딴다. 두 브랜치에 보호 규칙(PR 필수, 승인 1명, CI 통과 필수)을 건다. `.gitignore`에 `backend/build/`, `.gradle/`, `**/application-local.yml`, `frontend/node_modules/`, `frontend/dist/`, `.idea/`, `.env*`를 넣는다.
+GitHub 저장소를 만들고 `main`에서 `develop`을 딴다. 두 브랜치에 보호 규칙(PR 필수, 승인 0명, CI 통과 필수)을 건다. `.gitignore`에 `backend/build/`, `.gradle/`, `**/application-local.yml`, `frontend/node_modules/`, `frontend/dist/`, `.idea/`, `.env*`를 넣는다.
 
 - [ ] **Step 2: Spring Initializr로 `backend/` 생성**
 
