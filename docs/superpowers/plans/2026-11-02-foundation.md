@@ -122,7 +122,7 @@ Expected: `BUILD SUCCESSFUL`. `FreightApplicationTests.contextLoads`(`@SpringBoo
 
 - [ ] **Step 6: CI와 PR 템플릿**
 
-`ci.yml`: `pull_request`와 `develop`·`main` push에서 두 job을 돌린다. `backend`(temurin 21, `./gradlew spotlessCheck test`), `frontend`(Node 20, `npm ci && npm run lint && npm run build`, `frontend/package.json`이 생기기 전에는 `if: hashFiles('frontend/package.json') != ''`).
+`ci.yml`: `pull_request`와 `develop`·`main` push에서 두 job을 돌린다. `backend`(temurin 21, `./gradlew spotlessCheck test`), `frontend`(Node 20, `npm ci && npm run lint && npm run build`, working-directory `frontend`). job 단위 `if`에서는 `hashFiles`를 쓸 수 없으므로, frontend job은 항상 실행하고 첫 step에서 `hashFiles('frontend/package.json') != ''` 결과를 output으로 내보낸 뒤 나머지 step에 `if`를 건다. 그래야 Task 7 전에도 `frontend` 체크가 통과로 남아 두 job을 모두 필수 체크로 걸 수 있다. 같은 ref의 이전 실행은 `concurrency`(`cancel-in-progress: true`)로 취소하고, backend job에는 `gradlew` 실행 권한(`chmod +x gradlew`)을 준다. 필수 체크(`backend`, `frontend`)는 이 PR에서 CI가 한 번 돈 뒤 Rulesets의 Require status checks에 추가한다.
 `pull_request_template.md`: `## 무엇을 바꿨나`, `## 어떻게 확인했나`, `## 다른 도메인에 영향`.
 
 - [ ] **Step 7: Commit**
