@@ -42,3 +42,4 @@
 ## 작업 전후 확인
 - 커밋 전에 ./gradlew spotlessApply test 가 통과해야 한다.
 - 프론트는 npm run lint 가 통과해야 한다.
+- main, develop에 직접 push하지 않는다. 작업 브랜치에서 PR을 올리고, 승인은 필수가 아니므로 검사가 통과하면 올린 사람이 직접 합친다.
