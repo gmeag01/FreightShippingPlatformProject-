@@ -212,7 +212,7 @@
 | --- | --- |
 | 백엔드 | Java 21(Gradle toolchain으로 고정), Spring Boot 3.2 이상, Spring Data JPA, Spring Security + JWT, springdoc-openapi(Swagger) |
 | 프론트 | React(Vite), React Router, axios. 상태 관리와 UI 라이브러리는 팀이 착수 전에 하나로 정한다 |
-| DB | MySQL 8, 드라이버 `mysql-connector-j` |
+| DB | MariaDB 11.4 LTS, 드라이버 `mariadb-java-client` |
 | 외부 API | 다음 우편번호 서비스(주소 검색), 카카오 로컬(좌표 변환), 카카오모빌리티 길찾기(거리) |
 | 품질 도구 | Spotless(백엔드 포맷), ArchUnit(패키지 규칙 테스트), JUnit 5, ESLint + Prettier(프론트), GitHub Actions |
 
@@ -246,7 +246,7 @@ com.example.freight
 
 **로컬 실행 환경**
 
-- 각자 PC에 MySQL을 설치하고 DB 이름과 계정을 똑같이 맞춘다(예: `freight` / `freight`). 접속 정보는 `application-local.yml`에 둡니다.
+- 각자 PC에 MariaDB를 설치하고 DB 이름과 계정을 똑같이 맞춘다(예: `freight` / `freight`). 접속 정보는 `application-local.yml`에 둡니다.
 - 테이블은 JPA가 만든다(`ddl-auto: update`). 테스트 데이터(화주·차주·관리자 계정, 단가표, 샘플 오더)는 `data.sql`로 Git에 올린다.
 - 외부 API 키는 Git에 올리지 않는다. `application-local.yml`은 `.gitignore`에 넣고, `application-local.example.yml`만 공유한다.
 - 프론트는 `npm run dev`로 띄우고, Vite 프록시로 `/api`를 `localhost:8080`에 보낸다.
@@ -343,7 +343,7 @@ C가 만드는 `Order`와 상태 전이를 D와 E가 씁니다. 그래서 상태
 설계는 docs/superpowers/specs/2026-11-02-freight-platform-design.md를 기준으로 한다.
 
 ## 프로젝트
-- 화물 중개 웹 플랫폼. 백엔드 Spring Boot 3 / Java 21 / JPA / MySQL, 프론트 React(Vite).
+- 화물 중개 웹 플랫폼. 백엔드 Spring Boot 3 / Java 21 / JPA / MariaDB, 프론트 React(Vite).
 - 역할: SHIPPER(화주), DRIVER(차주), ADMIN(관리자).
 
 ## 패키지 구조

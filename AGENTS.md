@@ -11,7 +11,7 @@
 - 문서와 다르게 구현해야 하면 먼저 팀에 공유하고 문서를 고친 뒤 진행한다.
 
 ## 프로젝트
-- 화물 중개 웹 플랫폼. 백엔드 Spring Boot 3 / Java 21 / JPA / MySQL, 프론트 React(Vite).
+- 화물 중개 웹 플랫폼. 백엔드 Spring Boot 3 / Java 21 / JPA / MariaDB, 프론트 React(Vite).
 - 역할: SHIPPER(화주), DRIVER(차주), ADMIN(관리자).
 
 ## 패키지 구조
