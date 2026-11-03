@@ -14,7 +14,7 @@
 
 ## Global Constraints
 
-- 패키지: `com.example.freight.<도메인>.{controller,service,repository,entity,dto}`, 공통은 `com.example.freight.global`
+- 패키지: `com.freight.<도메인>.{controller,service,repository,entity,dto}`, 공통은 `com.freight.global`
 - 도메인: member, vehicle, fare, order, matching, delivery, payment
 - 다른 도메인의 repository를 직접 쓰지 않는다. 그 도메인의 service를 호출한다.
 - 오더 상태는 `Order`의 상태 전이 메서드로만 바꾼다. `setStatus`는 만들지 않는다.
@@ -61,11 +61,11 @@ Task 2·3·7은 동시에, 그다음 4·5를 동시에 진행한다. 각 Task는
 **Files:**
 - Create: `.gitignore`, `README.md`
 - Create: `backend/settings.gradle`, `backend/build.gradle`, Gradle wrapper
-- Create: `backend/src/main/java/com/example/freight/FreightApplication.java`
+- Create: `backend/src/main/java/com/freight/FreightApplication.java`
 - Create: `backend/src/main/resources/application.yml`, `application-local.example.yml`
 - Create: `backend/src/test/resources/application-test.yml`
-- Create: `backend/src/test/java/com/example/freight/FreightApplicationTests.java`
-- Create: `backend/src/test/java/com/example/freight/ArchitectureTest.java`
+- Create: `backend/src/test/java/com/freight/FreightApplicationTests.java`
+- Create: `backend/src/test/java/com/freight/ArchitectureTest.java`
 - Create: `.github/workflows/ci.yml`, `.github/pull_request_template.md`
 
 **Interfaces:**
@@ -78,7 +78,7 @@ GitHub 저장소를 만들고 `main`에서 `develop`을 딴다. 두 브랜치에
 
 - [ ] **Step 2: Spring Initializr로 `backend/` 생성**
 
-Gradle - Groovy, Java 21, Spring Boot 3.5.x 최신 패치, group `com.example`, artifact `freight`, package `com.example.freight`. 의존성: Web, Validation, Data JPA, Security, MariaDB Driver, Lombok. 추가로 `build.gradle`에 넣는다:
+Gradle - Groovy, Java 21, Spring Boot 3.5.x 최신 패치, group `com.freight`, artifact `freight`, package `com.freight`. 의존성: Web, Validation, Data JPA, Security, MariaDB Driver, Lombok. 추가로 `build.gradle`에 넣는다:
 - `org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.x`
 - `io.jsonwebtoken:jjwt-api:0.12.x`, `jjwt-impl`, `jjwt-jackson`(runtimeOnly)
 - testImplementation `com.h2database:h2`, `com.tngtech.archunit:archunit-junit5:1.3.x`, `org.springframework.security:spring-security-test`
@@ -95,7 +95,7 @@ Gradle - Groovy, Java 21, Spring Boot 3.5.x 최신 패치, group `com.example`, 
 - [ ] **Step 4: 아키텍처 테스트 작성**
 
 ```java
-@AnalyzeClasses(packages = "com.example.freight", importOptions = ImportOption.DoNotIncludeTests.class)
+@AnalyzeClasses(packages = "com.freight", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
     static final String[] DOMAINS = {"member", "vehicle", "fare", "order", "matching", "delivery", "payment"};
 
@@ -145,7 +145,7 @@ git commit -m "chore: 백엔드 뼈대, 아키텍처 테스트, CI 설정"
 - Create: `global/exception/ErrorCode.java`, `BusinessException.java`, `GlobalExceptionHandler.java`
 - Test: `global/exception/GlobalExceptionHandlerTest.java` (테스트 전용 컨트롤러 포함)
 
-(경로는 `backend/src/main/java/com/example/freight/` 기준, 테스트는 `backend/src/test/java/com/example/freight/` 기준. 이후 Task도 같다.)
+(경로는 `backend/src/main/java/com/freight/` 기준, 테스트는 `backend/src/test/java/com/freight/` 기준. 이후 Task도 같다.)
 
 **Interfaces:**
 - Produces: `record ApiResponse<T>(boolean success, T data, ErrorBody error)`, `static <T> ApiResponse<T> ok(T data)`, `static ApiResponse<Void> fail(ErrorCode code)`, `static ApiResponse<Void> fail(ErrorCode code, Map<String, String> fieldErrors)`. `record ErrorBody(String code, String message, Map<String, String> fieldErrors)`(fieldErrors는 없으면 null, JSON에서 생략)
@@ -282,7 +282,7 @@ git commit -am "feat: 공통 응답 형식, 오류 코드, 전역 예외 처리"
 }
 ```
 
-테스트 데이터 만드는 코드는 `src/test/java/com/example/freight/support/Fixtures.java`에 정적 메서드로 둔다(`shipper()`, `driver()`, `admin()`, `vehicle(Member, VehicleType)`, `registeredOrder(Member shipper)`). 이후 모든 도메인이 이것을 쓴다.
+테스트 데이터 만드는 코드는 `src/test/java/com/freight/support/Fixtures.java`에 정적 메서드로 둔다(`shipper()`, `driver()`, `admin()`, `vehicle(Member, VehicleType)`, `registeredOrder(Member shipper)`). 이후 모든 도메인이 이것을 쓴다.
 
 - [ ] **Step 2: Run test to verify it fails**
 
