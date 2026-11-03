@@ -211,7 +211,7 @@
 | 구분 | 사용 기술 |
 | --- | --- |
 | 백엔드 | Java 21(Gradle toolchain으로 고정), Spring Boot 3.2 이상, Spring Data JPA, Spring Security + JWT, springdoc-openapi(Swagger) |
-| 프론트 | React(Vite), React Router, axios. 상태 관리와 UI 라이브러리는 팀이 착수 전에 하나로 정한다 |
+| 프론트 | React 19(Vite), React Router, axios, Tailwind CSS v4. 컴포넌트 파일 확장자는 `.js`. 상태 관리 라이브러리는 필요해지면 팀이 하나로 정한다 |
 | DB | MariaDB 11.4 LTS, 드라이버 `mariadb-java-client` |
 | 외부 API | 다음 우편번호 서비스(주소 검색), 카카오 로컬(좌표 변환), 카카오모빌리티 길찾기(거리) |
 | 품질 도구 | Spotless(백엔드 포맷), ArchUnit(패키지 규칙 테스트), JUnit 5, ESLint + Prettier(프론트), GitHub Actions |
@@ -302,12 +302,13 @@ C가 만드는 `Order`와 상태 전이를 D와 E가 씁니다. 그래서 상태
 | --- | --- | --- |
 | `main` | 매주 끝날과 최종 발표 시점의 완성본 | 직접 push 금지. 아래 **배포 절차**대로 `release/<태그>` 브랜치를 거쳐 PR로 합치고, 합칠 때 `v0.1`, `v0.2` … 태그 |
 | `develop` | 팀 전체 작업을 모으는 통합 브랜치 | 직접 push 금지. PR + CI 통과 시에만 합침. 승인은 필수가 아니어서 올린 사람이 직접 합친다 |
-| `feat/<도메인>-<기능>` | 기능 개발 (예: `feat/order-create`, `feat/matching-accept`) | `develop`에서 따고 하루~이틀 안에 PR. 기능 하나씩 작게 나눈다 |
+| `feat/<도메인>-<기능>` | 기능 개발 (예: `feat/order-create`, `feat/matching-accept`) | `develop`에서 따고 첫 push 때 Draft PR을 연다. 같은 작업은 끝날 때까지 이 브랜치·PR에 커밋을 쌓고, 끝나면 Ready로 바꿔 합친다. 작업은 계획의 Task 크기로 나눈다 |
 | `fix/<내용>` | 버그 수정 | 위와 같음 |
-| `chore/<내용>` | 설정, 문서, 빌드 (예: `chore/archunit`) | 위와 같음 |
+| `chore/<내용>` | 설정, 빌드 (예: `chore/archunit`) | 위와 같음 |
+| `chore/docs-week<N>` | 그 주의 문서 수정 (예: `chore/docs-week1`) | 한 주의 문서 수정을 이 브랜치 하나, PR 하나에 모은다. 기능 PR에 문서 수정을 섞지 않는다 |
 | `release/<태그>` | `develop`을 `main`에 합치기 위한 배포용 브랜치 (예: `release/v0.1`) | `develop`에서 따고 배포 절차에서만 쓴다. 합친 뒤 삭제 |
 
-- **합치는 방식**: PR은 Squash merge로 합쳐 `develop` 이력을 기능 단위 한 줄씩으로 유지합니다. 합친 브랜치는 삭제합니다.
+- **합치는 방식**: PR은 Squash merge로 합쳐 `develop` 이력을 기능 단위 한 줄씩으로 유지합니다. 합친 브랜치는 삭제합니다. 수정할 때마다 새 브랜치·PR을 만들지 않고, 같은 작업의 열린 브랜치가 있으면 그 브랜치에 이어서 커밋합니다.
 - **충돌 줄이기**: 작업 전마다 `develop`을 받아 자기 브랜치에 합칩니다. `global` 폴더나 `ErrorCode`처럼 모두가 고치는 파일은 기능 PR과 분리해 작은 PR로 먼저 합칩니다.
 - **커밋 메시지**: `feat: 오더 등록 API 추가`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:` 접두어를 씁니다.
 - **GitHub 설정**: `main`과 `develop`에 브랜치 보호 규칙(PR 필수, 승인 0명, CI 통과 필수)을 겁니다. PR 템플릿에는 '무엇을 바꿨나 / 어떻게 확인했나 / 다른 도메인에 영향' 세 칸을 둡니다.
@@ -360,13 +361,19 @@ git push -u origin release/v0.1
 설계는 docs/superpowers/specs/2026-11-02-freight-platform-design.md를 기준으로 한다.
 
 ## 프로젝트
-- 화물 중개 웹 플랫폼. 백엔드 Spring Boot 3 / Java 21 / JPA / MariaDB, 프론트 React(Vite).
+- 화물 중개 웹 플랫폼. 백엔드 Spring Boot 3 / Java 21 / JPA / MariaDB, 프론트 React 19 / Vite / Tailwind CSS.
 - 역할: SHIPPER(화주), DRIVER(차주), ADMIN(관리자).
 
 ## 패키지 구조
 - com.freight.<도메인>.{controller,service,repository,entity,dto}
 - 도메인: member, vehicle, fare, order, matching, delivery, payment. 공통은 global.
 - 새 도메인 코드는 member 도메인을 견본으로 같은 모양으로 만든다.
+
+## 프론트 규칙
+- 컴포넌트 파일도 .js로 만든다. .jsx는 쓰지 않는다(vite.config.js의 jsx-in-js 플러그인이 .js 안의 JSX를 처리한다).
+- 스타일은 Tailwind CSS 클래스(className)로만 쓴다. 화면마다 CSS 파일이나 style 속성을 만들지 않는다. 공통 값은 src/index.css의 @theme에 둔다.
+- API 호출은 src/api/client.js(axios 인스턴스)를 쓰고, 도메인별 함수는 src/api/<도메인>.js에 둔다.
+- 로그인 상태는 useAuth(), 역할 확인은 RequireRole을 쓴다. 화면은 src/pages/에 만들고, App.js의 PlaceholderPage 자리를 자기 화면으로 바꾼다.
 
 ## 반드시 지킬 것
 - 다른 도메인의 repository를 직접 쓰지 않는다. 필요하면 그 도메인의 service를 호출한다.
@@ -389,7 +396,7 @@ git push -u origin release/v0.1
 
 ## 작업 전후 확인
 - 커밋 전에 ./gradlew spotlessApply test 가 통과해야 한다.
-- 프론트는 npm run lint 가 통과해야 한다.
+- 프론트는 npm run format 후 npm run lint, npm run build 가 통과해야 한다.
 ```
 
 ## 11. 범위 밖, 구현자 판단, 임의로 정한 것
@@ -405,7 +412,7 @@ git push -u origin release/v0.1
 **구현자가 정해도 되는 것**
 
 - 화물 정보의 세부 입력 항목 (단, 주소와 중량 kg은 필수)
-- 화면 디자인, 상태 관리·UI 라이브러리 (팀이 하나로 통일)
+- 화면 디자인, 상태 관리 라이브러리 (팀이 하나로 통일. 스타일은 Tailwind CSS로 확정)
 - 목록의 페이지 크기, 검색 조건의 세부
 - JWT 만료 시간과 갱신 방식
 

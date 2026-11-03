@@ -11,7 +11,7 @@
 | 폴더 | 내용 |
 | --- | --- |
 | `backend/` | Spring Boot 3.5 / Java 21 / Gradle |
-| `frontend/` | React + Vite (Task 7에서 추가) |
+| `frontend/` | React 19 + Vite + Tailwind CSS (컴포넌트 파일은 `.js`) |
 
 ## 백엔드 로컬 실행 (STS)
 
@@ -23,10 +23,20 @@
 6. MariaDB에 DB와 계정을 만들고 `backend/src/main/resources/application-local.example.properties`를 복사해 `application-local.properties`를 만든 뒤 값을 채운다 (Git에 올라가지 않음)
 7. Boot Dashboard에서 `freight` → Start (또는 `cd backend && ./gradlew bootRun`)
 
+## 프론트 로컬 실행
+
+1. Node.js 20.19 이상 설치
+2. `cd frontend && npm install`
+3. 백엔드를 띄운 상태에서 `npm run dev` → http://localhost:5173 (`/api` 요청은 `localhost:8080`으로 전달)
+
 ## 커밋 전 확인
 
 ```bash
 cd backend && ./gradlew spotlessApply test
+```
+
+```bash
+cd frontend && npm run format && npm run lint && npm run build
 ```
 
 ## 동시 수락 방지 방식 비교 (matching 도메인)
@@ -39,4 +49,4 @@ cd backend && ./gradlew spotlessApply test
 | **비관적 락 (`SELECT ... FOR UPDATE`)** | 조회 시점에 DB 행 락(`PESSIMISTIC_WRITE`)을 걸어 직렬화 | 충돌 시 재시도/예외 비용이 직관적 | 트래픽 집중 시 커넥션 점유·락 대기 증가, 조회 시점부터 락을 잡아야 하며 조회 후 수정 감지(`ORDER_CHANGED`)는 별도 버전 비교가 여전히 필요 | 미채택 |
 | **조건부 UPDATE (`WHERE status = 'REGISTERED'`)** | JPQL/SQL 벌크 업데이트 반환 행 수(`1` 또는 `0`)로 판정 | 단일 쿼리로 빨라 락 경합이 적음 | JPA 영속성 컨텍스트를 우회하므로 `Order` 엔티티의 도메인 상태 전이 메서드(`order.accept`)와 감사(`updatedAt`) 규칙이 분리됨 | 미채택 |
 
-시드 계정, Swagger 주소, 프론트 실행 방법은 이후 작업(Task 6, 7)에서 추가합니다.
+시드 계정과 Swagger 주소는 이후 작업(Task 6)에서 추가합니다.
