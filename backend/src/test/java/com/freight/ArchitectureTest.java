@@ -1,4 +1,4 @@
-package com.example.freight;
+package com.freight;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
@@ -10,7 +10,7 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
-@AnalyzeClasses(packages = "com.example.freight", importOptions = ImportOption.DoNotIncludeTests.class)
+@AnalyzeClasses(packages = "com.freight", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
     static final String[] DOMAINS = {"member", "vehicle", "fare", "order", "matching", "delivery", "payment"};
 

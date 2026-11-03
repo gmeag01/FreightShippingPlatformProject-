@@ -5,7 +5,7 @@ plugins {
     id 'com.diffplug.spotless' version '7.2.1'
 }
 
-group = 'com.example'
+group = 'com.freight'
 version = '0.0.1-SNAPSHOT'
 
 java {
