@@ -24,6 +24,7 @@
 - 테이블·컬럼 snake_case, 엔티티 필드 camelCase
 - 비밀번호·API 키는 커밋하지 않는다. `application-local.yml`은 `.gitignore`, `application-local.example.yml`만 공유
 - 로컬 DB: MySQL, DB 이름 `freight`, 계정 `freight`. `ddl-auto: update`, 시드는 `data.sql`
+- 실행 환경: 배포 없이 각자 PC에서 백엔드는 STS(Boot Dashboard), 프론트는 `npm run dev`로 띄운다. STS는 `backend/`를 Existing Gradle Project로 불러오고, 워크스페이스 인코딩 UTF-8, Lombok 설치, 저장 시 자동 정렬 끔(형식은 `gradlew spotlessApply`가 맞춘다)
 - 브랜치: `main`, `develop` 보호. 작업은 `feat|fix|chore/<도메인>-<기능>` → `develop` PR(리뷰 1명 + CI 통과), Squash merge
 - 커밋 접두어: `feat:` `fix:` `refactor:` `test:` `docs:` `chore:`
 - 완료 조건: `./gradlew spotlessApply test`, `npm run lint`, `npm run build` 통과
@@ -72,7 +73,7 @@ Task 2·3·7은 동시에, 그다음 4·5를 동시에 진행한다. 각 Task는
 
 - [ ] **Step 1: 저장소와 브랜치 규칙**
 
-GitHub 저장소를 만들고 `main`에서 `develop`을 딴다. 두 브랜치에 보호 규칙(PR 필수, 승인 1명, CI 통과 필수)을 건다. `.gitignore`에 `backend/build/`, `.gradle/`, `**/application-local.yml`, `frontend/node_modules/`, `frontend/dist/`, `.idea/`, `.env*`를 넣는다.
+GitHub 저장소를 만들고 `main`에서 `develop`을 딴다. 두 브랜치에 보호 규칙(PR 필수, 승인 1명, CI 통과 필수)을 건다. `.gitignore`에 `backend/build/`, `.gradle/`, `**/application-local.yml`, `frontend/node_modules/`, `frontend/dist/`, `.idea/`, `.env*`와 STS(Eclipse) 파일 `.project`, `.classpath`, `.settings/`, `bin/`, `.metadata/`, `.sts4-cache/`를 넣는다.
 
 - [ ] **Step 2: Spring Initializr로 `backend/` 생성**
 
@@ -82,6 +83,7 @@ Gradle - Groovy, Java 21, Spring Boot 3.5.x 최신 패치, group `com.example`, 
 - testImplementation `com.h2database:h2`, `com.tngtech.archunit:archunit-junit5:1.3.x`, `org.springframework.security:spring-security-test`
 - 플러그인 `com.diffplug.spotless`: `java { palantirJavaFormat(); removeUnusedImports() }`
 - `java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }`
+- `tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }` (Windows 기본 인코딩 MS949로 한글이 깨지지 않게)
 
 - [ ] **Step 3: 설정 파일**
 
@@ -485,12 +487,12 @@ git commit -am "feat: JWT 인증과 회원가입·로그인 견본 도메인"
 - [ ] **Step 2: 로컬 실행 확인**
 
 로컬 MySQL에 `freight` DB와 계정을 만들고 `application-local.yml`을 채운다.
-Run: `./gradlew bootRun`
+Run: STS Boot Dashboard에서 `freight` Start (또는 `./gradlew bootRun`)
 Expected: 기동 성공. `shipper1@freight.test`로 `POST /api/auth/login`이 200을 돌려준다.
 
 - [ ] **Step 3: 재시작 확인 (Review Focus 3)**
 
-서버를 끄고 `./gradlew bootRun`을 한 번 더 실행한다.
+서버를 끄고 STS에서 다시 Start한다.
 Expected: 중복 키 오류 없이 기동되고, `members`는 4행 그대로다.
 
 - [ ] **Step 4: AI 규칙 파일**
@@ -499,7 +501,7 @@ Expected: 중복 키 오류 없이 기동되고, `members`는 4행 그대로다.
 - `새 도메인은 member 도메인(Task 5 결과)을 견본으로 같은 구조, 같은 테스트 방식으로 만든다.`
 - `테스트 데이터는 src/test/java/.../support/Fixtures.java를 쓴다.`
 `CLAUDE.md`, `GEMINI.md`: `이 저장소의 규칙은 AGENTS.md를 따른다.` 한 줄.
-`README.md`: 실행 방법(MySQL 준비, `application-local.yml` 만들기, `bootRun`, `npm run dev`), 시드 계정과 공통 테스트 비밀번호, Swagger 주소, 브랜치·커밋 규칙.
+`README.md`: 실행 방법(MySQL 준비, STS 설정(JDK 21, Gradle 프로젝트 불러오기, UTF-8, Lombok, 자동 정렬 끄기), `application-local.yml` 만들기, Boot Dashboard 실행, `npm run dev`), 시드 계정과 공통 테스트 비밀번호, Swagger 주소, 브랜치·커밋 규칙.
 
 - [ ] **Step 5: Commit**
 
@@ -560,6 +562,6 @@ git commit -m "feat: 프론트 뼈대, 라우팅, 로그인·회원가입"
 ## 첫 주 완료 기준
 
 - `develop`에 Task 1~7이 모두 합쳐져 있고 CI가 초록색이다.
-- 5명 모두 자기 PC에서 `bootRun` + `npm run dev`로 시드 계정 로그인까지 된다.
+- 5명 모두 자기 PC에서 STS 서버 + `npm run dev`로 시드 계정 로그인까지 된다.
 - 각자 쓰는 AI 도구에서 superpowers 설치 여부를 확인했다(설계 문서 10장).
 - 둘째 주 시작 전에 각 담당이 로드맵을 보고 자기 도메인 계획을 `docs/superpowers/plans/`에 커밋한다.
