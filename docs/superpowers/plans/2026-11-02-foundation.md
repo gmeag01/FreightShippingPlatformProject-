@@ -27,6 +27,7 @@
 - 실행 환경: 배포 없이 각자 PC에서 백엔드는 STS(Boot Dashboard), 프론트는 `npm run dev`로 띄운다. STS는 `backend/`를 Existing Gradle Project로 불러오고, 워크스페이스 인코딩 UTF-8, Lombok 설치, 저장 시 자동 정렬 끔(형식은 `gradlew spotlessApply`가 맞춘다)
 - 브랜치: `main`, `develop` 보호. 작업은 `feat|fix|chore/<도메인>-<기능>` → `develop` PR(리뷰 1명 + CI 통과), Squash merge
 - 커밋 접두어: `feat:` `fix:` `refactor:` `test:` `docs:` `chore:`
+- `docs/`(설계 문서, 계획)는 팀 공통 기준이다. 작업 중에 고치지 않는다. 틀려서 구현이 막히는 경우에만 팀에 먼저 공유하고, 기능 PR과 분리한 별도 PR로 고친다. 사람마다 다른 값(DB 이름, 계정, IDE 설정)은 `application-local.yml` 같은 로컬 파일에 둔다. 새 도메인 계획 파일을 추가하는 것은 수정이 아니다
 - 완료 조건: `./gradlew spotlessApply test`, `npm run lint`, `npm run build` 통과
 
 ## 담당과 순서
@@ -497,9 +498,10 @@ Expected: 중복 키 오류 없이 기동되고, `members`는 4행 그대로다.
 
 - [ ] **Step 4: AI 규칙 파일**
 
-`AGENTS.md`: 설계 문서 10장의 AGENTS.md 초안을 그대로 옮기고, 아래 두 줄을 추가한다.
+`AGENTS.md`: 설계 문서 10장의 AGENTS.md 초안을 그대로 옮기고, 아래 세 줄을 추가한다.
 - `새 도메인은 member 도메인(Task 5 결과)을 견본으로 같은 구조, 같은 테스트 방식으로 만든다.`
 - `테스트 데이터는 src/test/java/.../support/Fixtures.java를 쓴다.`
+- `docs/는 팀 공통 기준이다. 작업 중에 고치지 말고, 고칠 필요가 있으면 팀에 먼저 공유한 뒤 별도 PR로 고친다.`
 `CLAUDE.md`, `GEMINI.md`: `이 저장소의 규칙은 AGENTS.md를 따른다.` 한 줄.
 `README.md`: 실행 방법(MySQL 준비, STS 설정(JDK 21, Gradle 프로젝트 불러오기, UTF-8, Lombok, 자동 정렬 끄기), `application-local.yml` 만들기, Boot Dashboard 실행, `npm run dev`), 시드 계정과 공통 테스트 비밀번호, Swagger 주소, 브랜치·커밋 규칙.
 
