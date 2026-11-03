@@ -472,8 +472,7 @@ git commit -am "feat: JWT 인증과 회원가입·로그인 견본 도메인"
 
 **Files:**
 - Create: `backend/src/main/resources/data.sql`
-- Create: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`
-- Modify: `README.md`
+- Modify: `AGENTS.md`, `README.md` (`AGENTS.md`, `CLAUDE.md`는 이미 저장소에 있다)
 
 **Interfaces:**
 - Consumes: Task 3 테이블 이름과 컬럼, Task 5 BCrypt
@@ -498,17 +497,17 @@ Expected: 중복 키 오류 없이 기동되고, `members`는 4행 그대로다.
 
 - [ ] **Step 4: AI 규칙 파일**
 
-`AGENTS.md`: 설계 문서 10장의 AGENTS.md 초안을 그대로 옮기고, 아래 세 줄을 추가한다.
+`AGENTS.md`: 이미 있는 파일(설계 문서 10장 초안 기반)에 아래 세 줄을 추가한다.
 - `새 도메인은 member 도메인(Task 5 결과)을 견본으로 같은 구조, 같은 테스트 방식으로 만든다.`
 - `테스트 데이터는 src/test/java/.../support/Fixtures.java를 쓴다.`
 - `docs/는 팀 공통 기준이다. 작업 중에 고치지 말고, 고칠 필요가 있으면 팀에 먼저 공유한 뒤 별도 PR로 고친다.`
-`CLAUDE.md`, `GEMINI.md`: `이 저장소의 규칙은 AGENTS.md를 따른다.` 한 줄.
+`CLAUDE.md`: 이미 `@AGENTS.md`로 AGENTS.md를 불러오므로 고치지 않는다. Codex, Copilot, Antigravity는 AGENTS.md를 직접 읽으므로 `GEMINI.md`는 두지 않는다.
 `README.md`: 실행 방법(MariaDB 준비, STS 설정(JDK 21, Gradle 프로젝트 불러오기, UTF-8, Lombok, 자동 정렬 끄기), `application-local.yml` 만들기, Boot Dashboard 실행, `npm run dev`), 시드 계정과 공통 테스트 비밀번호, Swagger 주소, 브랜치·커밋 규칙.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/main/resources/data.sql AGENTS.md CLAUDE.md GEMINI.md README.md
+git add backend/src/main/resources/data.sql AGENTS.md README.md
 git commit -m "chore: 시드 데이터, AI 규칙 파일, README"
 ```
 
