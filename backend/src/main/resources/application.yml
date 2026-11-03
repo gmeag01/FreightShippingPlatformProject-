@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: freight
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+
+app:
+  jwt:
+    validity: PT12H
+  order:
+    auto-confirm-hours: 24
+    driver-cancel-cutoff-hours: 2

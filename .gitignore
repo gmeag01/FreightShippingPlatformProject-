@@ -1,0 +1,22 @@
+# Backend
+backend/build/
+.gradle/
+**/application-local.yml
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+.project
+.classpath
+.settings/
+bin/
+.metadata/
+.sts4-cache/
+
+# Local
+.env*
+.claude/worktrees/
+.claude/settings.local.json

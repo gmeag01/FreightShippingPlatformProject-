@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:freight;MODE=MariaDB;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  sql:
+    init:
+      mode: never
+
+app:
+  jwt:
+    secret: test-secret-key-for-jwt-at-least-32-bytes-long
