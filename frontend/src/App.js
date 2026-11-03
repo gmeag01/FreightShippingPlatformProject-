@@ -3,6 +3,7 @@ import RequireRole from './auth/RequireRole';
 import { ROLE_HOME } from './auth/roles';
 import { useAuth } from './auth/useAuth';
 import AppLayout from './layouts/AppLayout';
+import DriverOrdersPage from './pages/DriverOrdersPage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -37,7 +38,7 @@ export default function App() {
       </Route>
 
       <Route element={protectedArea('DRIVER')}>
-        <Route path="/driver/orders" element={<PlaceholderPage title="의뢰 목록" />} />
+        <Route path="/driver/orders" element={<DriverOrdersPage />} />
         <Route path="/driver/jobs" element={<PlaceholderPage title="내 운송" />} />
         <Route path="/driver/vehicle" element={<PlaceholderPage title="내 차량" />} />
       </Route>
