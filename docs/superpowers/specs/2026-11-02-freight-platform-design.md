@@ -302,12 +302,13 @@ C가 만드는 `Order`와 상태 전이를 D와 E가 씁니다. 그래서 상태
 | --- | --- | --- |
 | `main` | 매주 끝날과 최종 발표 시점의 완성본 | 직접 push 금지. 아래 **배포 절차**대로 `release/<태그>` 브랜치를 거쳐 PR로 합치고, 합칠 때 `v0.1`, `v0.2` … 태그 |
 | `develop` | 팀 전체 작업을 모으는 통합 브랜치 | 직접 push 금지. PR + CI 통과 시에만 합침. 승인은 필수가 아니어서 올린 사람이 직접 합친다 |
-| `feat/<도메인>-<기능>` | 기능 개발 (예: `feat/order-create`, `feat/matching-accept`) | `develop`에서 따고 하루~이틀 안에 PR. 기능 하나씩 작게 나눈다 |
+| `feat/<도메인>-<기능>` | 기능 개발 (예: `feat/order-create`, `feat/matching-accept`) | `develop`에서 따고 첫 push 때 Draft PR을 연다. 같은 작업은 끝날 때까지 이 브랜치·PR에 커밋을 쌓고, 끝나면 Ready로 바꿔 합친다. 작업은 계획의 Task 크기로 나눈다 |
 | `fix/<내용>` | 버그 수정 | 위와 같음 |
-| `chore/<내용>` | 설정, 문서, 빌드 (예: `chore/archunit`) | 위와 같음 |
+| `chore/<내용>` | 설정, 빌드 (예: `chore/archunit`) | 위와 같음 |
+| `chore/docs-week<N>` | 그 주의 문서 수정 (예: `chore/docs-week1`) | 한 주의 문서 수정을 이 브랜치 하나, PR 하나에 모은다. 기능 PR에 문서 수정을 섞지 않는다 |
 | `release/<태그>` | `develop`을 `main`에 합치기 위한 배포용 브랜치 (예: `release/v0.1`) | `develop`에서 따고 배포 절차에서만 쓴다. 합친 뒤 삭제 |
 
-- **합치는 방식**: PR은 Squash merge로 합쳐 `develop` 이력을 기능 단위 한 줄씩으로 유지합니다. 합친 브랜치는 삭제합니다.
+- **합치는 방식**: PR은 Squash merge로 합쳐 `develop` 이력을 기능 단위 한 줄씩으로 유지합니다. 합친 브랜치는 삭제합니다. 수정할 때마다 새 브랜치·PR을 만들지 않고, 같은 작업의 열린 브랜치가 있으면 그 브랜치에 이어서 커밋합니다.
 - **충돌 줄이기**: 작업 전마다 `develop`을 받아 자기 브랜치에 합칩니다. `global` 폴더나 `ErrorCode`처럼 모두가 고치는 파일은 기능 PR과 분리해 작은 PR로 먼저 합칩니다.
 - **커밋 메시지**: `feat: 오더 등록 API 추가`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:` 접두어를 씁니다.
 - **GitHub 설정**: `main`과 `develop`에 브랜치 보호 규칙(PR 필수, 승인 0명, CI 통과 필수)을 겁니다. PR 템플릿에는 '무엇을 바꿨나 / 어떻게 확인했나 / 다른 도메인에 영향' 세 칸을 둡니다.
