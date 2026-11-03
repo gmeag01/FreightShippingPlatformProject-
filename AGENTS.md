@@ -48,5 +48,12 @@
 ## 작업 전후 확인
 - 커밋 전에 ./gradlew spotlessApply test 가 통과해야 한다.
 - 프론트는 npm run format 후 npm run lint, npm run build 가 통과해야 한다.
-- main, develop에 직접 push하지 않는다. 작업 브랜치에서 PR을 올리고, 승인은 필수가 아니므로 검사가 통과하면 올린 사람이 직접 합친다.
+
+## 브랜치와 PR
+- main, develop에 직접 push하지 않는다.
+- 작업(Task) 하나에 브랜치 하나, PR 하나만 쓴다. 수정할 때마다 새 브랜치나 새 PR을 만들지 않는다.
+- 새 브랜치를 만들기 전에 같은 작업의 브랜치나 열린 PR이 있는지 먼저 확인하고, 있으면 그 브랜치로 바꿔 이어서 커밋한다. (AI 도구가 세션마다 새 브랜치를 만들어도 기존 작업 브랜치로 옮겨서 한다.)
+- 첫 push 때 Draft PR을 열고(gh pr create --draft), 이후 커밋은 같은 브랜치에 push해 그 PR에 쌓는다.
+- 작업이 끝나면 PR을 Ready for review로 바꾸고, 검사가 통과하면 올린 사람이 Squash로 직접 합친다. 승인은 필수가 아니다.
+- 문서(docs/, AGENTS.md) 수정은 기능 PR에 섞지 않는다. 그 주의 문서 수정은 chore/docs-week<N> 브랜치 하나(PR 하나)에 모은다.
 - develop을 main으로 바로 PR하지 않는다. 배포는 설계 문서 9장 '배포 절차'(release/<태그> 브랜치 + git merge -s ours origin/main)대로만 한다.
