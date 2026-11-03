@@ -18,4 +18,3 @@ public class VehicleService {
         return vehicleRepository.findByDriverId(driverId);
     }
 }
-

@@ -9,8 +9,8 @@ import NotFoundPage from './pages/NotFoundPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import SignupPage from './pages/SignupPage';
 
-// 화면은 설계 문서 6장 기준. 로그인·회원가입 외에는 담당 도메인이 채울 자리 표시 페이지다.
-function protectedArea(role) {
+// 그 역할만 들어갈 수 있는 화면 묶음을 만든다. 안쪽 화면은 공통 머리말(AppLayout) 아래에 그려진다.
+function renderRoleArea(role) {
   return (
     <RequireRole role={role}>
       <AppLayout />
@@ -18,12 +18,14 @@ function protectedArea(role) {
   );
 }
 
+// 첫 주소(/)로 들어오면 로그인했을 때는 역할별 첫 화면, 아니면 로그인 화면으로 보낸다.
 function RootRedirect() {
-  const { me, loading } = useAuth();
-  if (loading) return null;
+  const { me, isLoading } = useAuth();
+  if (isLoading) return null;
   return <Navigate to={me ? ROLE_HOME[me.role] : '/login'} replace />;
 }
 
+// 화면 주소 목록(설계 문서 6장). 로그인·회원가입 외에는 담당 도메인이 채울 자리 표시 페이지다.
 export default function App() {
   return (
     <Routes>
@@ -31,19 +33,19 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
 
-      <Route element={protectedArea('SHIPPER')}>
+      <Route element={renderRoleArea('SHIPPER')}>
         <Route path="/shipper/orders" element={<PlaceholderPage title="내 오더" />} />
         <Route path="/shipper/orders/new" element={<PlaceholderPage title="오더 등록" />} />
         <Route path="/shipper/orders/:id" element={<PlaceholderPage title="오더 상세" />} />
       </Route>
 
-      <Route element={protectedArea('DRIVER')}>
+      <Route element={renderRoleArea('DRIVER')}>
         <Route path="/driver/orders" element={<DriverOrdersPage />} />
         <Route path="/driver/jobs" element={<PlaceholderPage title="내 운송" />} />
         <Route path="/driver/vehicle" element={<PlaceholderPage title="내 차량" />} />
       </Route>
 
-      <Route element={protectedArea('ADMIN')}>
+      <Route element={renderRoleArea('ADMIN')}>
         <Route path="/admin" element={<PlaceholderPage title="관리자 대시보드" />} />
         <Route path="/admin/orders" element={<PlaceholderPage title="오더 관리" />} />
         <Route path="/admin/disputes" element={<PlaceholderPage title="분쟁 처리" />} />

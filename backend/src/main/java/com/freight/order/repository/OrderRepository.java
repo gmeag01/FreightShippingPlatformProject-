@@ -13,4 +13,3 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findByStatusAndRequiredVehicleTypeOrderByPickupAtAsc(
             OrderStatus status, VehicleType requiredVehicleType, Pageable pageable);
 }
-

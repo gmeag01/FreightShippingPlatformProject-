@@ -19,4 +19,3 @@ public class MemberService {
         return memberRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
     }
 }
-

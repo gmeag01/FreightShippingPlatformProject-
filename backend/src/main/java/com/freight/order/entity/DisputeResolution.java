@@ -4,4 +4,3 @@ public enum DisputeResolution {
     PAY_DRIVER,
     REFUND_SHIPPER
 }
-

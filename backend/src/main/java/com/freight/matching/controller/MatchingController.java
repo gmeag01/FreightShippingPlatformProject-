@@ -21,6 +21,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 차주(DRIVER)가 열린 의뢰 목록을 조회하고 오더를 수락하거나 배차를 취소하는 컨트롤러.
+ */
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
@@ -28,6 +31,9 @@ public class MatchingController {
 
     private final MatchingService matchingService;
 
+    /**
+     * 배차 전(REGISTERED) 상태의 열린 의뢰 목록을 차종 필터와 페이지 번호로 조회한다.
+     */
     @GetMapping("/open")
     @PreAuthorize("hasRole('DRIVER')")
     public ApiResponse<Page<OpenOrderResponse>> listOpenOrders(
@@ -35,6 +41,9 @@ public class MatchingController {
         return ApiResponse.ok(matchingService.listOpenOrders(vehicleType, page));
     }
 
+    /**
+     * 차주가 오더를 수락하여 배차(ASSIGNED)받는다.
+     */
     @PostMapping("/{id}/accept")
     @PreAuthorize("hasRole('DRIVER')")
     public ApiResponse<AcceptOrderResponse> acceptOrder(
@@ -44,6 +53,9 @@ public class MatchingController {
         return ApiResponse.ok(matchingService.acceptOrder(id, me.id(), request));
     }
 
+    /**
+     * 배정된 차주가 상차 희망 시각 2시간 전까지 사유를 입력해 배차를 취소한다.
+     */
     @PostMapping("/{id}/cancel-assignment")
     @PreAuthorize("hasRole('DRIVER')")
     public ApiResponse<Void> cancelAssignment(

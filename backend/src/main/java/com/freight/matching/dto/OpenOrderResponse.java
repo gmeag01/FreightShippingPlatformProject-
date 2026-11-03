@@ -41,4 +41,3 @@ public record OpenOrderResponse(
                 order.getDistanceKm());
     }
 }
-

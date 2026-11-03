@@ -17,4 +17,3 @@ public record OrderSpec(
         long fare,
         long recommendedFare,
         double distanceKm) {}
-

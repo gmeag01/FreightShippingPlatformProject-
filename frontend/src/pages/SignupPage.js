@@ -2,46 +2,61 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as authApi from '../api/auth';
 
-const ROLE_OPTIONS = [
+// 화면에서 고를 수 있는 가입 유형. 관리자(ADMIN) 계정은 시드 데이터로만 만들기 때문에 넣지 않는다.
+const SIGNUP_ROLE_OPTIONS = [
   { value: 'SHIPPER', label: '화주' },
   { value: 'DRIVER', label: '차주' },
 ];
 
-const FIELDS = [
+// 입력 칸 목록. name은 서버 SignupRequest의 필드 이름과 같아야 서버의 필드별 오류를 칸 아래에 보여 줄 수 있다.
+const SIGNUP_INPUT_FIELDS = [
   { name: 'email', label: '이메일', type: 'email' },
   { name: 'password', label: '비밀번호', type: 'password' },
   { name: 'name', label: '이름', type: 'text' },
   { name: 'phone', label: '연락처', type: 'tel' },
 ];
 
+const INITIAL_SIGNUP_FORM = {
+  email: '',
+  password: '',
+  name: '',
+  phone: '',
+  role: 'SHIPPER',
+};
+
+// 회원가입 화면. 가입에 성공하면 로그인 화면으로 보내고, 실패하면 전체 오류와 칸별 오류를 보여 준다.
 export default function SignupPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    email: '',
-    password: '',
-    name: '',
-    phone: '',
-    role: 'SHIPPER',
-  });
-  const [error, setError] = useState('');
+  const [signupForm, setSignupForm] = useState(INITIAL_SIGNUP_FORM);
+  const [errorMessage, setErrorMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  // 입력 칸의 name 속성으로 어느 값을 바꿀지 정한다.
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setSignupForm({ ...signupForm, [name]: value });
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+  const clearErrors = () => {
+    setErrorMessage('');
     setFieldErrors({});
-    setSubmitting(true);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    clearErrors();
+    setIsSubmitting(true);
     try {
-      await authApi.signup(form);
+      await authApi.signup(signupForm);
+      // 가입 직후에는 로그인 화면에서 '가입이 완료됐습니다' 안내를 띄운다.
       navigate('/login', { replace: true, state: { signedUp: true } });
-    } catch (err) {
-      setError(err.message);
-      setFieldErrors(err.fieldErrors);
+    } catch (signupError) {
+      // 입력 검증 실패(INVALID_INPUT)면 서버가 fieldErrors에 칸별 메시지를 담아 보낸다.
+      setErrorMessage(signupError.message);
+      setFieldErrors(signupError.fieldErrors);
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -52,47 +67,54 @@ export default function SignupPage() {
         onSubmit={handleSubmit}
       >
         <h1 className="text-2xl font-bold">회원가입</h1>
+
         <fieldset>
           <legend className="mb-2">가입 유형</legend>
           <div className="flex gap-6">
-            {ROLE_OPTIONS.map((option) => (
-              <label key={option.value} className="flex items-center gap-1.5">
+            {SIGNUP_ROLE_OPTIONS.map((roleOption) => (
+              <label key={roleOption.value} className="flex items-center gap-1.5">
                 <input
                   type="radio"
                   name="role"
-                  value={option.value}
-                  checked={form.role === option.value}
-                  onChange={handleChange}
+                  value={roleOption.value}
+                  checked={signupForm.role === roleOption.value}
+                  onChange={handleInputChange}
                 />
-                {option.label}
+                {roleOption.label}
               </label>
             ))}
           </div>
         </fieldset>
-        {FIELDS.map((field) => (
-          <label key={field.name} className="block">
-            {field.label}
+
+        {SIGNUP_INPUT_FIELDS.map((inputField) => (
+          <label key={inputField.name} className="block">
+            {inputField.label}
             <input
-              name={field.name}
-              type={field.type}
-              value={form[field.name]}
-              onChange={handleChange}
+              name={inputField.name}
+              type={inputField.type}
+              value={signupForm[inputField.name]}
+              onChange={handleInputChange}
               required
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
             />
-            {fieldErrors[field.name] && (
-              <span className="mt-1 block text-sm text-red-600">{fieldErrors[field.name]}</span>
+            {fieldErrors[inputField.name] && (
+              <span className="mt-1 block text-sm text-red-600">
+                {fieldErrors[inputField.name]}
+              </span>
             )}
           </label>
         ))}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+
+        {errorMessage && <p className="text-sm text-red-600">{errorMessage}</p>}
+
         <button
           type="submit"
-          disabled={submitting}
+          disabled={isSubmitting}
           className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-60"
         >
           가입하기
         </button>
+
         <p className="text-gray-500">
           이미 계정이 있으면{' '}
           <Link to="/login" className="text-blue-600 underline">

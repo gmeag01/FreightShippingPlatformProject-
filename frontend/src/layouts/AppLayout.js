@@ -2,7 +2,9 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { ROLE_LABEL } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
 
-const MENUS = {
+// 역할별 상단 메뉴(설계 문서 6장). end가 true면 주소가 정확히 같을 때만 선택된 메뉴로 보인다.
+// (예: '/shipper/orders/new'에 있을 때 '내 오더'까지 선택되어 보이지 않게 한다.)
+const ROLE_MENUS = {
   SHIPPER: [
     { to: '/shipper/orders', label: '내 오더', end: true },
     { to: '/shipper/orders/new', label: '오더 등록' },
@@ -21,6 +23,8 @@ const MENUS = {
   ],
 };
 
+// 로그인한 뒤의 공통 화면 틀. 머리말(역할, 이름, 로그아웃, 메뉴) 아래에 각 화면(Outlet)을 그린다.
+// RequireRole 안에서만 쓰므로 me는 항상 있다.
 export default function AppLayout() {
   const { me, logout } = useAuth();
   const navigate = useNavigate();
@@ -48,16 +52,16 @@ export default function AppLayout() {
           </button>
         </div>
         <nav className="flex w-full flex-wrap gap-x-4 gap-y-1">
-          {MENUS[me.role].map((menu) => (
+          {ROLE_MENUS[me.role].map((menuItem) => (
             <NavLink
-              key={menu.to}
-              to={menu.to}
-              end={menu.end}
+              key={menuItem.to}
+              to={menuItem.to}
+              end={menuItem.end}
               className={({ isActive }) =>
                 isActive ? 'font-semibold text-blue-600' : 'text-gray-500 hover:text-gray-900'
               }
             >
-              {menu.label}
+              {menuItem.label}
             </NavLink>
           ))}
         </nav>
