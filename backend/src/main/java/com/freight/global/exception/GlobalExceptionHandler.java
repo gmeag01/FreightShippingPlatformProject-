@@ -25,7 +25,11 @@ public class GlobalExceptionHandler {
     /** 업무 규칙 위반: 예외에 담긴 오류 코드의 상태와 메시지를 그대로 돌려준다. */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusiness(BusinessException exception) {
-        return toResponse(exception.getErrorCode());
+        ErrorCode code = exception.getErrorCode();
+        if (exception.getDetails() != null) {
+            return ResponseEntity.status(code.getStatus()).body(ApiResponse.fail(code, exception.getDetails()));
+        }
+        return toResponse(code);
     }
 
     /** @Valid 검증 실패: 어떤 필드가 왜 틀렸는지 fieldErrors에 담아 400으로 돌려준다. */
