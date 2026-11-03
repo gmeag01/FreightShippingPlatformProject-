@@ -20,7 +20,7 @@
 3. STS에 Lombok 설치 (lombok.jar 실행 후 STS 설치 경로 선택)
 4. 저장 시 자동 정렬은 끈다. 코드 형식은 커밋 전에 `gradlew spotlessApply`로 맞춘다
 5. File → Import → Existing Gradle Project → `backend` 폴더
-6. MariaDB에 DB와 계정을 만들고 `backend/src/main/resources/application-local.example.yml`을 복사해 `application-local.yml`을 만든 뒤 값을 채운다 (Git에 올라가지 않음)
+6. MariaDB에 DB와 계정을 만들고 `backend/src/main/resources/application-local.example.properties`를 복사해 `application-local.properties`를 만든 뒤 값을 채운다 (Git에 올라가지 않음)
 7. Boot Dashboard에서 `freight` → Start (또는 `cd backend && ./gradlew bootRun`)
 
 ## 커밋 전 확인
