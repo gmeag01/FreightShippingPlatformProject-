@@ -389,6 +389,20 @@ git push -u origin release/v0.1
 - DTO: <동작><대상>Request / <대상>Response (예: CreateOrderRequest, OrderResponse)
 - 테이블·컬럼: snake_case, 엔티티 필드: camelCase
 
+## 코드 스타일과 주석
+처음 보는 팀원도 읽고 이해할 수 있는 코드를 우선한다. 짧게 줄인 코드보다 이름과 구조로 의도가 드러나는 코드를 쓴다.
+- 이름: 줄임말 대신 뜻이 드러나는 이름을 쓴다(cnt → count, ord → order). boolean은 is/has/can으로, 메서드·함수는 동사로 시작한다.
+- 한 메서드(함수)는 한 가지 일만 한다. 30줄쯤 넘거나 단계가 여러 개면 이름 있는 작은 메서드로 나눈다.
+- 중첩은 2단계까지만 둔다. 예외·잘못된 입력은 먼저 검사하고 바로 return/throw 한다.
+- 의미 있는 숫자·문자열은 상수나 enum으로 둔다(예: 24 → AUTO_CONFIRM_HOURS).
+- 주석은 한국어로 쓴다.
+- 클래스, public 메서드(controller, service, 엔티티 상태 전이), React 컴포넌트·훅 위에는 무엇을 하는지 한두 줄 기능 주석을 단다. Java는 /** */, JS는 //.
+- 코드만 보고 알기 어려운 '왜'를 주석으로 남긴다: 업무 규칙, 예외 처리 이유, 설계 문서 근거(예: // 설계 문서 3장: 상차 2시간 전부터는 차주가 직접 취소할 수 없다).
+- 코드를 그대로 읽어 주는 주석(// i를 1 증가)은 쓰지 않는다. 코드를 바꾸면 그 주석도 같이 고친다.
+- 할 일은 // TODO(담당): 내용 형식으로 남긴다(예: // TODO(E): 분쟁 사유 길이 제한).
+- 테스트 이름은 무엇을 확인하는지 드러나게 짓는다(예: startTransit_byOtherDriver_fails).
+- 줄 바꿈·들여쓰기는 Spotless(백엔드)와 Prettier(프론트)가 맞추므로 손으로 맞추지 않는다.
+
 ## superpowers
 - 설계 기준은 docs/superpowers/specs/2026-11-02-freight-platform-design.md 다. 기능별 브레인스토밍은 이 문서가 비워 둔 부분만 정한다.
 - 계획은 docs/superpowers/plans/ 에 커밋한다.
