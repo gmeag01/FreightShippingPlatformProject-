@@ -14,7 +14,7 @@
 
 ## Global Constraints
 
-- 패키지: `com.example.freight.<도메인>.{controller,service,repository,entity,dto}`, 공통은 `com.example.freight.global`
+- 패키지: `com.freight.<도메인>.{controller,service,repository,entity,dto}`, 공통은 `com.freight.global`
 - 도메인: member, vehicle, fare, order, matching, delivery, payment
 - 다른 도메인의 repository를 직접 쓰지 않는다. 그 도메인의 service를 호출한다.
 - 오더 상태는 `Order`의 상태 전이 메서드로만 바꾼다. `setStatus`는 만들지 않는다.
@@ -22,12 +22,12 @@
 - 예외는 `BusinessException(ErrorCode)`, 오류 코드는 `global/exception/ErrorCode` 한 곳
 - API 경로 `/api/<복수형 자원>`, 관리자 `/api/admin/**`(ADMIN만). DTO 이름 `<동작><대상>Request` / `<대상>Response`
 - 테이블·컬럼 snake_case, 엔티티 필드 camelCase
-- 비밀번호·API 키는 커밋하지 않는다. `application-local.yml`은 `.gitignore`, `application-local.example.yml`만 공유
+- 비밀번호·API 키는 커밋하지 않는다. `application-local.properties`는 `.gitignore`, `application-local.example.properties`만 공유
 - 로컬 DB: MariaDB, DB 이름 `freight`, 계정 `freight`. `ddl-auto: update`, 시드는 `data.sql`
 - 실행 환경: 배포 없이 각자 PC에서 백엔드는 STS(Boot Dashboard), 프론트는 `npm run dev`로 띄운다. STS는 `backend/`를 Existing Gradle Project로 불러오고, 워크스페이스 인코딩 UTF-8, Lombok 설치, 저장 시 자동 정렬 끔(형식은 `gradlew spotlessApply`가 맞춘다)
 - 브랜치: `main`, `develop` 보호. 작업은 `feat|fix|chore/<도메인>-<기능>` → `develop` PR(CI 통과, 승인 필수 아님), Squash merge. `main` 배포는 설계 문서 9장 '배포 절차'대로 `release/<태그>` 브랜치를 거친다
 - 커밋 접두어: `feat:` `fix:` `refactor:` `test:` `docs:` `chore:`
-- `docs/`(설계 문서, 계획)는 팀 공통 기준이다. 작업 중에 고치지 않는다. 틀려서 구현이 막히는 경우에만 팀에 먼저 공유하고, 기능 PR과 분리한 별도 PR로 고친다. 사람마다 다른 값(DB 이름, 계정, IDE 설정)은 `application-local.yml` 같은 로컬 파일에 둔다. 새 도메인 계획 파일을 추가하는 것은 수정이 아니다
+- `docs/`(설계 문서, 계획)는 팀 공통 기준이다. 작업 중에 고치지 않는다. 틀려서 구현이 막히는 경우에만 팀에 먼저 공유하고, 기능 PR과 분리한 별도 PR로 고친다. 사람마다 다른 값(DB 이름, 계정, IDE 설정)은 `application-local.properties` 같은 로컬 파일에 둔다. 새 도메인 계획 파일을 추가하는 것은 수정이 아니다
 - 완료 조건: `./gradlew spotlessApply test`, `npm run lint`, `npm run build` 통과
 
 ## 담당과 순서
@@ -61,11 +61,11 @@ Task 2·3·7은 동시에, 그다음 4·5를 동시에 진행한다. 각 Task는
 **Files:**
 - Create: `.gitignore`, `README.md`
 - Create: `backend/settings.gradle`, `backend/build.gradle`, Gradle wrapper
-- Create: `backend/src/main/java/com/example/freight/FreightApplication.java`
-- Create: `backend/src/main/resources/application.yml`, `application-local.example.yml`
-- Create: `backend/src/test/resources/application-test.yml`
-- Create: `backend/src/test/java/com/example/freight/FreightApplicationTests.java`
-- Create: `backend/src/test/java/com/example/freight/ArchitectureTest.java`
+- Create: `backend/src/main/java/com/freight/FreightApplication.java`
+- Create: `backend/src/main/resources/application.properties`, `application-local.example.properties`
+- Create: `backend/src/test/resources/application-test.properties`
+- Create: `backend/src/test/java/com/freight/FreightApplicationTests.java`
+- Create: `backend/src/test/java/com/freight/ArchitectureTest.java`
 - Create: `.github/workflows/ci.yml`, `.github/pull_request_template.md`
 
 **Interfaces:**
@@ -74,11 +74,11 @@ Task 2·3·7은 동시에, 그다음 4·5를 동시에 진행한다. 각 Task는
 
 - [ ] **Step 1: 저장소와 브랜치 규칙**
 
-GitHub 저장소를 만들고 `main`에서 `develop`을 딴다. 두 브랜치에 보호 규칙(PR 필수, 승인 0명, CI 통과 필수)을 건다. `.gitignore`에 `backend/build/`, `.gradle/`, `**/application-local.yml`, `frontend/node_modules/`, `frontend/dist/`, `.idea/`, `.env*`와 STS(Eclipse) 파일 `.project`, `.classpath`, `.settings/`, `bin/`, `.metadata/`, `.sts4-cache/`를 넣는다.
+GitHub 저장소를 만들고 `main`에서 `develop`을 딴다. 두 브랜치에 보호 규칙(PR 필수, 승인 0명, CI 통과 필수)을 건다. `.gitignore`에 `backend/build/`, `.gradle/`, `**/application-local.properties`, `frontend/node_modules/`, `frontend/dist/`, `.idea/`, `.env*`와 STS(Eclipse) 파일 `.project`, `.classpath`, `.settings/`, `bin/`, `.metadata/`, `.sts4-cache/`를 넣는다.
 
 - [ ] **Step 2: Spring Initializr로 `backend/` 생성**
 
-Gradle - Groovy, Java 21, Spring Boot 3.5.x 최신 패치, group `com.example`, artifact `freight`, package `com.example.freight`. 의존성: Web, Validation, Data JPA, Security, MariaDB Driver, Lombok. 추가로 `build.gradle`에 넣는다:
+Gradle - Groovy, Java 21, Spring Boot 3.5.x 최신 패치, group `com.freight`, artifact `freight`, package `com.freight`. 의존성: Web, Validation, Data JPA, Security, MariaDB Driver, Lombok. 추가로 `build.gradle`에 넣는다:
 - `org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.x`
 - `io.jsonwebtoken:jjwt-api:0.12.x`, `jjwt-impl`, `jjwt-jackson`(runtimeOnly)
 - testImplementation `com.h2database:h2`, `com.tngtech.archunit:archunit-junit5:1.3.x`, `org.springframework.security:spring-security-test`
@@ -88,14 +88,14 @@ Gradle - Groovy, Java 21, Spring Boot 3.5.x 최신 패치, group `com.example`, 
 
 - [ ] **Step 3: 설정 파일**
 
-`application.yml`: `spring.profiles.default: local`, `spring.jpa.open-in-view: false`, `app.jwt.validity: PT12H`, `app.order.auto-confirm-hours: 24`, `app.order.driver-cancel-cutoff-hours: 2`.
-`application-local.example.yml`: `jdbc:mariadb://localhost:3306/freight`, 계정 `freight` / `<비밀번호>`, `ddl-auto: update`, `spring.sql.init.mode: always`, `spring.jpa.defer-datasource-initialization: true`, `app.jwt.secret: <32바이트 이상 임의 문자열>`, `app.kakao.rest-api-key: <키>`.
-`application-test.yml`: `jdbc:h2:mem:freight;MODE=MariaDB;DATABASE_TO_LOWER=TRUE`, `ddl-auto: create-drop`, `spring.sql.init.mode: never`, 테스트용 `app.jwt.secret`.
+`application.properties`: `spring.profiles.default=local`, `spring.jpa.open-in-view=false`, `app.jwt.validity=PT12H`, `app.order.auto-confirm-hours=24`, `app.order.driver-cancel-cutoff-hours=2`.
+`application-local.example.properties`: `jdbc:mariadb://localhost:3306/freight`, 계정 `freight` / `<비밀번호>`, `ddl-auto=update`, `spring.sql.init.mode=always`, `spring.jpa.defer-datasource-initialization=true`, `app.jwt.secret=<32바이트 이상 임의 문자열>`, `app.kakao.rest-api-key=<키>`.
+`application-test.properties`: `jdbc:h2:mem:freight;MODE=MariaDB;DATABASE_TO_LOWER=TRUE`, `ddl-auto=create-drop`, `spring.sql.init.mode=never`, 테스트용 `app.jwt.secret`.
 
 - [ ] **Step 4: 아키텍처 테스트 작성**
 
 ```java
-@AnalyzeClasses(packages = "com.example.freight", importOptions = ImportOption.DoNotIncludeTests.class)
+@AnalyzeClasses(packages = "com.freight", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
     static final String[] DOMAINS = {"member", "vehicle", "fare", "order", "matching", "delivery", "payment"};
 
@@ -145,7 +145,7 @@ git commit -m "chore: 백엔드 뼈대, 아키텍처 테스트, CI 설정"
 - Create: `global/exception/ErrorCode.java`, `BusinessException.java`, `GlobalExceptionHandler.java`
 - Test: `global/exception/GlobalExceptionHandlerTest.java` (테스트 전용 컨트롤러 포함)
 
-(경로는 `backend/src/main/java/com/example/freight/` 기준, 테스트는 `backend/src/test/java/com/example/freight/` 기준. 이후 Task도 같다.)
+(경로는 `backend/src/main/java/com/freight/` 기준, 테스트는 `backend/src/test/java/com/freight/` 기준. 이후 Task도 같다.)
 
 **Interfaces:**
 - Produces: `record ApiResponse<T>(boolean success, T data, ErrorBody error)`, `static <T> ApiResponse<T> ok(T data)`, `static ApiResponse<Void> fail(ErrorCode code)`, `static ApiResponse<Void> fail(ErrorCode code, Map<String, String> fieldErrors)`. `record ErrorBody(String code, String message, Map<String, String> fieldErrors)`(fieldErrors는 없으면 null, JSON에서 생략)
@@ -282,7 +282,7 @@ git commit -am "feat: 공통 응답 형식, 오류 코드, 전역 예외 처리"
 }
 ```
 
-테스트 데이터 만드는 코드는 `src/test/java/com/example/freight/support/Fixtures.java`에 정적 메서드로 둔다(`shipper()`, `driver()`, `admin()`, `vehicle(Member, VehicleType)`, `registeredOrder(Member shipper)`). 이후 모든 도메인이 이것을 쓴다.
+테스트 데이터 만드는 코드는 `src/test/java/com/freight/support/Fixtures.java`에 정적 메서드로 둔다(`shipper()`, `driver()`, `admin()`, `vehicle(Member, VehicleType)`, `registeredOrder(Member shipper)`). 이후 모든 도메인이 이것을 쓴다.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -486,7 +486,7 @@ git commit -am "feat: JWT 인증과 회원가입·로그인 견본 도메인"
 
 - [ ] **Step 2: 로컬 실행 확인**
 
-로컬 MariaDB에 `freight` DB와 계정을 만들고 `application-local.yml`을 채운다.
+로컬 MariaDB에 `freight` DB와 계정을 만들고 `application-local.properties`를 채운다.
 Run: STS Boot Dashboard에서 `freight` Start (또는 `./gradlew bootRun`)
 Expected: 기동 성공. `shipper1@freight.test`로 `POST /api/auth/login`이 200을 돌려준다.
 
@@ -502,7 +502,7 @@ Expected: 중복 키 오류 없이 기동되고, `members`는 4행 그대로다.
 - `테스트 데이터는 src/test/java/.../support/Fixtures.java를 쓴다.`
 - `docs/는 팀 공통 기준이다. 작업 중에 고치지 말고, 고칠 필요가 있으면 팀에 먼저 공유한 뒤 별도 PR로 고친다.`
 `CLAUDE.md`: 이미 `@AGENTS.md`로 AGENTS.md를 불러오므로 고치지 않는다. Codex, Copilot, Antigravity는 AGENTS.md를 직접 읽으므로 `GEMINI.md`는 두지 않는다.
-`README.md`: 실행 방법(MariaDB 준비, STS 설정(JDK 21, Gradle 프로젝트 불러오기, UTF-8, Lombok, 자동 정렬 끄기), `application-local.yml` 만들기, Boot Dashboard 실행, `npm run dev`), 시드 계정과 공통 테스트 비밀번호, Swagger 주소, 브랜치·커밋 규칙.
+`README.md`: 실행 방법(MariaDB 준비, STS 설정(JDK 21, Gradle 프로젝트 불러오기, UTF-8, Lombok, 자동 정렬 끄기), `application-local.properties` 만들기, Boot Dashboard 실행, `npm run dev`), 시드 계정과 공통 테스트 비밀번호, Swagger 주소, 브랜치·커밋 규칙.
 
 - [ ] **Step 5: Commit**
 

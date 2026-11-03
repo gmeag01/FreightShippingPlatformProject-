@@ -15,7 +15,7 @@
 - 역할: SHIPPER(화주), DRIVER(차주), ADMIN(관리자).
 
 ## 패키지 구조
-- com.example.freight.<도메인>.{controller,service,repository,entity,dto}
+- com.freight.<도메인>.{controller,service,repository,entity,dto}
 - 도메인: member, vehicle, fare, order, matching, delivery, payment. 공통은 global.
 - 새 도메인 코드는 member 도메인을 견본으로 같은 모양으로 만든다.
 
