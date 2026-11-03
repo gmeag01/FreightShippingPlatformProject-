@@ -31,25 +31,38 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <strong className="app-title">화물운송플랫폼</strong>
-        <div className="app-user">
-          <span className="role-badge">{ROLE_LABEL[me.role]}</span>
-          <span className="user-name">{me.name}</span>
-          <button type="button" className="button-secondary" onClick={handleLogout}>
+    <div>
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-200 bg-white px-4 py-3">
+        <strong>화물운송플랫폼</strong>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-sm">
+            {ROLE_LABEL[me.role]}
+          </span>
+          <span>{me.name}</span>
+          <button
+            type="button"
+            className="rounded-md border border-gray-300 bg-white px-3 py-1 hover:bg-gray-50"
+            onClick={handleLogout}
+          >
             로그아웃
           </button>
         </div>
-        <nav className="app-nav">
+        <nav className="flex w-full flex-wrap gap-x-4 gap-y-1">
           {MENUS[me.role].map((menu) => (
-            <NavLink key={menu.to} to={menu.to} end={menu.end}>
+            <NavLink
+              key={menu.to}
+              to={menu.to}
+              end={menu.end}
+              className={({ isActive }) =>
+                isActive ? 'font-semibold text-blue-600' : 'text-gray-500 hover:text-gray-900'
+              }
+            >
               {menu.label}
             </NavLink>
           ))}
         </nav>
       </header>
-      <main className="app-main">
+      <main className="mx-auto max-w-5xl px-4 py-5">
         <Outlet />
       </main>
     </div>

@@ -46,26 +46,31 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="center-page">
-      <form className="card" onSubmit={handleSubmit}>
-        <h1>회원가입</h1>
-        <fieldset className="role-select">
-          <legend>가입 유형</legend>
-          {ROLE_OPTIONS.map((option) => (
-            <label key={option.value}>
-              <input
-                type="radio"
-                name="role"
-                value={option.value}
-                checked={form.role === option.value}
-                onChange={handleChange}
-              />
-              {option.label}
-            </label>
-          ))}
+    <main className="flex min-h-screen items-center justify-center p-4">
+      <form
+        className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6"
+        onSubmit={handleSubmit}
+      >
+        <h1 className="text-2xl font-bold">회원가입</h1>
+        <fieldset>
+          <legend className="mb-2">가입 유형</legend>
+          <div className="flex gap-6">
+            {ROLE_OPTIONS.map((option) => (
+              <label key={option.value} className="flex items-center gap-1.5">
+                <input
+                  type="radio"
+                  name="role"
+                  value={option.value}
+                  checked={form.role === option.value}
+                  onChange={handleChange}
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
         </fieldset>
         {FIELDS.map((field) => (
-          <label key={field.name}>
+          <label key={field.name} className="block">
             {field.label}
             <input
               name={field.name}
@@ -73,16 +78,26 @@ export default function SignupPage() {
               value={form[field.name]}
               onChange={handleChange}
               required
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
             />
-            {fieldErrors[field.name] && <span className="error">{fieldErrors[field.name]}</span>}
+            {fieldErrors[field.name] && (
+              <span className="mt-1 block text-sm text-red-600">{fieldErrors[field.name]}</span>
+            )}
           </label>
         ))}
-        {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={submitting}>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-60"
+        >
           가입하기
         </button>
-        <p className="muted">
-          이미 계정이 있으면 <Link to="/login">로그인</Link>
+        <p className="text-gray-500">
+          이미 계정이 있으면{' '}
+          <Link to="/login" className="text-blue-600 underline">
+            로그인
+          </Link>
         </p>
       </form>
     </main>

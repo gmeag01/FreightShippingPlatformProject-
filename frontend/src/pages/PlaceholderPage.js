@@ -2,8 +2,8 @@
 export default function PlaceholderPage({ title }) {
   return (
     <section>
-      <h1>{title}</h1>
-      <p className="muted">준비 중인 화면입니다.</p>
+      <h1 className="mb-4 text-2xl font-bold">{title}</h1>
+      <p className="text-gray-500">준비 중인 화면입니다.</p>
     </section>
   );
 }

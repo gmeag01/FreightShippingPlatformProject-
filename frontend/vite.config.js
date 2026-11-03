@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, transformWithOxc } from 'vite';
 
@@ -24,7 +25,7 @@ function jsxInJs() {
 }
 
 export default defineConfig({
-  plugins: [jsxInJs(), react()],
+  plugins: [jsxInJs(), react(), tailwindcss()],
   optimizeDeps: {
     rolldownOptions: {
       moduleTypes: { '.js': 'jsx' },
