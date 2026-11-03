@@ -11,7 +11,7 @@
 | 폴더 | 내용 |
 | --- | --- |
 | `backend/` | Spring Boot 3.5 / Java 21 / Gradle |
-| `frontend/` | React + Vite (Task 7에서 추가) |
+| `frontend/` | React 19 + Vite + Tailwind CSS (컴포넌트 파일은 `.js`) |
 
 ## 백엔드 로컬 실행 (STS)
 
@@ -23,10 +23,20 @@
 6. MariaDB에 DB와 계정을 만들고 `backend/src/main/resources/application-local.example.properties`를 복사해 `application-local.properties`를 만든 뒤 값을 채운다 (Git에 올라가지 않음)
 7. Boot Dashboard에서 `freight` → Start (또는 `cd backend && ./gradlew bootRun`)
 
+## 프론트 로컬 실행
+
+1. Node.js 20.19 이상 설치
+2. `cd frontend && npm install`
+3. 백엔드를 띄운 상태에서 `npm run dev` → http://localhost:5173 (`/api` 요청은 `localhost:8080`으로 전달)
+
 ## 커밋 전 확인
 
 ```bash
 cd backend && ./gradlew spotlessApply test
 ```
 
-시드 계정, Swagger 주소, 프론트 실행 방법은 이후 작업(Task 6, 7)에서 추가합니다.
+```bash
+cd frontend && npm run format && npm run lint && npm run build
+```
+
+시드 계정과 Swagger 주소는 이후 작업(Task 6)에서 추가합니다.
