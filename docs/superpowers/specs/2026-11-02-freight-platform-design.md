@@ -246,9 +246,9 @@ com.freight
 
 **로컬 실행 환경**
 
-- 각자 PC에 MariaDB를 설치하고 DB 이름과 계정을 똑같이 맞춘다(예: `freight` / `freight`). 접속 정보는 `application-local.yml`에 둡니다.
+- 각자 PC에 MariaDB를 설치하고 DB 이름과 계정을 똑같이 맞춘다(예: `freight` / `freight`). 접속 정보는 `application-local.properties`에 둡니다.
 - 테이블은 JPA가 만든다(`ddl-auto: update`). 테스트 데이터(화주·차주·관리자 계정, 단가표, 샘플 오더)는 `data.sql`로 Git에 올린다.
-- 외부 API 키는 Git에 올리지 않는다. `application-local.yml`은 `.gitignore`에 넣고, `application-local.example.yml`만 공유한다.
+- 외부 API 키는 Git에 올리지 않는다. `application-local.properties`는 `.gitignore`에 넣고, `application-local.example.properties`만 공유한다.
 - 프론트는 `npm run dev`로 띄우고, Vite 프록시로 `/api`를 `localhost:8080`에 보낸다.
 
 ## 8. 검토한 방식과 선택 이유
@@ -291,7 +291,7 @@ C가 만드는 `Order`와 상태 전이를 D와 E가 씁니다. 그래서 상태
 - [ ] Security + JWT 뼈대와 역할 권한 규칙
 - [ ] 견본 도메인 하나 완성 (member 추천: controller부터 테스트까지)
 - [ ] `AGENTS.md`, Spotless, ArchUnit, ESLint·Prettier, GitHub Actions 설정
-- [ ] `data.sql` 테스트 데이터, `application-local.example.yml`
+- [ ] `data.sql` 테스트 데이터, `application-local.example.properties`
 - [ ] React 프로젝트 뼈대: 라우터, axios 인스턴스(토큰 첨부), 레이아웃
 
 **브랜치 전략** *(제안)*
