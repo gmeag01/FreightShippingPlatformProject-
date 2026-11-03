@@ -25,7 +25,7 @@
 - 비밀번호·API 키는 커밋하지 않는다. `application-local.yml`은 `.gitignore`, `application-local.example.yml`만 공유
 - 로컬 DB: MariaDB, DB 이름 `freight`, 계정 `freight`. `ddl-auto: update`, 시드는 `data.sql`
 - 실행 환경: 배포 없이 각자 PC에서 백엔드는 STS(Boot Dashboard), 프론트는 `npm run dev`로 띄운다. STS는 `backend/`를 Existing Gradle Project로 불러오고, 워크스페이스 인코딩 UTF-8, Lombok 설치, 저장 시 자동 정렬 끔(형식은 `gradlew spotlessApply`가 맞춘다)
-- 브랜치: `main`, `develop` 보호. 작업은 `feat|fix|chore/<도메인>-<기능>` → `develop` PR(CI 통과, 승인 필수 아님), Squash merge
+- 브랜치: `main`, `develop` 보호. 작업은 `feat|fix|chore/<도메인>-<기능>` → `develop` PR(CI 통과, 승인 필수 아님), Squash merge. `main` 배포는 설계 문서 9장 '배포 절차'대로 `release/<태그>` 브랜치를 거친다
 - 커밋 접두어: `feat:` `fix:` `refactor:` `test:` `docs:` `chore:`
 - `docs/`(설계 문서, 계획)는 팀 공통 기준이다. 작업 중에 고치지 않는다. 틀려서 구현이 막히는 경우에만 팀에 먼저 공유하고, 기능 PR과 분리한 별도 PR로 고친다. 사람마다 다른 값(DB 이름, 계정, IDE 설정)은 `application-local.yml` 같은 로컬 파일에 둔다. 새 도메인 계획 파일을 추가하는 것은 수정이 아니다
 - 완료 조건: `./gradlew spotlessApply test`, `npm run lint`, `npm run build` 통과
