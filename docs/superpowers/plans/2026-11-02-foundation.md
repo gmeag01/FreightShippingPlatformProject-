@@ -6,7 +6,7 @@
 
 **Architecture:** 저장소 하나에 `backend/`(Spring Boot 단일 앱, 도메인 폴더 + 내부 계층 구조)와 `frontend/`(React + Vite)를 둔다. 오더 상태 전이는 `Order` 엔티티 메서드에만 있고, 서비스는 그 결과(`StatusChange`)로 이력을 남긴다. 인증은 JWT, 권한은 `Role` 3종.
 
-**Tech Stack:** Java 21(Gradle toolchain), Spring Boot 3.5.x, Spring Data JPA, Spring Security, jjwt 0.12.x, springdoc-openapi 2.x, MariaDB 11.4 LTS(로컬) / H2 MariaDB 모드(테스트), JUnit 5, ArchUnit, Spotless, React 18 + Vite + React Router + axios, ESLint + Prettier, GitHub Actions
+**Tech Stack:** Java 21(Gradle toolchain), Spring Boot 3.5.x(3.5.16, Gradle 8.14.3 wrapper), Spring Data JPA, Spring Security, jjwt 0.12.x, springdoc-openapi 2.x, MariaDB 11.4 LTS(로컬) / H2 MariaDB 모드(테스트), JUnit 5, ArchUnit, Spotless, React 19 + Vite 8 + React Router + axios + Tailwind CSS v4(컴포넌트 파일 `.js`), ESLint + Prettier, GitHub Actions
 
 **Spec:** 화물운송플랫폼 설계 문서 — https://claude.ai/artifact/LENc6NFFQ9vxeBMQ7rdpgb (확정 후 `docs/superpowers/specs/2026-11-02-freight-platform-design.md`로 저장소에 넣는다. Claude 문서에서 Markdown으로 내보내기)
 
@@ -78,7 +78,7 @@ GitHub 저장소를 만들고 `main`에서 `develop`을 딴다. 두 브랜치에
 
 - [ ] **Step 2: Spring Initializr로 `backend/` 생성**
 
-Gradle - Groovy, Java 21, Spring Boot 3.5.x 최신 패치, group `com.freight`, artifact `freight`, package `com.freight`. 의존성: Web, Validation, Data JPA, Security, MariaDB Driver, Lombok. 추가로 `build.gradle`에 넣는다:
+Gradle - Groovy, Java 21, Spring Boot 3.5.x 최신 패치(Initializr가 3.5를 더 이상 제공하지 않으면 4.x로 받은 뒤 `build.gradle`을 3.5.x와 Boot 3 스타터 이름으로 바꾸고, wrapper는 Gradle 8.14.x), group `com.freight`, artifact `freight`, package `com.freight`. 의존성: Web, Validation, Data JPA, Security, MariaDB Driver, Lombok. 추가로 `build.gradle`에 넣는다:
 - `org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.x`
 - `io.jsonwebtoken:jjwt-api:0.12.x`, `jjwt-impl`, `jjwt-jackson`(runtimeOnly)
 - testImplementation `com.h2database:h2`, `com.tngtech.archunit:archunit-junit5:1.3.x`, `org.springframework.security:spring-security-test`
@@ -516,13 +516,13 @@ git commit -m "chore: 시드 데이터, AI 규칙 파일, README"
 ### Task 7: 프론트 뼈대와 로그인 (담당 E)
 
 **Files:**
-- Create: `frontend/` (Vite React, JavaScript)
+- Create: `frontend/` (Vite React, JavaScript. 컴포넌트 파일도 `.js`)
 - Create: `frontend/vite.config.js`, `eslint.config.js`, `.prettierrc`
 - Create: `frontend/src/api/client.js`, `src/api/auth.js`
-- Create: `frontend/src/auth/AuthContext.jsx`, `src/auth/RequireRole.jsx`
-- Create: `frontend/src/layouts/AppLayout.jsx`
-- Create: `frontend/src/pages/LoginPage.jsx`, `SignupPage.jsx`, `NotFoundPage.jsx`, 역할별 자리 표시 페이지
-- Create: `frontend/src/App.jsx`(라우터)
+- Create: `frontend/src/auth/AuthContext.js`, `src/auth/RequireRole.js`, `src/auth/useAuth.js`, `src/auth/roles.js`(역할별 첫 화면·이름)
+- Create: `frontend/src/layouts/AppLayout.js`
+- Create: `frontend/src/pages/LoginPage.js`, `SignupPage.js`, `NotFoundPage.js`, `PlaceholderPage.js`(역할별 자리 표시)
+- Create: `frontend/src/App.js`(라우터), `src/main.js`
 
 **Interfaces:**
 - Consumes: Task 5 API, `ApiResponse` 형식
@@ -536,14 +536,16 @@ git commit -m "chore: 시드 데이터, AI 규칙 파일, README"
 - [ ] **Step 1: 생성과 도구 설정**
 
 ```bash
-npm create vite@latest frontend -- --template react
-cd frontend && npm i react-router-dom axios && npm i -D prettier eslint-config-prettier
+npm create vite@latest frontend -- --template react --no-interactive
+cd frontend && npm i react-router-dom axios
+npm i -D eslint @eslint/js globals eslint-plugin-react-hooks eslint-plugin-react-refresh prettier eslint-config-prettier
+npm i -D tailwindcss @tailwindcss/vite prettier-plugin-tailwindcss
 ```
-`vite.config.js`에 `server.proxy['/api'] = 'http://localhost:8080'`. `package.json` scripts에 `"lint": "eslint ."`, `"format": "prettier --write src"`.
+템플릿이 넣는 oxlint는 지우고 ESLint(flat config)로 바꾼다. `vite.config.js`에 `server.proxy['/api'] = 'http://localhost:8080'`, Tailwind 플러그인, `.js` 안의 JSX를 처리하는 `jsx-in-js` 플러그인(`transformWithOxc`, `lang: 'jsx'`)을 넣는다. `src/index.css`는 `@import 'tailwindcss'`. `.prettierrc`에 `prettier-plugin-tailwindcss`. `package.json` scripts에 `"lint": "eslint ."`, `"format": "prettier --write src"`.
 
 - [ ] **Step 2: 구현**
 
-위 Interfaces대로 만든다. 레이아웃은 360px 폭에서 가로 스크롤이 생기지 않게 한다. 상단에 역할 이름과 로그아웃 버튼을 둔다. UI 라이브러리는 팀이 정한 뒤 이 Task 안에서 설치한다(설계 문서 11장: 팀이 하나로 통일).
+위 Interfaces대로 만든다. 레이아웃은 360px 폭에서 가로 스크롤이 생기지 않게 한다. 상단에 역할 이름과 로그아웃 버튼을 둔다. 스타일은 Tailwind CSS 클래스로만 쓴다(팀 결정). 토큰이 있는 상태에서 받은 401만 로그인 화면으로 보내고, 토큰 없이 받은 401(로그인 실패)은 메시지로 보여 준다.
 
 - [ ] **Step 3: 확인**
 

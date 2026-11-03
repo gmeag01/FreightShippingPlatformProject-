@@ -11,13 +11,19 @@
 - 문서와 다르게 구현해야 하면 먼저 팀에 공유하고 문서를 고친 뒤 진행한다.
 
 ## 프로젝트
-- 화물 중개 웹 플랫폼. 백엔드 Spring Boot 3 / Java 21 / JPA / MariaDB, 프론트 React(Vite).
+- 화물 중개 웹 플랫폼. 백엔드 Spring Boot 3 / Java 21 / JPA / MariaDB, 프론트 React 19 / Vite / Tailwind CSS.
 - 역할: SHIPPER(화주), DRIVER(차주), ADMIN(관리자).
 
 ## 패키지 구조
 - com.freight.<도메인>.{controller,service,repository,entity,dto}
 - 도메인: member, vehicle, fare, order, matching, delivery, payment. 공통은 global.
 - 새 도메인 코드는 member 도메인을 견본으로 같은 모양으로 만든다.
+
+## 프론트 규칙
+- 컴포넌트 파일도 .js로 만든다. .jsx는 쓰지 않는다(vite.config.js의 jsx-in-js 플러그인이 .js 안의 JSX를 처리한다).
+- 스타일은 Tailwind CSS 클래스(className)로만 쓴다. 화면마다 CSS 파일이나 style 속성을 만들지 않는다. 공통 값은 src/index.css의 @theme에 둔다.
+- API 호출은 src/api/client.js(axios 인스턴스)를 쓰고, 도메인별 함수는 src/api/<도메인>.js에 둔다.
+- 로그인 상태는 useAuth(), 역할 확인은 RequireRole을 쓴다. 화면은 src/pages/에 만들고, App.js의 PlaceholderPage 자리를 자기 화면으로 바꾼다.
 
 ## 반드시 지킬 것
 - 다른 도메인의 repository를 직접 쓰지 않는다. 필요하면 그 도메인의 service를 호출한다.
@@ -41,6 +47,6 @@
 
 ## 작업 전후 확인
 - 커밋 전에 ./gradlew spotlessApply test 가 통과해야 한다.
-- 프론트는 npm run lint 가 통과해야 한다.
+- 프론트는 npm run format 후 npm run lint, npm run build 가 통과해야 한다.
 - main, develop에 직접 push하지 않는다. 작업 브랜치에서 PR을 올리고, 승인은 필수가 아니므로 검사가 통과하면 올린 사람이 직접 합친다.
 - develop을 main으로 바로 PR하지 않는다. 배포는 설계 문서 9장 '배포 절차'(release/<태그> 브랜치 + git merge -s ours origin/main)대로만 한다.
