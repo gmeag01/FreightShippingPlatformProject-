@@ -19,6 +19,7 @@
 - com.freight.<도메인>.{controller,service,repository,entity,dto}
 - 도메인: member, vehicle, fare, order, matching, delivery, payment. 공통은 global.
 - 새 도메인 코드는 member 도메인을 견본으로 같은 모양으로 만든다.
+- 테스트 데이터는 src/test/java/.../support/Fixtures.java를 쓴다.
 
 ## 프론트 규칙
 - 컴포넌트 파일도 .js로 만든다. .jsx는 쓰지 않는다(vite.config.js의 jsx-in-js 플러그인이 .js 안의 JSX를 처리한다).
