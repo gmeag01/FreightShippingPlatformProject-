@@ -39,4 +39,21 @@ cd backend && ./gradlew spotlessApply test
 cd frontend && npm run format && npm run lint && npm run build
 ```
 
-시드 계정과 Swagger 주소는 이후 작업(Task 6)에서 추가합니다.
+## 테스트용 시드 계정
+
+서버 기동 시 `backend/src/main/resources/data.sql`에 의해 로컬 DB에 자동 등록됩니다.
+
+- **공통 테스트 비밀번호**: `pass1234`
+
+| 역할 | 이메일 | 비밀번호 | 비고 |
+| --- | --- | --- | --- |
+| **관리자(ADMIN)** | `admin@freight.test` | `pass1234` | 전체 오더·분쟁 관리 |
+| **화주(SHIPPER)** | `shipper1@freight.test` | `pass1234` | 오더 등록 및 수령 확인 |
+| **차주(DRIVER)** | `driver1@freight.test` | `pass1234` | 차량: 5톤 카고 (80가1234) |
+| **차주(DRIVER)** | `driver2@freight.test` | `pass1234` | 차량: 1톤 탑차 (81나5678) |
+
+## API 문서 (Swagger)
+
+백엔드 서버 기동 후 브라우저에서 확인할 수 있습니다:
+- **Swagger UI**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- **OpenAPI JSON**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
