@@ -31,8 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminMemberService {
 
-    private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of("id", "email", "name", "phone", "role", "status",
-            "createdAt");
+    private static final Set<String> ALLOWED_SORT_PROPERTIES =
+            Set.of("id", "email", "name", "phone", "role", "status", "createdAt");
 
     private final MemberRepository memberRepository;
     private final VehicleService vehicleService;
@@ -47,8 +47,7 @@ public class AdminMemberService {
      * @param pageable 페이징 정보
      * @return 관리자용 회원 응답 페이지
      */
-    public Page<AdminMemberResponse> getMembers(
-            Role role, MemberStatus status, String keyword, Pageable pageable) {
+    public Page<AdminMemberResponse> getMembers(Role role, MemberStatus status, String keyword, Pageable pageable) {
         Pageable safePageable = sanitizePageable(pageable);
         return memberRepository
                 .findMembersByFilter(role, status, keyword, safePageable)
@@ -112,8 +111,7 @@ public class AdminMemberService {
      * @throws BusinessException ADMIN_CANNOT_SUSPEND_SELF (관리자 본인을 정지하려는 경우)
      */
     @Transactional
-    public AdminMemberResponse updateMemberStatus(
-            Long targetMemberId, MemberStatus newStatus, Long currentAdminId) {
+    public AdminMemberResponse updateMemberStatus(Long targetMemberId, MemberStatus newStatus, Long currentAdminId) {
         Member member = memberRepository
                 .findById(targetMemberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
