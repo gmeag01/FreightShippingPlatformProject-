@@ -20,7 +20,7 @@ public class JwtTokenProvider {
     private final long validityInMilliseconds;
 
     public JwtTokenProvider(
-            @Value("${app.jwt.secret:default-secret-key-freight-platform-at-least-32-bytes-long}") String secretKey,
+            @Value("${app.jwt.secret}") String secretKey,
             @Value("${app.jwt.validity-ms:43200000}") long validityInMilliseconds) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.validityInMilliseconds = validityInMilliseconds;
