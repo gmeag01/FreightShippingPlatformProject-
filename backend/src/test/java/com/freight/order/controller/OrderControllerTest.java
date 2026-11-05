@@ -373,7 +373,7 @@ class OrderControllerTest {
                         .content(json(new UpdateOrderRequest(order.getVersion(), OrderRequests.valid(250000)))))
                 .andExpect(status().isOk());
         var history = histories.findByOrderIdOrderByCreatedAtAscIdAsc(order.getId());
-        assertThat(history.getLast().getMemo()).contains(String.valueOf(oldFare), "250000");
+        assertThat(history.getLast().getMemo()).contains(String.format("%,d", oldFare), "250,000");
         assertThat(history.getLast().getFromStatus()).isEqualTo(OrderStatus.REGISTERED);
         assertThat(history.getLast().getToStatus()).isEqualTo(OrderStatus.REGISTERED);
     }
