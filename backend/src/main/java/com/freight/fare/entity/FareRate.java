@@ -35,4 +35,9 @@ public class FareRate {
         this.baseFare = baseFare;
         this.perKmFare = perKmFare;
     }
+
+    public void update(long baseFare, long perKmFare) {
+        this.baseFare = baseFare;
+        this.perKmFare = perKmFare;
+    }
 }
