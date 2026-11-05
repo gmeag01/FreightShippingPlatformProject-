@@ -8,8 +8,11 @@ import com.freight.order.entity.DisputeResolution;
 import com.freight.order.entity.StatusChange;
 import com.freight.order.service.OrderService;
 import com.freight.payment.service.PaymentService;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +25,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class DeliveryService {
 
+    private static final String AUTO_CONFIRM_MEMO = "자동 수령 확인";
+
     private final OrderService orderService;
     private final PaymentService paymentService;
+
+    @Value("${app.order.auto-confirm-hours:24}")
+    private long autoConfirmHours;
 
     /**
      * 배정된 차주가 상차를 완료해 운송을 시작한다.
@@ -106,6 +114,32 @@ public class DeliveryService {
             paymentService.refund(orderId);
         }
         return toResponse(orderId, change);
+    }
+
+    /**
+     * 자동 확인 시간이 지난 오더를 찾는다.
+     *
+     * @return 자동 확인 대상 오더 ID 목록
+     */
+    @Transactional(readOnly = true)
+    public List<Long> findAutoConfirmTargetIds() {
+        return orderService.findAutoConfirmTargetIds(LocalDateTime.now().minusHours(autoConfirmHours));
+    }
+
+    /**
+     * 시스템이 수령을 자동 확인해 운송을 완료하고 운임을 차주에게 지급한다.
+     * 화주 확인과 겹치면 오더의 @Version 충돌로 한쪽만 성공해 지급은 한 번만 일어난다.
+     *
+     * @param orderId 자동 확인할 오더 ID
+     * @throws BusinessException 상태 오류나 시간 미경과(INVALID_STATUS_TRANSITION), 결제 없음(PAYMENT_NOT_FOUND)
+     */
+    public void autoConfirm(Long orderId) {
+        orderService.changeStatus(
+                orderId,
+                null,
+                AUTO_CONFIRM_MEMO,
+                (order, actor) -> order.autoConfirm(LocalDateTime.now(), Duration.ofHours(autoConfirmHours)));
+        paymentService.release(orderId);
     }
 
     private DeliveryStatusResponse toResponse(Long orderId, StatusChange change) {

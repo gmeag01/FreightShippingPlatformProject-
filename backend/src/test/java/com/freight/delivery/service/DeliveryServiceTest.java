@@ -232,4 +232,56 @@ class DeliveryServiceTest {
                 () -> deliveryService.resolveDispute(
                         orderId, shipperId, new ResolveDisputeRequest(DisputeResolution.REFUND_SHIPPER, "환불")));
     }
+
+    private void dropOffHoursAgo(long hours) {
+        deliveryService.pickup(orderId, driverId);
+        orderService.changeStatus(
+                orderId,
+                driverId,
+                null,
+                (order, driver) ->
+                        order.completeDropoff(driver, LocalDateTime.now().minusHours(hours)));
+    }
+
+    @Test
+    void autoConfirm_afterDeadline_completesAndReleases() {
+        dropOffHoursAgo(25);
+
+        deliveryService.autoConfirm(orderId);
+
+        assertThat(orderStatus()).isEqualTo(OrderStatus.COMPLETED);
+        assertThat(payment().getStatus()).isEqualTo(PaymentStatus.RELEASED);
+        assertThat(lastHistory().getActor()).isNull();
+    }
+
+    @Test
+    void autoConfirm_beforeDeadline_failsAndKeepsPaymentHeld() {
+        dropOffHoursAgo(23);
+
+        assertFailsWith(ErrorCode.INVALID_STATUS_TRANSITION, () -> deliveryService.autoConfirm(orderId));
+
+        assertThat(payment().getStatus()).isEqualTo(PaymentStatus.HELD);
+    }
+
+    @Test
+    void findTargets_afterDeadline_includesOrder() {
+        dropOffHoursAgo(25);
+
+        assertThat(deliveryService.findAutoConfirmTargetIds()).contains(orderId);
+    }
+
+    @Test
+    void findTargets_beforeDeadline_excludesOrder() {
+        dropOffHoursAgo(23);
+
+        assertThat(deliveryService.findAutoConfirmTargetIds()).doesNotContain(orderId);
+    }
+
+    @Test
+    void findTargets_afterReport_excludesOrder() {
+        dropOffHoursAgo(25);
+        deliveryService.report(orderId, shipperId, new ReportIssueRequest("화물 파손"));
+
+        assertThat(deliveryService.findAutoConfirmTargetIds()).doesNotContain(orderId);
+    }
 }
