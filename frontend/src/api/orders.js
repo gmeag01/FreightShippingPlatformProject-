@@ -19,3 +19,18 @@ export function createOrder(details) {
 export function updateOrder(orderId, version, details) {
   return client.put(`/orders/${orderId}`, { version, details });
 }
+
+// 화주/관리자별 취소 경로로 조회한 버전과 사유를 전달한다.
+export function cancelOrder(orderId, version, reason, admin = false) {
+  return client.post(`${admin ? '/admin' : ''}/orders/${orderId}/cancel`, { version, reason });
+}
+
+// 관리자가 상태·차종·상차 희망일로 전체 오더를 조회한다.
+export function fetchAdminOrders(params, { signal } = {}) {
+  return client.get('/admin/orders', { params, signal });
+}
+
+// 관리자의 오더 상세 조회 경로를 사용한다.
+export function fetchAdminOrderDetail(orderId, { signal } = {}) {
+  return client.get(`/admin/orders/${orderId}`, { signal });
+}
