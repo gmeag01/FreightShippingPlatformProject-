@@ -5,6 +5,7 @@ import com.freight.global.exception.ErrorCode;
 import com.freight.matching.dto.AcceptOrderRequest;
 import com.freight.matching.dto.AcceptOrderResponse;
 import com.freight.matching.dto.CancelAssignmentRequest;
+import com.freight.matching.dto.OpenOrderDetailResponse;
 import com.freight.matching.dto.OpenOrderResponse;
 import com.freight.order.entity.Order;
 import com.freight.order.entity.OrderStatus;
@@ -52,6 +53,21 @@ public class MatchingService {
         return orderService
                 .findOpenOrders(vehicleType, PageRequest.of(safePage, DEFAULT_PAGE_SIZE))
                 .map(OpenOrderResponse::from);
+    }
+
+    /**
+     * 수락 전 의뢰 상세를 조회한다. 상세주소·연락처·좌표는 응답에 담지 않는다(로드맵 matching).
+     *
+     * @param orderId 조회할 오더 ID
+     * @return 시·구(region)까지만 담긴 의뢰 상세
+     * @throws BusinessException 오더가 없으면 ORDER_NOT_FOUND, REGISTERED 상태가 아니면 ORDER_ALREADY_ASSIGNED
+     */
+    public OpenOrderDetailResponse getOpenOrderDetail(Long orderId) {
+        Order order = orderService.getOrder(orderId);
+        if (order.getStatus() != OrderStatus.REGISTERED) {
+            throw new BusinessException(ErrorCode.ORDER_ALREADY_ASSIGNED);
+        }
+        return OpenOrderDetailResponse.from(order);
     }
 
     /**

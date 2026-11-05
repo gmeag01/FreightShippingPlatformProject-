@@ -1,34 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { acceptOrder, fetchMyVehicle, fetchOpenOrders } from '../api/matching';
-
-const VEHICLE_LABELS = Object.freeze({
-  TON_1: '1톤',
-  TON_2_5: '2.5톤',
-  TON_5: '5톤',
-  TON_11: '11톤',
-  TON_25: '25톤',
-});
-
-const VEHICLE_MAX_LOAD = Object.freeze({
-  TON_1: 1000,
-  TON_2_5: 2500,
-  TON_5: 5000,
-  TON_11: 11000,
-  TON_25: 25000,
-});
-
-const BODY_LABELS = Object.freeze({
-  CARGO: '카고',
-  WING: '윙바디',
-  BOX: '탑차',
-  REFRIGERATED: '냉장·냉동',
-});
-
-const LOADING_LABELS = Object.freeze({
-  FORKLIFT: '지게차',
-  MANUAL: '수작업',
-});
+import { fetchMyVehicle, fetchOpenOrders } from '../api/matching';
+import MismatchConfirmModal from '../components/MismatchConfirmModal';
+import useAcceptOrder from '../hooks/useAcceptOrder';
+import { BODY_LABELS, LOADING_LABELS, VEHICLE_LABELS, formatDateTime } from '../utils/driverOrder';
 
 const TABS = Object.freeze([
   { key: 'CUSTOM', label: '내 차량 맞춤' },
@@ -39,35 +14,7 @@ const TABS = Object.freeze([
   { key: 'TON_25', label: '25톤' },
 ]);
 
-function formatDateTime(value) {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString('ko-KR', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-function buildMismatchMessages({ driverVehicleType, requiredVehicleType, weightKg, maxLoadKg }) {
-  const messages = [];
-  if (driverVehicleType && requiredVehicleType && driverVehicleType !== requiredVehicleType) {
-    const myLabel = VEHICLE_LABELS[driverVehicleType] ?? driverVehicleType;
-    const reqLabel = VEHICLE_LABELS[requiredVehicleType] ?? requiredVehicleType;
-    messages.push(`보유 차량(${myLabel})과 요구 차종(${reqLabel})이 다릅니다.`);
-  }
-  const numWeight = Number(weightKg);
-  const numMax = Number(maxLoadKg);
-  if (Number.isFinite(numWeight) && Number.isFinite(numMax) && numWeight > numMax) {
-    messages.push(
-      `화물 중량(${numWeight.toLocaleString()}kg)이 차량 최대 적재량(${numMax.toLocaleString()}kg)을 넘습니다.`,
-    );
-  }
-  return messages;
-}
-
+// 차주 의뢰 목록 화면. 차종 탭으로 거르고, 불일치 경고를 확인한 뒤 수락한다.
 export default function DriverOrdersPage() {
   const [activeTab, setActiveTab] = useState('CUSTOM');
   const [myVehicle, setMyVehicle] = useState(null);
@@ -77,8 +24,6 @@ export default function DriverOrdersPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [banner, setBanner] = useState(null);
-  const [submittingId, setSubmittingId] = useState(null);
-  const [mismatchModal, setMismatchModal] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -148,6 +93,26 @@ export default function DriverOrdersPage() {
     }
   }, [activeTab, myVehicle, page]);
 
+  const { submittingId, mismatchModal, requestAccept, executeAccept, closeMismatchModal } =
+    useAcceptOrder({
+      onAccepted: async (order) => {
+        setBanner({ type: 'success', text: `오더 #${order.id} 배차가 완료되었습니다.` });
+        await reloadCurrentOrders();
+      },
+      onOrderChanged: async () => {
+        setBanner({
+          type: 'error',
+          text: '화주가 오더 내용을 수정했습니다. 최신 목록으로 다시 불러왔습니다.',
+        });
+        await reloadCurrentOrders();
+      },
+      onOrderUnavailable: async (order, error) => {
+        setBanner({ type: 'error', text: error.message });
+        await reloadCurrentOrders();
+      },
+      onFailed: (error) => setBanner({ type: 'error', text: error.message }),
+    });
+
   const handleTabChange = (tabKey) => {
     setLoading(true);
     setActiveTab(tabKey);
@@ -160,59 +125,9 @@ export default function DriverOrdersPage() {
     setPage(nextPage);
   };
 
-  const executeAccept = async (order, confirmMismatch) => {
-    setSubmittingId(order.id);
-    setBanner(null);
-    try {
-      await acceptOrder(order.id, { version: order.version, confirmMismatch });
-      setMismatchModal(null);
-      setBanner({ type: 'success', text: `오더 #${order.id} 배차가 완료되었습니다.` });
-      await reloadCurrentOrders();
-    } catch (err) {
-      if (err.code === 'VEHICLE_MISMATCH') {
-        const messages = buildMismatchMessages(err.fieldErrors ?? {});
-        setMismatchModal({
-          order,
-          messages:
-            messages.length > 0
-              ? messages
-              : ['보유 차량과 오더 요구 조건이 다릅니다. 계속하시겠습니까?'],
-        });
-      } else if (err.code === 'ORDER_CHANGED') {
-        setMismatchModal(null);
-        setBanner({
-          type: 'error',
-          text: '화주가 오더 내용을 수정했습니다. 최신 목록으로 다시 불러왔습니다.',
-        });
-        await reloadCurrentOrders();
-      } else {
-        setMismatchModal(null);
-        setBanner({ type: 'error', text: err.message });
-        if (err.code === 'ORDER_ALREADY_ASSIGNED') {
-          await reloadCurrentOrders();
-        }
-      }
-    } finally {
-      setSubmittingId(null);
-    }
-  };
-
   const handleAcceptClick = (order) => {
-    if (myVehicle?.vehicleType) {
-      const driverVehicleType = myVehicle.vehicleType;
-      const maxLoadKg = myVehicle.maxLoadKg ?? VEHICLE_MAX_LOAD[driverVehicleType];
-      const messages = buildMismatchMessages({
-        driverVehicleType,
-        requiredVehicleType: order.requiredVehicleType,
-        weightKg: order.weightKg,
-        maxLoadKg,
-      });
-      if (messages.length > 0) {
-        setMismatchModal({ order, messages });
-        return;
-      }
-    }
-    executeAccept(order, false);
+    setBanner(null);
+    requestAccept(order, myVehicle);
   };
 
   return (
@@ -330,12 +245,18 @@ export default function DriverOrdersPage() {
                 </div>
               </dl>
 
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <Link
+                  to={`/driver/orders/${order.id}`}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  상세 보기
+                </Link>
                 <button
                   type="button"
                   disabled={submittingId === order.id}
                   onClick={() => handleAcceptClick(order)}
-                  className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
                 >
                   {submittingId === order.id ? '수락 처리 중...' : '의뢰 수락'}
                 </button>
@@ -370,34 +291,12 @@ export default function DriverOrdersPage() {
       )}
 
       {mismatchModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-lg">
-            <h2 className="text-base font-bold text-gray-900">차량 조건 불일치 확인</h2>
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-gray-700">
-              {mismatchModal.messages.map((msg) => (
-                <li key={msg}>{msg}</li>
-              ))}
-            </ul>
-            <p className="mt-3 text-sm font-medium text-gray-800">계속하시겠습니까?</p>
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setMismatchModal(null)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                disabled={submittingId === mismatchModal.order.id}
-                onClick={() => executeAccept(mismatchModal.order, true)}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-              >
-                확인 후 수락
-              </button>
-            </div>
-          </div>
-        </div>
+        <MismatchConfirmModal
+          messages={mismatchModal.messages}
+          isSubmitting={submittingId === mismatchModal.order.id}
+          onCancel={closeMismatchModal}
+          onConfirm={() => executeAccept(mismatchModal.order, true)}
+        />
       )}
     </section>
   );
