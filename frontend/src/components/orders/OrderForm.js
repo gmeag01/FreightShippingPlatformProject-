@@ -22,6 +22,7 @@ export default function OrderForm({ initial, isEditing, onReload }) {
   const [conflict, setConflict] = useState(false);
   const [dirty, setDirty] = useState(false);
   const inFlight = useRef(false);
+  const formRef = useRef(null);
   const errorBox = useRef(null);
   const reviewTitle = useRef(null);
   const backTo = isEditing ? `/shipper/orders/${initial.id}` : '/shipper/orders';
@@ -42,6 +43,22 @@ export default function OrderForm({ initial, isEditing, onReload }) {
   useEffect(() => {
     if (review) reviewTitle.current?.focus();
   }, [review]);
+
+  // 개발 서버의 신규 등록 폼만 예시로 채운다. 검토·등록 요청은 사용자가 따로 누른다.
+  async function fillSample() {
+    if (!import.meta.env.DEV || isEditing) return;
+    const { createSampleOrderFields } = await import('../../order/sampleOrder');
+    if (!formRef.current) return;
+    for (const [name, value] of Object.entries(createSampleOrderFields())) {
+      const input = formRef.current.elements.namedItem(name);
+      if (!input) continue;
+      if (input.type === 'checkbox') input.checked = value;
+      else input.value = String(value);
+    }
+    setErrors({});
+    setMessage('');
+    setDirty(true);
+  }
 
   function reviewInput(event) {
     event.preventDefault();
@@ -130,8 +147,30 @@ export default function OrderForm({ initial, isEditing, onReload }) {
           )}
         </div>
       )}
-      <form onSubmit={reviewInput} onChange={() => setDirty(true)} hidden={Boolean(review)}>
+      <form
+        ref={formRef}
+        onSubmit={reviewInput}
+        onChange={() => setDirty(true)}
+        hidden={Boolean(review)}
+      >
         <fieldset disabled={submitting || conflict} className="min-w-0 space-y-5">
+          {import.meta.env.DEV && !isEditing && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <div>
+                <p className="text-sm font-semibold text-blue-900">테스트용 예시 입력</p>
+                <p className="mt-1 text-xs text-blue-800">
+                  현재 입력을 예시로 바꿉니다. 자동으로 등록되지는 않아요.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fillSample}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                테스트 값 채우기
+              </button>
+            </div>
+          )}
           <LocationFields name="pickup" title="상차지" initial={initial.pickup} errors={errors} />
           <LocationFields name="dropoff" title="하차지" initial={initial.dropoff} errors={errors} />
           <CargoScheduleFields initial={initial} errors={errors} />
