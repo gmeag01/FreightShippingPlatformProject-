@@ -12,6 +12,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
+    Page<Order> findByStatus(OrderStatus status, Pageable pageable);
+
     Page<Order> findByStatusOrderByPickupAtAsc(OrderStatus status, Pageable pageable);
 
     Page<Order> findByStatusAndRequiredVehicleTypeOrderByPickupAtAsc(

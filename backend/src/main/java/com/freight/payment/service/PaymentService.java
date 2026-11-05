@@ -5,10 +5,12 @@ import com.freight.global.exception.ErrorCode;
 import com.freight.order.entity.Order;
 import com.freight.order.service.OrderService;
 import com.freight.payment.entity.Payment;
+import com.freight.payment.entity.PaymentStatus;
 import com.freight.payment.entity.PaymentTransaction;
 import com.freight.payment.entity.PaymentTransactionType;
 import com.freight.payment.repository.PaymentRepository;
 import com.freight.payment.repository.PaymentTransactionRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,6 +94,17 @@ public class PaymentService {
         payment.refund();
         paymentGateway.refund(orderId, payment.getAmount());
         recordTransaction(payment, PaymentTransactionType.REFUND, payment.getAmount());
+    }
+
+    /**
+     * 오더의 결제 상태를 조회한다.
+     *
+     * @param orderId 오더 ID
+     * @return 결제 상태. 결제가 없으면 비어 있다
+     */
+    @Transactional(readOnly = true)
+    public Optional<PaymentStatus> findStatus(Long orderId) {
+        return paymentRepository.findByOrderId(orderId).map(Payment::getStatus);
     }
 
     private Payment getPayment(Long orderId) {

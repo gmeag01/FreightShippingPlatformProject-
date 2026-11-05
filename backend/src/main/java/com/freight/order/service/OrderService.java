@@ -59,6 +59,27 @@ public class OrderService {
     }
 
     /**
+     * 주어진 상태의 오더를 조회한다.
+     *
+     * @param status 찾을 오더 상태
+     * @param pageable 페이지와 정렬
+     * @return 오더 페이지
+     */
+    public Page<Order> findOrdersByStatus(OrderStatus status, Pageable pageable) {
+        return orderRepository.findByStatus(status, pageable);
+    }
+
+    /**
+     * 오더의 상태 이력을 오래된 순으로 조회한다.
+     *
+     * @param orderId 오더 ID
+     * @return 상태 이력 목록
+     */
+    public List<OrderStatusHistory> getHistory(Long orderId) {
+        return orderStatusHistoryRepository.findByOrderIdOrderByCreatedAtAscIdAsc(orderId);
+    }
+
+    /**
      * 수령확인대기 상태이고 주어진 시각 이전에 하차 완료된 오더의 ID를 찾는다.
      *
      * @param droppedOffBefore 이 시각 이전(포함)에 하차한 오더만 찾는다

@@ -1,6 +1,7 @@
 package com.freight.delivery.controller;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -180,5 +181,32 @@ class DeliveryControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"resolution\":\"PAY_DRIVER\",\"memo\":\"처리\"}"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void listDisputes_byAdmin_returnsDisputes() throws Exception {
+        moveToDisputed();
+
+        mvc.perform(get("/api/admin/disputes").with(loginAs(adminId, Role.ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].orderId").value(orderId))
+                .andExpect(jsonPath("$.data.content[0].reason").value("화물 파손"));
+    }
+
+    @Test
+    void listDisputes_byDriver_isForbidden() throws Exception {
+        mvc.perform(get("/api/admin/disputes").with(loginAs(driverId, Role.DRIVER)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getDispute_byAdmin_returnsDetail() throws Exception {
+        moveToDisputed();
+
+        mvc.perform(get("/api/admin/disputes/{orderId}", orderId).with(loginAs(adminId, Role.ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("DISPUTED"))
+                .andExpect(jsonPath("$.data.paymentStatus").value("HELD"))
+                .andExpect(jsonPath("$.data.history[0].toStatus").value("ASSIGNED"));
     }
 }
