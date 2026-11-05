@@ -4,6 +4,7 @@ import com.freight.order.entity.Order;
 import com.freight.order.entity.OrderStatus;
 import com.freight.vehicle.entity.VehicleType;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecificationExecutor<Order> {
     Page<Order> findByStatus(OrderStatus status, Pageable pageable);
+
+    Page<Order> findByDriverIdAndStatusIn(Long driverId, Collection<OrderStatus> statuses, Pageable pageable);
 
     Page<Order> findByStatusOrderByPickupAtAsc(OrderStatus status, Pageable pageable);
 
