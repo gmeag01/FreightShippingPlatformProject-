@@ -39,7 +39,11 @@ public enum ErrorCode {
     VEHICLE_REQUIRED(HttpStatus.BAD_REQUEST, "차량을 먼저 등록해야 의뢰를 수락할 수 있습니다"),
     VEHICLE_MISMATCH(HttpStatus.CONFLICT, "보유 차량과 오더 요구 조건이 다릅니다"),
     ORDER_CHANGED(HttpStatus.CONFLICT, "오더 내용이 변경되었습니다. 다시 확인해 주세요"),
-    ORDER_ALREADY_ASSIGNED(HttpStatus.CONFLICT, "이미 배차된 의뢰입니다");
+    ORDER_ALREADY_ASSIGNED(HttpStatus.CONFLICT, "이미 배차된 의뢰입니다"),
+
+    // payment
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 내역을 찾을 수 없습니다"),
+    PAYMENT_ALREADY_SETTLED(HttpStatus.CONFLICT, "이미 지급 또는 환불이 끝난 결제입니다");
 
     private final HttpStatus status;
     private final String message;

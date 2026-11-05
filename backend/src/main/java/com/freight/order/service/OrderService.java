@@ -11,6 +11,8 @@ import com.freight.order.entity.StatusChange;
 import com.freight.order.repository.OrderRepository;
 import com.freight.order.repository.OrderStatusHistoryRepository;
 import com.freight.vehicle.entity.VehicleType;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.function.BiFunction;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -54,6 +56,16 @@ public class OrderService {
                 .memo(memo)
                 .build());
         return statusChange;
+    }
+
+    /**
+     * 수령확인대기 상태이고 주어진 시각 이전에 하차 완료된 오더의 ID를 찾는다.
+     *
+     * @param droppedOffBefore 이 시각 이전(포함)에 하차한 오더만 찾는다
+     * @return 자동 확인 대상 오더 ID 목록
+     */
+    public List<Long> findAutoConfirmTargetIds(LocalDateTime droppedOffBefore) {
+        return orderRepository.findIdsByStatusAndDroppedOffBefore(OrderStatus.AWAITING_CONFIRM, droppedOffBefore);
     }
 
     public long countDriverCancellations(Long driverId) {
