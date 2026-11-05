@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 차종별 기본요금과 km당 단가. */
 @Getter
 @Entity
 @Table(name = "fare_rate")
@@ -32,6 +33,12 @@ public class FareRate {
     @Builder
     private FareRate(VehicleType vehicleType, long baseFare, long perKmFare) {
         this.vehicleType = vehicleType;
+        this.baseFare = baseFare;
+        this.perKmFare = perKmFare;
+    }
+
+    /** 기본요금과 km당 단가를 수정한다. */
+    public void update(long baseFare, long perKmFare) {
         this.baseFare = baseFare;
         this.perKmFare = perKmFare;
     }

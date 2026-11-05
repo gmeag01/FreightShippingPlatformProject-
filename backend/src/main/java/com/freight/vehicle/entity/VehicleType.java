@@ -3,6 +3,7 @@ package com.freight.vehicle.entity;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/** 차종과 차종별 최대 적재량. */
 @Getter
 @RequiredArgsConstructor
 public enum VehicleType {

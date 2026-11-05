@@ -8,6 +8,7 @@
 - 전체 로드맵(일정, 담당, 도메인 사이의 약속): docs/superpowers/plans/2026-11-02-roadmap.md
 - 첫 주 공통 기반 계획: docs/superpowers/plans/2026-11-02-foundation.md
 - 그 밖의 계획: docs/superpowers/plans/ 아래에서 맡은 작업에 해당하는 파일
+- 화면 디자인 기준: docs/design/ui-guide.md (화면을 만들거나 고치기 전에 읽는다)
 - docs/는 팀 공통 기준이다. 작업 중에 고치지 말고, 고칠 필요가 있으면 팀에 먼저 공유한 뒤 별도 PR로 고친다.
 - 문서와 다르게 구현해야 하면 먼저 팀에 공유하고 문서를 고친 뒤 진행한다.
 

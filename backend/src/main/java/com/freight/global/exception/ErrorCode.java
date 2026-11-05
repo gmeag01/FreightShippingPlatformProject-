@@ -23,6 +23,9 @@ public enum ErrorCode {
     // member
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 가입된 이메일입니다"),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다"),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다"),
+    ADMIN_CANNOT_SUSPEND_SELF(HttpStatus.BAD_REQUEST, "관리자 본인의 계정은 정지할 수 없습니다"),
+    ACCOUNT_SUSPENDED(HttpStatus.FORBIDDEN, "이용 정지된 계정입니다. 관리자에게 문의하세요"),
 
     // order
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "오더를 찾을 수 없습니다"),
@@ -30,11 +33,18 @@ public enum ErrorCode {
     NOT_ORDER_OWNER(HttpStatus.FORBIDDEN, "본인의 오더가 아닙니다"),
     DRIVER_CANCEL_CUTOFF_PASSED(HttpStatus.CONFLICT, "상차 2시간 전부터는 직접 취소할 수 없습니다. 관리자에게 요청하세요"),
 
+    // vehicle
+    VEHICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "등록된 차량을 찾을 수 없습니다"),
+
     // matching
     VEHICLE_REQUIRED(HttpStatus.BAD_REQUEST, "차량을 먼저 등록해야 의뢰를 수락할 수 있습니다"),
     VEHICLE_MISMATCH(HttpStatus.CONFLICT, "보유 차량과 오더 요구 조건이 다릅니다"),
     ORDER_CHANGED(HttpStatus.CONFLICT, "오더 내용이 변경되었습니다. 다시 확인해 주세요"),
-    ORDER_ALREADY_ASSIGNED(HttpStatus.CONFLICT, "이미 배차된 의뢰입니다");
+    ORDER_ALREADY_ASSIGNED(HttpStatus.CONFLICT, "이미 배차된 의뢰입니다"),
+
+    // payment
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 내역을 찾을 수 없습니다"),
+    PAYMENT_ALREADY_SETTLED(HttpStatus.CONFLICT, "이미 지급 또는 환불이 끝난 결제입니다");
 
     private final HttpStatus status;
     private final String message;

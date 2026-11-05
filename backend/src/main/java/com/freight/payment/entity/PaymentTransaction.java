@@ -17,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 결제에 속한 건별 거래 내역. */
 @Getter
 @Entity
 @Table(name = "payment_transactions")

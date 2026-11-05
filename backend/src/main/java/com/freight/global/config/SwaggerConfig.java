@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-    private static final String BEARER_SCHEME_NAME = "bearerAuth";
+    private static final String BEARER_SCHEME_NAME = "BearerAuth";
 
     /** API 문서 제목과 JWT Bearer 인증 방식을 등록한다. */
     @Bean
@@ -20,7 +20,8 @@ public class SwaggerConfig {
         SecurityScheme bearerScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
-                .bearerFormat("JWT");
+                .bearerFormat("JWT")
+                .description("JWT 토큰 값(ey...)을 입력하세요. 'Bearer ' 접두사는 Swagger가 자동으로 붙입니다.");
         return new OpenAPI()
                 .info(new Info().title("화물운송플랫폼 API").version("v1"))
                 .components(new Components().addSecuritySchemes(BEARER_SCHEME_NAME, bearerScheme))

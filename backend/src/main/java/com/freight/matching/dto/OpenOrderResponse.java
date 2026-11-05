@@ -7,6 +7,7 @@ import com.freight.vehicle.entity.BodyType;
 import com.freight.vehicle.entity.VehicleType;
 import java.time.LocalDateTime;
 
+/** 열린 의뢰 목록의 한 건. 주소는 시·구까지만 담는다. */
 public record OpenOrderResponse(
         Long id,
         long version,

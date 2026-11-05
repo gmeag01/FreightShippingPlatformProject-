@@ -11,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
+/** 권한이 없는 요청에 공통 응답 형식의 403 JSON을 돌려준다. */
 @Component
 public class JsonAccessDeniedHandler implements AccessDeniedHandler {
 

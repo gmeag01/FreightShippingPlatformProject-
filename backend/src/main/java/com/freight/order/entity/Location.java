@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 오더의 상차지·하차지 정보. region은 수락 전 차주에게 공개하는 시·구 단위 주소다. */
 @Getter
 @Builder
 @Embeddable

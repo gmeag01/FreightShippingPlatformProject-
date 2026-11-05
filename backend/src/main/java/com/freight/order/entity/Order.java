@@ -31,6 +31,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 운송 요청 정보와 상태 변경 규칙을 보관한다. 상태 변경은 아래 업무 메서드로만 허용한다. */
 @Getter
 @Entity
 @Table(name = "orders")
@@ -160,6 +161,7 @@ public class Order extends BaseEntity {
         this.version = version;
     }
 
+    /** 화주가 등록한 운송 요청을 생성한다. */
     public static Order create(Member shipper, OrderSpec spec) {
         if (shipper == null || shipper.getRole() != Role.SHIPPER) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
@@ -182,6 +184,7 @@ public class Order extends BaseEntity {
                 .build();
     }
 
+    /** 화주 본인의 배차 전 정보만 수정하고 차액 계산에 사용할 기존 운임을 반환한다. */
     public long updateDetails(Member shipper, OrderSpec spec) {
         requireRole(shipper, Role.SHIPPER);
         requireOwner(shipper);
@@ -202,6 +205,7 @@ public class Order extends BaseEntity {
         return oldFare;
     }
 
+    /** 차주가 배차 전 요청을 수락하고 배정 시각을 기록한다. */
     public StatusChange accept(Member driver, LocalDateTime now) {
         requireRole(driver, Role.DRIVER);
         requireStatus(OrderStatus.REGISTERED);
@@ -210,6 +214,7 @@ public class Order extends BaseEntity {
         return moveTo(OrderStatus.ASSIGNED);
     }
 
+    /** 상차 제한 시간 이전에 배정된 차주를 해제하고 공개 요청으로 돌린다. */
     public StatusChange cancelAssignment(Member driver, LocalDateTime now, Duration cutoff) {
         requireRole(driver, Role.DRIVER);
         requireAssignedDriver(driver);
@@ -222,6 +227,7 @@ public class Order extends BaseEntity {
         return moveTo(OrderStatus.REGISTERED);
     }
 
+    /** 화주는 배차 전, 관리자는 등록·배차 완료 상태에서만 요청을 취소한다. */
     public StatusChange cancel(Member actor) {
         if (actor == null) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
@@ -236,6 +242,7 @@ public class Order extends BaseEntity {
         return moveTo(OrderStatus.CANCELLED);
     }
 
+    /** 배정된 차주가 상차 완료 후 운송을 시작한다. */
     public StatusChange startTransit(Member driver) {
         requireRole(driver, Role.DRIVER);
         requireAssignedDriver(driver);
@@ -243,6 +250,7 @@ public class Order extends BaseEntity {
         return moveTo(OrderStatus.IN_TRANSIT);
     }
 
+    /** 배정된 차주가 하차 완료를 기록하고 화주 확인을 기다린다. */
     public StatusChange completeDropoff(Member driver, LocalDateTime now) {
         requireRole(driver, Role.DRIVER);
         requireAssignedDriver(driver);
@@ -251,6 +259,7 @@ public class Order extends BaseEntity {
         return moveTo(OrderStatus.AWAITING_CONFIRM);
     }
 
+    /** 요청한 화주가 수령을 확인해 운송을 완료한다. */
     public StatusChange confirmReceipt(Member shipper, LocalDateTime now) {
         requireRole(shipper, Role.SHIPPER);
         requireOwner(shipper);
@@ -259,6 +268,7 @@ public class Order extends BaseEntity {
         return moveTo(OrderStatus.COMPLETED);
     }
 
+    /** 하차 완료 후 설정한 시간이 지났을 때만 자동 완료한다. */
     public StatusChange autoConfirm(LocalDateTime now, Duration after) {
         requireStatus(OrderStatus.AWAITING_CONFIRM);
         if (this.droppedOffAt == null || now.isBefore(this.droppedOffAt.plus(after))) {
@@ -268,6 +278,7 @@ public class Order extends BaseEntity {
         return moveTo(OrderStatus.COMPLETED);
     }
 
+    /** 화주가 수령 확인 대신 문제를 신고하면 분쟁 상태로 보낸다. */
     public StatusChange reportIssue(Member shipper) {
         requireRole(shipper, Role.SHIPPER);
         requireOwner(shipper);
@@ -275,9 +286,13 @@ public class Order extends BaseEntity {
         return moveTo(OrderStatus.DISPUTED);
     }
 
+    /** 관리자가 명시한 지급 또는 환불 결과에 따라 분쟁을 종료한다. */
     public StatusChange resolveDispute(Member admin, DisputeResolution resolution, LocalDateTime now) {
         requireRole(admin, Role.ADMIN);
         requireStatus(OrderStatus.DISPUTED);
+        if (resolution == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT);
+        }
         if (resolution == DisputeResolution.PAY_DRIVER) {
             this.completedAt = now;
             return moveTo(OrderStatus.COMPLETED);
