@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { fetchOrderDetail } from '../api/orders';
+import { fetchOrderDetail, fetchAdminOrderDetail } from '../api/orders';
+import OrderCancel from '../components/orders/OrderCancel';
 import { DetailField, OrderLoadError, OrderStatusBadge } from '../components/orders/OrderDisplay';
 import {
   BODY_LABELS,
@@ -74,7 +75,7 @@ function OrderHistory({ history }) {
 }
 
 // 본인 오더의 운송 정보, 배정 기사와 상태 이력을 조회한다.
-export default function ShipperOrderDetailPage() {
+export default function ShipperOrderDetailPage({ admin = false }) {
   const { id } = useParams();
   const validId = /^[1-9]\d*$/.test(id ?? '') && Number.isSafeInteger(Number(id));
   const [attempt, setAttempt] = useState(0);
@@ -85,7 +86,7 @@ export default function ShipperOrderDetailPage() {
   useEffect(() => {
     if (!validId) return;
     const controller = new AbortController();
-    fetchOrderDetail(id, { signal: controller.signal })
+    (admin ? fetchAdminOrderDetail : fetchOrderDetail)(id, { signal: controller.signal })
       .then((data) => {
         if (!controller.signal.aborted) setResult({ key: requestKey, data });
       })
@@ -93,17 +94,17 @@ export default function ShipperOrderDetailPage() {
         if (!controller.signal.aborted) setResult({ key: requestKey, error });
       });
     return () => controller.abort();
-  }, [id, validId, requestKey]);
+  }, [id, validId, requestKey, admin]);
 
   const order = loading ? null : result?.data;
   const error = result?.error;
   return (
     <section className="space-y-5">
       <Link
-        to="/shipper/orders"
+        to={admin ? '/admin/orders' : '/shipper/orders'}
         className="inline-block text-sm font-medium text-blue-700 hover:underline"
       >
-        ← 내 오더 목록
+        ← {admin ? '전체 오더 목록' : '내 오더 목록'}
       </Link>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-900">오더 상세{validId ? ` #${id}` : ''}</h1>
@@ -130,7 +131,9 @@ export default function ShipperOrderDetailPage() {
         <OrderLoadError
           message={
             error.status === 403
-              ? '이 오더를 조회할 권한이 없습니다. 본인이 등록한 오더를 선택해 주세요.'
+              ? admin
+                ? '관리자 조회 권한이 없습니다.'
+                : '이 오더를 조회할 권한이 없습니다. 본인이 등록한 오더를 선택해 주세요.'
               : error.status === 404
                 ? '오더를 찾을 수 없습니다. 목록에서 다시 확인해 주세요.'
                 : error.message
@@ -140,7 +143,7 @@ export default function ShipperOrderDetailPage() {
       ) : (
         order && (
           <>
-            {order.status === 'REGISTERED' && (
+            {!admin && order.status === 'REGISTERED' && (
               <Link
                 to={`/shipper/orders/${order.id}/edit`}
                 className="inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
@@ -148,6 +151,13 @@ export default function ShipperOrderDetailPage() {
                 오더 수정
               </Link>
             )}
+            <OrderCancel
+              key={`${order.id}:${order.version}`}
+              order={order}
+              admin={admin}
+              onSuccess={(data) => setResult({ key: requestKey, data })}
+              onReload={() => setAttempt((value) => value + 1)}
+            />
             <OrderDetail order={order} />
           </>
         )
