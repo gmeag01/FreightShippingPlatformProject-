@@ -2,6 +2,7 @@ package com.freight.order.dto;
 
 import com.freight.order.entity.*;
 import com.freight.vehicle.entity.BodyType;
+import com.freight.vehicle.entity.Vehicle;
 import com.freight.vehicle.entity.VehicleType;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,10 +26,22 @@ public record OrderDetailResponse(
         double distanceKm,
         Long driverId,
         String driverName,
+        String driverPhone,
+        VehicleType driverVehicleType,
+        BodyType driverBodyType,
+        String driverPlateNumber,
+        LocalDateTime autoConfirmAt,
+        LocalDateTime driverCancelableUntil,
         boolean isUnassigned,
         boolean isDriverCancelled,
         List<StatusHistoryResponse> history) {
-    public static OrderDetailResponse from(Order order, List<OrderStatusHistory> history, boolean canViewPrivate) {
+    public static OrderDetailResponse from(
+            Order order,
+            List<OrderStatusHistory> history,
+            boolean canViewPrivate,
+            Vehicle driverVehicle,
+            long autoConfirmHours,
+            long cancelCutoffHours) {
         OrderStatusHistory last = history.isEmpty() ? null : history.getLast();
         boolean driverCancelled = last != null
                 && last.getFromStatus() == OrderStatus.ASSIGNED
@@ -51,6 +64,16 @@ public record OrderDetailResponse(
                 order.getDistanceKm(),
                 order.getDriver() == null ? null : order.getDriver().getId(),
                 order.getDriver() == null ? null : order.getDriver().getName(),
+                canViewPrivate && order.getDriver() != null ? order.getDriver().getPhone() : null,
+                driverVehicle != null && canViewPrivate ? driverVehicle.getVehicleType() : null,
+                driverVehicle != null && canViewPrivate ? driverVehicle.getBodyType() : null,
+                driverVehicle != null && canViewPrivate ? driverVehicle.getPlateNumber() : null,
+                canViewPrivate && order.getStatus() == OrderStatus.AWAITING_CONFIRM && order.getDroppedOffAt() != null
+                        ? order.getDroppedOffAt().plusHours(autoConfirmHours)
+                        : null,
+                canViewPrivate && order.getStatus() == OrderStatus.ASSIGNED
+                        ? order.getPickupAt().minusHours(cancelCutoffHours)
+                        : null,
                 order.getStatus() == OrderStatus.REGISTERED
                         && order.getPickupAt().isBefore(LocalDateTime.now()),
                 driverCancelled,

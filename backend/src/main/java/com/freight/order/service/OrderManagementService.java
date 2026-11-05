@@ -10,10 +10,12 @@ import com.freight.order.entity.*;
 import com.freight.order.repository.OrderRepository;
 import com.freight.order.repository.OrderStatusHistoryRepository;
 import com.freight.vehicle.entity.VehicleType;
+import com.freight.vehicle.service.VehicleService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -32,6 +34,13 @@ public class OrderManagementService {
     private final OrderService orderService;
     private final MemberService memberService;
     private final OrderPaymentPort paymentPort;
+    private final VehicleService vehicleService;
+
+    @Value("${app.order.auto-confirm-hours:24}")
+    private long autoConfirmHours;
+
+    @Value("${app.order.driver-cancel-cutoff-hours:2}")
+    private long driverCancelCutoffHours;
 
     /**
      * 새 오더와 등록 이력을 저장하고 같은 트랜잭션에서 결제를 보관한다.
@@ -108,7 +117,10 @@ public class OrderManagementService {
         long previousFare = order.updateDetails(shipper, request.details().toSpec());
         orderRepository.saveAndFlush(order);
         if (previousFare != order.getFare()) paymentPort.adjust(orderId, order.getFare());
-        saveHistory(order, shipper, OrderStatus.REGISTERED, OrderStatus.REGISTERED, "화주 오더 정보 수정");
+        String memo = previousFare == order.getFare()
+                ? "화주 오더 정보 수정"
+                : "화주 오더 운임 수정: " + previousFare + "원 → " + order.getFare() + "원";
+        saveHistory(order, shipper, OrderStatus.REGISTERED, OrderStatus.REGISTERED, memo);
         return detail(order, true);
     }
 
@@ -169,8 +181,16 @@ public class OrderManagementService {
     }
 
     private OrderDetailResponse detail(Order order, boolean full) {
+        var vehicle = full && order.getDriver() != null
+                ? vehicleService.findByDriverId(order.getDriver().getId()).orElse(null)
+                : null;
         return OrderDetailResponse.from(
-                order, historyRepository.findByOrderIdOrderByCreatedAtAscIdAsc(order.getId()), full);
+                order,
+                historyRepository.findByOrderIdOrderByCreatedAtAscIdAsc(order.getId()),
+                full,
+                vehicle,
+                autoConfirmHours,
+                driverCancelCutoffHours);
     }
 
     private void saveHistory(Order order, Member actor, OrderStatus from, OrderStatus to, String memo) {

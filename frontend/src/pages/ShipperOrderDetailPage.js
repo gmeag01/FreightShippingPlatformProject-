@@ -268,11 +268,45 @@ function OrderDetail({ order }) {
           <p className="mt-3 text-lg font-semibold text-gray-800">
             {order.driverName ?? (order.driverId ? '배정된 기사' : '배정된 기사가 없습니다.')}
           </p>
+          {order.driverPhone && (
+            <a
+              href={`tel:${order.driverPhone}`}
+              className="mt-2 block text-sm text-blue-700 underline"
+            >
+              {order.driverPhone}
+            </a>
+          )}
+          {order.driverId && (
+            <dl className="mt-4 grid grid-cols-2 gap-4">
+              <DetailField label="기사 차량">
+                {VEHICLE_LABELS[order.driverVehicleType] ?? '미등록'} ·{' '}
+                {BODY_LABELS[order.driverBodyType] ?? '미등록'}
+              </DetailField>
+              <DetailField label="차량번호">{order.driverPlateNumber ?? '미등록'}</DetailField>
+            </dl>
+          )}
           {!order.driverId && order.status === 'REGISTERED' && (
             <p className="mt-2 text-sm text-gray-500">차주가 의뢰를 수락하면 이곳에 표시됩니다.</p>
           )}
         </section>
       </div>
+      {(order.autoConfirmAt || order.driverCancelableUntil) && (
+        <section className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+          <h2 className="font-bold text-gray-900">진행 기한 안내</h2>
+          <dl className="mt-3 space-y-3">
+            {order.autoConfirmAt && (
+              <DetailField label="자동 수령 확인 예정">
+                {formatDateTime(order.autoConfirmAt)}
+              </DetailField>
+            )}
+            {order.driverCancelableUntil && (
+              <DetailField label="기사 직접 배차 취소 가능 기한">
+                {formatDateTime(order.driverCancelableUntil)} 이전까지
+              </DetailField>
+            )}
+          </dl>
+        </section>
+      )}
       <OrderHistory history={history} />
     </>
   );
