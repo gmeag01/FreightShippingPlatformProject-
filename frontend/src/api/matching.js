@@ -18,6 +18,9 @@ export const fetchOpenOrders = ({ vehicleType, page = 0 } = {}) => {
   return client.get('/orders/open', { params });
 };
 
+// 수락 전 의뢰 상세를 조회한다. 주소는 시·구까지만 오고, 이미 배차된 의뢰는 409(ORDER_ALREADY_ASSIGNED)다.
+export const fetchOpenOrderDetail = (orderId) => client.get(`/orders/open/${orderId}`);
+
 // 차주가 선택한 오더를 수락해 배차완료(ASSIGNED) 상태로 변경한다.
 export const acceptOrder = (orderId, { version, confirmMismatch = false }) =>
   client.post(`/orders/${orderId}/accept`, { version, confirmMismatch });
