@@ -1,3 +1,4 @@
+import { OrderDeliveryActions, OrderPaymentPanel } from '../components/orders/OrderDeliveryPayment';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { fetchOrderDetail, fetchAdminOrderDetail } from '../api/orders';
@@ -158,7 +159,15 @@ export default function ShipperOrderDetailPage({ admin = false }) {
               onSuccess={(data) => setResult({ key: requestKey, data })}
               onReload={() => setAttempt((value) => value + 1)}
             />
+            {!admin && (
+              <OrderDeliveryActions
+                key={`${order.id}:${order.status}`}
+                order={order}
+                onReload={() => setAttempt((value) => value + 1)}
+              />
+            )}
             <OrderDetail order={order} />
+            <OrderPaymentPanel key={requestKey} orderId={order.id} />
           </>
         )
       )}

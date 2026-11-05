@@ -1,3 +1,4 @@
+import { GeocodeButton } from './OrderIntegrationFields';
 import {
   BODY_LABELS,
   CARGO_LABELS,
@@ -52,7 +53,7 @@ export function FormField({ label, name, error, children, ...props }) {
 }
 
 // 상하차 주소·현장 연락처와 실제 지도 위치를 입력한다. 좌표는 임의로 채우지 않는다.
-export function LocationFields({ name, title, initial = {}, errors }) {
+export function LocationFields({ name, title, initial = {}, errors, onCoordinatesChange }) {
   const field = (key, label, props = {}) => (
     <FormField
       name={`${name}.${key}`}
@@ -66,6 +67,7 @@ export function LocationFields({ name, title, initial = {}, errors }) {
   return (
     <fieldset className="rounded-xl border border-gray-200 bg-white p-5">
       <legend className="px-2 font-bold text-gray-900">{title}</legend>
+      <GeocodeButton name={name} onCoordinatesChange={onCoordinatesChange} />
       <div className="grid gap-4 sm:grid-cols-2">
         {field('address', '주소', { maxLength: 255 })}
         {field('detailAddress', '상세주소', { maxLength: 255 })}

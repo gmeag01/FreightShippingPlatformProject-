@@ -1,3 +1,4 @@
+import { FareEstimatePanel } from './OrderIntegrationFields';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createOrder, updateOrder } from '../../api/orders';
@@ -23,6 +24,32 @@ export default function OrderForm({ initial, isEditing, onReload }) {
   const [dirty, setDirty] = useState(false);
   const inFlight = useRef(false);
   const formRef = useRef(null);
+  const quoteRef = useRef(null);
+  const quoteChanged = useRef(false);
+  const [quoteRevision, setQuoteRevision] = useState(0);
+  function invalidateQuote() {
+    quoteRef.current = null;
+    quoteChanged.current = true;
+    setQuoteRevision((value) => value + 1);
+  }
+  function changeInput(event) {
+    setDirty(true);
+    if (
+      [
+        'pickup.address',
+        'dropoff.address',
+        'pickup.latitude',
+        'pickup.longitude',
+        'dropoff.latitude',
+        'dropoff.longitude',
+        'cargo.weightKg',
+        'pickupAt',
+        'requiredVehicleType',
+        'loadingMethod',
+      ].includes(event.target.name)
+    )
+      invalidateQuote();
+  }
   const errorBox = useRef(null);
   const reviewTitle = useRef(null);
   const backTo = isEditing ? `/shipper/orders/${initial.id}` : '/shipper/orders';
@@ -58,11 +85,19 @@ export default function OrderForm({ initial, isEditing, onReload }) {
     setErrors({});
     setMessage('');
     setDirty(true);
+    invalidateQuote();
   }
 
   function reviewInput(event) {
     event.preventDefault();
     const details = readOrderForm(event.currentTarget, initial);
+    if (quoteRef.current) {
+      details.recommendedFare = quoteRef.current.recommendedFare;
+      details.distanceKm = quoteRef.current.distanceKm;
+    } else if (quoteChanged.current) {
+      details.recommendedFare = 0;
+      details.distanceKm = 0;
+    }
     const nextErrors = validateOrderForm(details, isEditing);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
@@ -143,12 +178,7 @@ export default function OrderForm({ initial, isEditing, onReload }) {
           )}
         </div>
       )}
-      <form
-        ref={formRef}
-        onSubmit={reviewInput}
-        onChange={() => setDirty(true)}
-        hidden={Boolean(review)}
-      >
+      <form ref={formRef} onSubmit={reviewInput} onChange={changeInput} hidden={Boolean(review)}>
         <fieldset disabled={submitting || conflict} className="min-w-0 space-y-5">
           {import.meta.env.DEV && !isEditing && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
@@ -167,8 +197,26 @@ export default function OrderForm({ initial, isEditing, onReload }) {
               </button>
             </div>
           )}
-          <LocationFields name="pickup" title="상차지" initial={initial.pickup} errors={errors} />
-          <LocationFields name="dropoff" title="하차지" initial={initial.dropoff} errors={errors} />
+          <LocationFields
+            name="pickup"
+            title="상차지"
+            initial={initial.pickup}
+            errors={errors}
+            onCoordinatesChange={() => {
+              setDirty(true);
+              invalidateQuote();
+            }}
+          />
+          <LocationFields
+            name="dropoff"
+            title="하차지"
+            initial={initial.dropoff}
+            errors={errors}
+            onCoordinatesChange={() => {
+              setDirty(true);
+              invalidateQuote();
+            }}
+          />
           <CargoScheduleFields initial={initial} errors={errors} />
           <fieldset className="rounded-xl border border-gray-200 bg-white p-5">
             <legend className="px-2 font-bold text-gray-900">운임</legend>
@@ -184,8 +232,15 @@ export default function OrderForm({ initial, isEditing, onReload }) {
               error={errors.fare}
             />
             <p className="mt-3 text-sm text-gray-500">
-              현재 자동 추천 운임을 제공하지 않습니다. 차주에게 제시할 운임을 직접 입력해 주세요.
+              차주에게 제시할 최종 운임을 입력하세요. 추천 운임은 아래에서 계산할 수 있습니다.
             </p>
+            <FareEstimatePanel
+              key={quoteRevision}
+              formRef={formRef}
+              onEstimate={(quote) => {
+                quoteRef.current = quote;
+              }}
+            />
             {isEditing && (
               <p className="mt-2 text-sm text-gray-600">
                 기존 운임: {formatNumber(initial.fare)}원. 운임 변경 시 차액 결제 또는 환불이
