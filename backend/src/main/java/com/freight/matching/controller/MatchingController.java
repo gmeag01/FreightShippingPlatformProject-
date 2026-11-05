@@ -5,6 +5,7 @@ import com.freight.global.security.AuthMember;
 import com.freight.matching.dto.AcceptOrderRequest;
 import com.freight.matching.dto.AcceptOrderResponse;
 import com.freight.matching.dto.CancelAssignmentRequest;
+import com.freight.matching.dto.OpenOrderDetailResponse;
 import com.freight.matching.dto.OpenOrderResponse;
 import com.freight.matching.service.MatchingService;
 import com.freight.vehicle.entity.VehicleType;
@@ -39,6 +40,15 @@ public class MatchingController {
     public ApiResponse<Page<OpenOrderResponse>> listOpenOrders(
             @RequestParam(required = false) VehicleType vehicleType, @RequestParam(defaultValue = "0") int page) {
         return ApiResponse.ok(matchingService.listOpenOrders(vehicleType, page));
+    }
+
+    /**
+     * 수락 전 의뢰 상세를 조회한다. 주소는 시·구까지만, 상세주소·연락처·좌표는 보내지 않는다.
+     */
+    @GetMapping("/open/{id}")
+    @PreAuthorize("hasRole('DRIVER')")
+    public ApiResponse<OpenOrderDetailResponse> getOpenOrderDetail(@PathVariable Long id) {
+        return ApiResponse.ok(matchingService.getOpenOrderDetail(id));
     }
 
     /**

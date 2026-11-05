@@ -57,3 +57,22 @@ cd frontend && npm run format && npm run lint && npm run build
 백엔드 서버 기동 후 브라우저에서 확인할 수 있습니다:
 - **Swagger UI**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 - **OpenAPI JSON**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+## 차주 동시 수락 제어 방식 비교 (matching 도메인)
+
+동일한 배차 대기(`REGISTERED`) 오더에 여러 차주가 동시에 수락을 요청할 때 **정확히 1명만 배차(`ASSIGNED`)**되도록 보장하기 위해 세 가지 방식을 비교 검토하고 **JPA 낙관적 락(`@Version`)**을 채택했습니다.
+
+| 방식 | 동작 원리 | 장점 | 단점 | 채택 여부 |
+| --- | --- | --- | --- | --- |
+| **낙관적 락 (`@Version`)** | `Order` 엔티티의 `version` 컬럼을 기준으로 커밋 시점(`UPDATE ... WHERE id = ? AND version = ?`)에 충돌을 감지하고, 패배한 트랜잭션의 `ObjectOptimisticLockingFailureException`을 `409 ORDER_ALREADY_ASSIGNED`로 변환 | - DB 락 점유 시간을 최소화해 조회·일반 트랜잭션 처리량이 높음<br>- 도메인 엔티티 메서드(`order.accept(...)`)의 상태 전이 규칙·이력 기록과 자연스럽게 결합됨<br>- 화주의 오더 수정 시 차주가 구버전 화면으로 수락하는 문제(`ORDER_CHANGED`)까지 같은 `version` 필드로 한 번에 해결 | 충돌 시 예외 변환 및 롤백 처리가 필요함 (재시도 없이 즉시 실패 응답하는 업무 규칙과 부합) | **채택** |
+| **비관적 락 (`SELECT ... FOR UPDATE`)** | 오더 조회 시점부터 DB 배타 락(X-Lock)을 걸어 다른 트랜잭션을 대기시킴 | 충돌이 매우 잦고 순차 대기 후 재처리가 필요한 작업에서 확실한 직렬화 보장 | - 첫 요청이 끝날 때까지 나머지 9개 스레드가 커넥션을 점유한 채 대기하여 커넥션 풀 고갈 및 데드락 위험 증가<br>- 화주가 오더를 읽은 뒤 수정했는지(`ORDER_CHANGED`)는 별도 버전 값 없이 판별하기 어려움 | 미채택 |
+| **조건부 UPDATE (`WHERE status = 'REGISTERED'`)** | `UPDATE orders SET status = 'ASSIGNED', driver_id = ? WHERE id = ? AND status = 'REGISTERED'` 실행 후 영향받은 행 수(`updatedRows == 1`)로 성공 판별 | 단일 쿼리로 동작하여 DB 왕복이 적고 빠름 | - JPA 영속성 컨텍스트를 우회(벌크 연산)하므로 `Order` 엔티티의 도메인 캡슐화(상태 전이 검증 메서드)와 `order_status_history` 감사 이력 기록 흐름이 분리됨<br>- 차종·중량 불일치(`VEHICLE_MISMATCH`) 및 오더 수정 여부(`ORDER_CHANGED`)를 사전 구분하기 위해 결국 조회 쿼리가 추가로 필요함 | 미채택 |
+
+### 동시성 검증 (`MatchingConcurrencyTest`)
+
+- **시나리오**: 등록된 5톤 오더 1건에 대해 차주 10명(스레드 10개)이 `CountDownLatch`로 동시에 `acceptOrder`를 호출
+- **검증 결과 (H2 테스트 환경 및 로컬 MariaDB 11.4/12.3 동일 확인)**:
+  - **성공(`200 OK`, `ASSIGNED`)**: 정확히 **1건**
+  - **실패(`409 Conflict`, `ORDER_ALREADY_ASSIGNED`)**: 정확히 **9건**
+  - 최종 오더 상태 `ASSIGNED`, `version = 1`, `order_status_history`의 `REGISTERED → ASSIGNED` 이력 **1건** 기록 확인
+

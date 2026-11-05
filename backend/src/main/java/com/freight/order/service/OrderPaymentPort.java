@@ -1,8 +1,7 @@
 package com.freight.order.service;
 
 /**
- * E 담당 결제 서비스와 연결할 C 측 계약. 구현체는 PaymentService의 hold/adjust/refund에 위임한다.
- * 구현체가 없는 동안 테스트만 Mockito로 대체하고 실행 환경의 결제 필요 작업은 명시적으로 거절한다.
+ * 오더 등록·수정·취소가 결제 도메인에 요청하는 계약. 구현체는 OrderPaymentAdapter이고 PaymentService에 위임한다.
  * 같은 트랜잭션에 참여하고 실패 시 예외를 던져 오더·이력이 함께 롤백되도록 해야 한다.
  */
 public interface OrderPaymentPort {

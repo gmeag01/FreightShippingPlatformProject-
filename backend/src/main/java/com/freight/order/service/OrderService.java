@@ -12,6 +12,7 @@ import com.freight.order.repository.OrderRepository;
 import com.freight.order.repository.OrderStatusHistoryRepository;
 import com.freight.vehicle.entity.VehicleType;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,39 @@ public class OrderService {
                 .memo(memo)
                 .build());
         return statusChange;
+    }
+
+    /**
+     * 주어진 상태의 오더를 조회한다.
+     *
+     * @param status 찾을 오더 상태
+     * @param pageable 페이지와 정렬
+     * @return 오더 페이지
+     */
+    public Page<Order> findOrdersByStatus(OrderStatus status, Pageable pageable) {
+        return orderRepository.findByStatus(status, pageable);
+    }
+
+    /**
+     * 차주에게 배정된 오더 중 주어진 상태의 오더를 조회한다.
+     *
+     * @param driverId 차주 회원 ID
+     * @param statuses 찾을 오더 상태들
+     * @param pageable 페이지와 정렬
+     * @return 오더 페이지
+     */
+    public Page<Order> findOrdersByDriver(Long driverId, Collection<OrderStatus> statuses, Pageable pageable) {
+        return orderRepository.findByDriverIdAndStatusIn(driverId, statuses, pageable);
+    }
+
+    /**
+     * 오더의 상태 이력을 오래된 순으로 조회한다.
+     *
+     * @param orderId 오더 ID
+     * @return 상태 이력 목록
+     */
+    public List<OrderStatusHistory> getHistory(Long orderId) {
+        return orderStatusHistoryRepository.findByOrderIdOrderByCreatedAtAscIdAsc(orderId);
     }
 
     /**

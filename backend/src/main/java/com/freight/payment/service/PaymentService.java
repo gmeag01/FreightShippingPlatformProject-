@@ -2,14 +2,22 @@ package com.freight.payment.service;
 
 import com.freight.global.exception.BusinessException;
 import com.freight.global.exception.ErrorCode;
+import com.freight.member.entity.Role;
 import com.freight.order.entity.Order;
 import com.freight.order.service.OrderService;
+import com.freight.payment.dto.PaymentDetailResponse;
+import com.freight.payment.dto.PayoutResponse;
 import com.freight.payment.entity.Payment;
+import com.freight.payment.entity.PaymentStatus;
 import com.freight.payment.entity.PaymentTransaction;
 import com.freight.payment.entity.PaymentTransactionType;
 import com.freight.payment.repository.PaymentRepository;
 import com.freight.payment.repository.PaymentTransactionRepository;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional
 public class PaymentService {
+
+    private static final int DEFAULT_PAGE_SIZE = 20;
 
     private final PaymentRepository paymentRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
@@ -92,6 +102,54 @@ public class PaymentService {
         payment.refund();
         paymentGateway.refund(orderId, payment.getAmount());
         recordTransaction(payment, PaymentTransactionType.REFUND, payment.getAmount());
+    }
+
+    /**
+     * 오더의 결제 상태를 조회한다.
+     *
+     * @param orderId 오더 ID
+     * @return 결제 상태. 결제가 없으면 비어 있다
+     */
+    @Transactional(readOnly = true)
+    public Optional<PaymentStatus> findStatus(Long orderId) {
+        return paymentRepository.findByOrderId(orderId).map(Payment::getStatus);
+    }
+
+    /**
+     * 오더의 결제 상태와 건별 거래를 조회한다. 화주 본인과 관리자만 볼 수 있다.
+     *
+     * @param orderId 오더 ID
+     * @param actorId 요청 회원 ID
+     * @param actorRole 요청 회원 역할
+     * @return 결제 상태, 금액, 거래 내역
+     * @throws BusinessException 오더 없음(ORDER_NOT_FOUND), 본인 오더가 아님(NOT_ORDER_OWNER),
+     *         결제 없음(PAYMENT_NOT_FOUND)
+     */
+    @Transactional(readOnly = true)
+    public PaymentDetailResponse getPaymentDetail(Long orderId, Long actorId, Role actorRole) {
+        Order order = orderService.getOrder(orderId);
+        boolean isOwner = Objects.equals(order.getShipper().getId(), actorId);
+        if (actorRole != Role.ADMIN && !isOwner) {
+            throw new BusinessException(ErrorCode.NOT_ORDER_OWNER);
+        }
+        Payment payment = getPayment(orderId);
+        return PaymentDetailResponse.from(
+                orderId, payment, paymentTransactionRepository.findByPaymentIdOrderByIdAsc(payment.getId()));
+    }
+
+    /**
+     * 차주의 지급 내역을 최신순으로 조회한다.
+     *
+     * @param driverId 차주 회원 ID
+     * @param page 0부터 시작하는 페이지 번호
+     * @return 지급 내역 페이지
+     */
+    @Transactional(readOnly = true)
+    public Page<PayoutResponse> listPayouts(Long driverId, int page) {
+        return paymentTransactionRepository
+                .findByTypeAndDriverId(
+                        PaymentTransactionType.PAYOUT, driverId, PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE))
+                .map(PayoutResponse::from);
     }
 
     private Payment getPayment(Long orderId) {

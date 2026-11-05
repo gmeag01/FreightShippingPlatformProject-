@@ -50,4 +50,10 @@ public class Vehicle {
         this.plateNumber = plateNumber;
         this.bodyType = bodyType;
     }
+
+    public void update(VehicleType vehicleType, String plateNumber, BodyType bodyType) {
+        this.vehicleType = vehicleType;
+        this.plateNumber = plateNumber;
+        this.bodyType = bodyType;
+    }
 }

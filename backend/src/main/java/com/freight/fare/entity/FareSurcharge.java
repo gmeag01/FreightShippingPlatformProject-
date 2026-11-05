@@ -31,4 +31,8 @@ public class FareSurcharge {
         this.type = type;
         this.rate = rate;
     }
+
+    public void update(BigDecimal rate) {
+        this.rate = rate;
+    }
 }
