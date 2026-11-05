@@ -13,6 +13,7 @@ import com.freight.vehicle.entity.VehicleType;
 import com.freight.vehicle.service.VehicleService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class OrderManagementService {
     private static final int PAGE_SIZE = 20;
+    // 설계 문서 3장: 화면이 메모를 그대로 보여주므로 금액을 천 단위 구분 기호와 함께 적는다.
+    private static final String FARE_CHANGE_MEMO_FORMAT = "화주 오더 운임 수정: %,d원 → %,d원";
     private final OrderRepository orderRepository;
     private final OrderStatusHistoryRepository historyRepository;
     private final OrderService orderService;
@@ -119,7 +122,7 @@ public class OrderManagementService {
         if (previousFare != order.getFare()) paymentPort.adjust(orderId, order.getFare());
         String memo = previousFare == order.getFare()
                 ? "화주 오더 정보 수정"
-                : "화주 오더 운임 수정: " + previousFare + "원 → " + order.getFare() + "원";
+                : String.format(Locale.KOREA, FARE_CHANGE_MEMO_FORMAT, previousFare, order.getFare());
         saveHistory(order, shipper, OrderStatus.REGISTERED, OrderStatus.REGISTERED, memo);
         return detail(order, true);
     }
