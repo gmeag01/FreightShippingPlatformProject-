@@ -11,6 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
+/** 인증되지 않은 요청에 공통 응답 형식의 401 JSON을 돌려준다. */
 @Component
 public class JsonAuthEntryPoint implements AuthenticationEntryPoint {
 

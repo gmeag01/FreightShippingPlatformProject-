@@ -1,5 +1,6 @@
 package com.freight.fare.entity;
 
+/** 운임 할증 종류. */
 public enum SurchargeType {
     NIGHT("야간"),
     WEEKEND("주말"),

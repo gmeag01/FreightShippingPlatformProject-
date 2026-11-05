@@ -80,7 +80,15 @@ public class DistanceCalculationService {
         throw new IllegalStateException("카카오모빌리티 응답에 거리 정보가 없습니다");
     }
 
-    /** 하버사인 직선거리 x 1.3 도로 보정 공식 */
+    /**
+     * 하버사인 직선거리에 1.3을 곱해 도로 거리를 추정한다.
+     *
+     * @param lat1 출발지 위도
+     * @param lon1 출발지 경도
+     * @param lat2 도착지 위도
+     * @param lon2 도착지 경도
+     * @return 추정 도로 거리(km)
+     */
     public double calculateHaversineRoadDistance(double lat1, double lon1, double lat2, double lon2) {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);

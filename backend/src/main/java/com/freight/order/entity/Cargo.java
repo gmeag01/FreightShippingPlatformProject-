@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 오더에 포함되는 화물 정보. */
 @Getter
 @Builder
 @Embeddable

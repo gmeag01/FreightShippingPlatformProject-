@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/** URL별 접근 권한과 세션 없는 JWT 인증을 설정한다. */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity

@@ -38,6 +38,7 @@ public class AdminMemberController {
 
     private final AdminMemberService adminMemberService;
 
+    /** 역할·상태·검색어로 회원 목록을 조회한다. */
     @Operation(summary = "회원 목록 조회", description = "역할, 상태, 검색어 필터와 페이징을 통해 회원 목록을 조회합니다.")
     @GetMapping
     public ApiResponse<Page<AdminMemberResponse>> getMembers(
@@ -49,6 +50,7 @@ public class AdminMemberController {
         return ApiResponse.ok(result);
     }
 
+    /** 회원 상세를 조회한다. 차주는 차량 정보와 배차 취소 횟수를 함께 준다. */
     @Operation(summary = "회원 상세 조회", description = "특정 회원의 상세 정보를 조회합니다. 차주인 경우 차량 정보와 배차 취소 횟수를 포함합니다.")
     @GetMapping("/{id}")
     public ApiResponse<AdminMemberDetailResponse> getMemberDetail(@PathVariable Long id) {
@@ -56,6 +58,7 @@ public class AdminMemberController {
         return ApiResponse.ok(result);
     }
 
+    /** 회원 계정을 정지하거나 정상으로 되돌린다. */
     @Operation(summary = "회원 상태 변경", description = "회원 계정을 정지(SUSPENDED)하거나 정상(ACTIVE)으로 변경합니다.")
     @PatchMapping("/{id}/status")
     public ApiResponse<AdminMemberResponse> updateMemberStatus(
