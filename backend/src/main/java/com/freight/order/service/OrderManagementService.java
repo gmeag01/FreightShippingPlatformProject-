@@ -14,7 +14,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -32,14 +31,14 @@ public class OrderManagementService {
     private final OrderStatusHistoryRepository historyRepository;
     private final OrderService orderService;
     private final MemberService memberService;
-    private final ObjectProvider<OrderPaymentPort> paymentProvider;
+    private final OrderPaymentPort paymentPort;
 
     /**
      * 새 오더와 등록 이력을 저장하고 같은 트랜잭션에서 결제를 보관한다.
      * @param shipperId 로그인한 화주 ID
      * @param request 검증된 운송 정보
      * @return 생성된 오더 상세
-     * @throws BusinessException 권한·희망 시각이 잘못됐거나 결제 연결이 없는 경우
+     * @throws BusinessException 권한·희망 시각이 잘못된 경우
      */
     @Transactional
     public OrderDetailResponse create(Long shipperId, SaveOrderRequest request) {
@@ -48,10 +47,9 @@ public class OrderManagementService {
         if (!request.pickupAt().isAfter(LocalDateTime.now())) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);
         }
-        OrderPaymentPort payment = requirePayment();
         Order order = orderRepository.saveAndFlush(Order.create(shipper, request.toSpec()));
         saveHistory(order, shipper, null, OrderStatus.REGISTERED, "화주 오더 등록");
-        payment.hold(order.getId(), order.getFare());
+        paymentPort.hold(order.getId(), order.getFare());
         return detail(order, true);
     }
 
@@ -98,7 +96,7 @@ public class OrderManagementService {
      * @param shipperId 로그인한 화주 ID
      * @param request 화면에서 확인한 버전과 새 정보
      * @return 수정된 상세 응답
-     * @throws BusinessException 소유·상태·버전이 맞지 않거나 결제 연결이 없는 경우
+     * @throws BusinessException 소유·상태·버전이 맞지 않는 경우
      */
     @Transactional
     public OrderDetailResponse update(Long orderId, Long shipperId, UpdateOrderRequest request) {
@@ -109,7 +107,7 @@ public class OrderManagementService {
         requireVersion(order, request.version());
         long previousFare = order.updateDetails(shipper, request.details().toSpec());
         orderRepository.saveAndFlush(order);
-        if (previousFare != order.getFare()) requirePayment().adjust(orderId, order.getFare());
+        if (previousFare != order.getFare()) paymentPort.adjust(orderId, order.getFare());
         saveHistory(order, shipper, OrderStatus.REGISTERED, OrderStatus.REGISTERED, "화주 오더 정보 수정");
         return detail(order, true);
     }
@@ -132,7 +130,7 @@ public class OrderManagementService {
         }
         requireVersion(order, request.version());
         orderService.changeStatus(orderId, actorId, request.reason(), Order::cancel);
-        requirePayment().refund(orderId);
+        paymentPort.refund(orderId);
         return detail(order, true);
     }
 
@@ -183,12 +181,6 @@ public class OrderManagementService {
                 .toStatus(to)
                 .memo(memo)
                 .build());
-    }
-
-    private OrderPaymentPort requirePayment() {
-        OrderPaymentPort payment = paymentProvider.getIfAvailable();
-        if (payment == null) throw new BusinessException(ErrorCode.ORDER_PAYMENT_UNAVAILABLE);
-        return payment;
     }
 
     private void requireRole(Member actor, Role role) {

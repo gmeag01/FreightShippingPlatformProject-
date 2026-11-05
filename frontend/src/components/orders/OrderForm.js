@@ -105,10 +105,6 @@ export default function OrderForm({ initial, isEditing, onReload }) {
         setMessage(
           '다른 변경이나 기사 배차로 오더가 달라졌습니다. 최신 정보를 다시 불러온 뒤 수정해 주세요.',
         );
-      } else if (error.code === 'ORDER_PAYMENT_UNAVAILABLE') {
-        setMessage(
-          '결제 서비스를 사용할 수 없어 요청을 완료하지 못했습니다. 입력 내용은 유지됩니다. 잠시 후 다시 시도해 주세요.',
-        );
       } else {
         setMessage(error.message || '요청을 완료하지 못했습니다.');
       }
