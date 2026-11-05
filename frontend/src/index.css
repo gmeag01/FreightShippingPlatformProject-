@@ -1,5 +1,49 @@
 @import 'tailwindcss';
 
+/* 화면 공통 값. 쓰는 방법은 docs/design/ui-guide.md를 따른다. */
 @theme {
-  --font-sans: system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  --font-sans:
+    'IBM Plex Sans KR', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+  --text-body: 15px;
+  --text-caption: 13px;
+  --text-h1: 26px;
+  --text-h1-sm: 22px;
+  --text-h2: 17px;
+  --text-fare: 22px;
+  --text-fare-lg: 32px;
+
+  --color-ink: #172554;
+  --color-copy: #1e293b;
+  --color-muted: #475569;
+  --color-subtle: #64748b;
+  --color-line: #dbeafe;
+  --color-line-strong: #cbd5e1;
+  --color-ground: #eff6ff;
+  --color-card: #ffffff;
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-soft: #eff6ff;
+  --color-signal: #ea580c;
+  --color-signal-soft: #ffedd5;
+  --color-signal-ink: #7c2d12;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fef2f2;
+
+  /* 오더 상태 뱃지의 배경과 글자색 */
+  --color-status-registered: #dbeafe;
+  --color-status-registered-ink: #1e40af;
+  --color-status-assigned: #e0e7ff;
+  --color-status-assigned-ink: #3730a3;
+  --color-status-transit: #1d4ed8;
+  --color-status-transit-ink: #ffffff;
+  --color-status-awaiting: #ea580c;
+  --color-status-awaiting-ink: #000000;
+  --color-status-completed: #d1fae5;
+  --color-status-completed-ink: #065f46;
+  --color-status-disputed: #b91c1c;
+  --color-status-disputed-ink: #ffffff;
+  --color-status-cancelled: #e2e8f0;
+  --color-status-cancelled-ink: #334155;
 }
