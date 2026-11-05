@@ -1,5 +1,6 @@
 package com.freight.delivery.dto;
 
+import com.freight.order.dto.StatusHistoryResponse;
 import com.freight.order.entity.Cargo;
 import com.freight.order.entity.CargoType;
 import com.freight.order.entity.LoadingMethod;

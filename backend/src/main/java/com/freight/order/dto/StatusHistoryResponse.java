@@ -1,4 +1,4 @@
-package com.freight.delivery.dto;
+package com.freight.order.dto;
 
 import com.freight.member.entity.Member;
 import com.freight.order.entity.OrderStatus;

@@ -27,7 +27,7 @@ public record OrderDetailResponse(
         String driverName,
         boolean isUnassigned,
         boolean isDriverCancelled,
-        List<HistoryResponse> history) {
+        List<StatusHistoryResponse> history) {
     public static OrderDetailResponse from(Order order, List<OrderStatusHistory> history, boolean canViewPrivate) {
         OrderStatusHistory last = history.isEmpty() ? null : history.getLast();
         boolean driverCancelled = last != null
@@ -54,7 +54,9 @@ public record OrderDetailResponse(
                 order.getStatus() == OrderStatus.REGISTERED
                         && order.getPickupAt().isBefore(LocalDateTime.now()),
                 driverCancelled,
-                canViewPrivate ? history.stream().map(HistoryResponse::from).toList() : List.of());
+                canViewPrivate
+                        ? history.stream().map(StatusHistoryResponse::from).toList()
+                        : List.of());
     }
 
     public record LocationResponse(
@@ -100,24 +102,6 @@ public record OrderDetailResponse(
                     cargo.getHeightCm(),
                     cargo.isFragile(),
                     cargo.isNoStack());
-        }
-    }
-
-    public record HistoryResponse(
-            OrderStatus fromStatus,
-            OrderStatus toStatus,
-            Long actorId,
-            String actorName,
-            LocalDateTime createdAt,
-            String memo) {
-        static HistoryResponse from(OrderStatusHistory history) {
-            return new HistoryResponse(
-                    history.getFromStatus(),
-                    history.getToStatus(),
-                    history.getActor() == null ? null : history.getActor().getId(),
-                    history.getActor() == null ? null : history.getActor().getName(),
-                    history.getCreatedAt(),
-                    history.getMemo());
         }
     }
 }
