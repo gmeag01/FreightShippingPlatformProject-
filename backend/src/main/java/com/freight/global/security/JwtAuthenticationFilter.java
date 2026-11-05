@@ -41,8 +41,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+        if (StringUtils.hasText(bearerToken)) {
+            String token = bearerToken.trim();
+            // Swagger 등에서 'Bearer '를 중복 입력하여 'Bearer Bearer ...'가 되는 경우를 방어
+            while (token.regionMatches(true, 0, "Bearer ", 0, 7)) {
+                token = token.substring(7).trim();
+            }
+            return token.isEmpty() ? null : token;
         }
         return null;
     }

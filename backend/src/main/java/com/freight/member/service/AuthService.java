@@ -8,6 +8,7 @@ import com.freight.member.dto.MemberResponse;
 import com.freight.member.dto.SignupRequest;
 import com.freight.member.dto.TokenResponse;
 import com.freight.member.entity.Member;
+import com.freight.member.entity.MemberStatus;
 import com.freight.member.entity.Role;
 import com.freight.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class AuthService {
                 .name(request.name())
                 .phone(request.phone())
                 .role(request.role())
+                .status(MemberStatus.ACTIVE)
                 .build();
 
         Member savedMember = memberRepository.save(member);
@@ -55,6 +57,10 @@ public class AuthService {
 
         if (!passwordEncoder.matches(request.password(), member.getPassword())) {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        if (member.getStatus() == MemberStatus.SUSPENDED) {
+            throw new BusinessException(ErrorCode.ACCOUNT_SUSPENDED);
         }
 
         String token = jwtTokenProvider.createToken(member.getId(), member.getRole());
