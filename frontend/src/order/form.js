@@ -63,7 +63,7 @@ export function readOrderForm(form, initial) {
     loadingMethod: text('loadingMethod'),
     memo: text('memo'),
     fare: number('fare'),
-    // TODO(B): 주소·운임 서비스 연결 시 서버가 확정한 견적을 사용한다. 수정 시 기존 참고값은 보존한다.
+    // 견적 재계산 결과는 OrderForm에서 반영한다. 조건을 바꾸지 않은 수정은 기존 참고값을 보존한다.
     recommendedFare: initial.recommendedFare ?? 0,
     distanceKm: initial.distanceKm ?? 0,
   };
