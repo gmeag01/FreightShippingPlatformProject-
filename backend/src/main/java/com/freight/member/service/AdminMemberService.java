@@ -31,8 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminMemberService {
 
-    private static final Set<String> ALLOWED_SORT_PROPERTIES =
-            Set.of("id", "email", "name", "phone", "role", "status", "createdAt");
+    private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of("id", "email", "name", "phone", "role", "status",
+            "createdAt");
 
     private final MemberRepository memberRepository;
     private final VehicleService vehicleService;
@@ -41,13 +41,14 @@ public class AdminMemberService {
     /**
      * 필터링 조건과 페이징에 따라 회원 목록을 조회한다.
      *
-     * @param role 필터링할 역할(null이면 전체)
-     * @param status 필터링할 회원 상태(null이면 전체)
-     * @param keyword 검색어(이름 또는 이메일 포함 검색, null이면 전체)
+     * @param role     필터링할 역할(null이면 전체)
+     * @param status   필터링할 회원 상태(null이면 전체)
+     * @param keyword  검색어(이름 또는 이메일 포함 검색, null이면 전체)
      * @param pageable 페이징 정보
      * @return 관리자용 회원 응답 페이지
      */
-    public Page<AdminMemberResponse> getMembers(Role role, MemberStatus status, String keyword, Pageable pageable) {
+    public Page<AdminMemberResponse> getMembers(
+            Role role, MemberStatus status, String keyword, Pageable pageable) {
         Pageable safePageable = sanitizePageable(pageable);
         return memberRepository
                 .findMembersByFilter(role, status, keyword, safePageable)
@@ -104,14 +105,15 @@ public class AdminMemberService {
      * 회원의 계정 상태를 변경한다 (ACTIVE 또는 SUSPENDED).
      *
      * @param targetMemberId 변경할 대상 회원 ID
-     * @param newStatus 변경할 신규 상태
+     * @param newStatus      변경할 신규 상태
      * @param currentAdminId 현재 요청을 수행하는 관리자 ID
      * @return 변경된 회원 응답 DTO
      * @throws BusinessException MEMBER_NOT_FOUND (회원을 찾을 수 없는 경우)
      * @throws BusinessException ADMIN_CANNOT_SUSPEND_SELF (관리자 본인을 정지하려는 경우)
      */
     @Transactional
-    public AdminMemberResponse updateMemberStatus(Long targetMemberId, MemberStatus newStatus, Long currentAdminId) {
+    public AdminMemberResponse updateMemberStatus(
+            Long targetMemberId, MemberStatus newStatus, Long currentAdminId) {
         Member member = memberRepository
                 .findById(targetMemberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
