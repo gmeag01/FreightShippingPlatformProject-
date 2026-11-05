@@ -11,9 +11,14 @@ import com.freight.member.repository.MemberRepository;
 import com.freight.order.service.OrderService;
 import com.freight.vehicle.entity.Vehicle;
 import com.freight.vehicle.service.VehicleService;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AdminMemberService {
+
+    private static final Set<String> ALLOWED_SORT_PROPERTIES =
+            Set.of("id", "email", "name", "phone", "role", "status", "createdAt");
 
     private final MemberRepository memberRepository;
     private final VehicleService vehicleService;
@@ -40,9 +48,33 @@ public class AdminMemberService {
      * @return 관리자용 회원 응답 페이지
      */
     public Page<AdminMemberResponse> getMembers(Role role, MemberStatus status, String keyword, Pageable pageable) {
+        Pageable safePageable = sanitizePageable(pageable);
         return memberRepository
-                .findMembersByFilter(role, status, keyword, pageable)
+                .findMembersByFilter(role, status, keyword, safePageable)
                 .map(AdminMemberResponse::from);
+    }
+
+    /**
+     * Swagger 기본값 'string'이나 잘못된 정렬 컬럼 입력 시 500 에러를 방지하고 안전한 정렬로 보정한다.
+     */
+    private Pageable sanitizePageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
+        }
+        if (pageable.getSort().isUnsorted()) {
+            return pageable;
+        }
+
+        List<Sort.Order> validOrders = new ArrayList<>();
+        for (Sort.Order order : pageable.getSort()) {
+            String property = order.getProperty().replaceAll("[\\[\\]\"']", "").trim();
+            if (ALLOWED_SORT_PROPERTIES.contains(property)) {
+                validOrders.add(new Sort.Order(order.getDirection(), property));
+            }
+        }
+
+        Sort sort = validOrders.isEmpty() ? Sort.by(Sort.Direction.DESC, "id") : Sort.by(validOrders);
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
 
     /**
