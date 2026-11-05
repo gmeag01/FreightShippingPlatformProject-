@@ -209,4 +209,46 @@ class DeliveryControllerTest {
                 .andExpect(jsonPath("$.data.paymentStatus").value("HELD"))
                 .andExpect(jsonPath("$.data.history[0].toStatus").value("ASSIGNED"));
     }
+
+    @Test
+    void listJobs_byDriver_filtersByTab() throws Exception {
+        mvc.perform(get("/api/jobs").param("status", "IN_PROGRESS").with(loginAs(driverId, Role.DRIVER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].orderId").value(orderId))
+                .andExpect(jsonPath("$.data.content[0].status").value("ASSIGNED"));
+    }
+
+    @Test
+    void listJobs_withUnknownTab_returnsBadRequest() throws Exception {
+        mvc.perform(get("/api/jobs").param("status", "UNKNOWN").with(loginAs(driverId, Role.DRIVER)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void listJobs_byShipper_isForbidden() throws Exception {
+        mvc.perform(get("/api/jobs").with(loginAs(shipperId, Role.SHIPPER))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getJob_byAssignedDriver_returnsDetail() throws Exception {
+        mvc.perform(get("/api/jobs/{orderId}", orderId).with(loginAs(driverId, Role.DRIVER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.pickup.contactPhone").value("010-1234-5678"));
+    }
+
+    @Test
+    void listPayouts_byDriver_returnsPayout() throws Exception {
+        moveToAwaitingConfirm();
+        mvc.perform(post("/api/orders/{id}/confirm", orderId).with(loginAs(shipperId, Role.SHIPPER)));
+
+        mvc.perform(get("/api/payouts").with(loginAs(driverId, Role.DRIVER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].orderId").value(orderId))
+                .andExpect(jsonPath("$.data.content[0].amount").value(350000));
+    }
+
+    @Test
+    void listPayouts_byShipper_isForbidden() throws Exception {
+        mvc.perform(get("/api/payouts").with(loginAs(shipperId, Role.SHIPPER))).andExpect(status().isForbidden());
+    }
 }
