@@ -33,6 +33,8 @@ public enum ErrorCode {
     NOT_ORDER_OWNER(HttpStatus.FORBIDDEN, "본인의 오더가 아닙니다"),
     DRIVER_CANCEL_CUTOFF_PASSED(HttpStatus.CONFLICT, "상차 2시간 전부터는 직접 취소할 수 없습니다. 관리자에게 요청하세요"),
 
+    ORDER_PAYMENT_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "결제 서비스 연결 후 사용할 수 있습니다"),
+
     // matching
     VEHICLE_REQUIRED(HttpStatus.BAD_REQUEST, "차량을 먼저 등록해야 의뢰를 수락할 수 있습니다"),
     VEHICLE_MISMATCH(HttpStatus.CONFLICT, "보유 차량과 오더 요구 조건이 다릅니다"),
