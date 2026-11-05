@@ -22,7 +22,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 /** 결제 구현 없이도 앱이 기동되되 결제가 필요한 요청은 저장하지 않는지 검증한다. */
-@SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:order_unavailable;MODE=MariaDB;DATABASE_TO_LOWER=TRUE")
+@SpringBootTest(
+        properties = {
+            "spring.datasource.url=jdbc:h2:mem:order_unavailable;MODE=MariaDB;DATABASE_TO_LOWER=TRUE",
+            "app.order.payment-enabled=false"
+        })
 @ActiveProfiles("test")
 class OrderPaymentUnavailableTest {
     @Autowired
