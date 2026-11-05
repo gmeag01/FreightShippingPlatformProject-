@@ -138,7 +138,19 @@ export default function ShipperOrderDetailPage() {
           onRetry={() => setAttempt((value) => value + 1)}
         />
       ) : (
-        order && <OrderDetail order={order} />
+        order && (
+          <>
+            {order.status === 'REGISTERED' && (
+              <Link
+                to={`/shipper/orders/${order.id}/edit`}
+                className="inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                오더 수정
+              </Link>
+            )}
+            <OrderDetail order={order} />
+          </>
+        )
       )}
     </section>
   );
@@ -234,9 +246,11 @@ function OrderDetail({ order }) {
           <p className="mt-3 text-2xl font-bold text-blue-700">{formatNumber(order.fare)}원</p>
           <dl className="mt-4 grid grid-cols-2 gap-4">
             <DetailField label="등록 당시 추천 운임">
-              {formatNumber(order.recommendedFare)}원
+              {order.recommendedFare > 0 ? `${formatNumber(order.recommendedFare)}원` : '미제공'}
             </DetailField>
-            <DetailField label="운송 거리">{formatNumber(order.distanceKm)}km</DetailField>
+            <DetailField label="운송 거리">
+              {order.distanceKm > 0 ? `${formatNumber(order.distanceKm)}km` : '미산정'}
+            </DetailField>
           </dl>
         </section>
         <section className="rounded-xl border border-gray-200 bg-white p-5">
