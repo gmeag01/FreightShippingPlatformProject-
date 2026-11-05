@@ -8,6 +8,9 @@ import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import SignupPage from './pages/SignupPage';
+import ShipperOrderFormPage from './pages/ShipperOrderFormPage';
+import ShipperOrdersPage from './pages/ShipperOrdersPage';
+import ShipperOrderDetailPage from './pages/ShipperOrderDetailPage';
 
 // 그 역할만 들어갈 수 있는 화면 묶음을 만든다. 안쪽 화면은 공통 머리말(AppLayout) 아래에 그려진다.
 function renderRoleArea(role) {
@@ -34,9 +37,10 @@ export default function App() {
       <Route path="/signup" element={<SignupPage />} />
 
       <Route element={renderRoleArea('SHIPPER')}>
-        <Route path="/shipper/orders" element={<PlaceholderPage title="내 오더" />} />
-        <Route path="/shipper/orders/new" element={<PlaceholderPage title="오더 등록" />} />
-        <Route path="/shipper/orders/:id" element={<PlaceholderPage title="오더 상세" />} />
+        <Route path="/shipper/orders" element={<ShipperOrdersPage />} />
+        <Route path="/shipper/orders/new" element={<ShipperOrderFormPage />} />
+        <Route path="/shipper/orders/:id/edit" element={<ShipperOrderFormPage isEditing />} />
+        <Route path="/shipper/orders/:id" element={<ShipperOrderDetailPage />} />
       </Route>
 
       <Route element={renderRoleArea('DRIVER')}>

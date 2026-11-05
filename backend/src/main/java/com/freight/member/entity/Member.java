@@ -15,7 +15,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** 회원(화주, 차주, 관리자). 로그인 계정과 역할을 담는다. */
+/** 회원(화주, 차주, 관리자). 로그인 계정과 역할, 상태를 담는다. */
 @Getter
 @Entity
 @Table(name = "members")
@@ -42,14 +42,33 @@ public class Member extends BaseEntity {
     @Column(nullable = false, length = 20)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20, columnDefinition = "varchar(20) default 'ACTIVE'")
+    private MemberStatus status = MemberStatus.ACTIVE;
+
     // 이메일은 소문자로 저장한다. A@x.com과 a@x.com을 같은 계정으로 보기 위해서다(첫 주 계획 Review Focus 4).
     @Builder
-    private Member(Long id, String email, String password, String name, String phone, Role role) {
+    private Member(Long id, String email, String password, String name, String phone, Role role, MemberStatus status) {
         this.id = id;
         this.email = email != null ? email.toLowerCase(Locale.ROOT) : null;
         this.password = password;
         this.name = name;
         this.phone = phone;
         this.role = role;
+        this.status = status != null ? status : MemberStatus.ACTIVE;
+    }
+
+    /**
+     * 계정을 정지 상태로 전이한다.
+     */
+    public void suspend() {
+        this.status = MemberStatus.SUSPENDED;
+    }
+
+    /**
+     * 계정을 정상 활성 상태로 전이한다.
+     */
+    public void activate() {
+        this.status = MemberStatus.ACTIVE;
     }
 }
