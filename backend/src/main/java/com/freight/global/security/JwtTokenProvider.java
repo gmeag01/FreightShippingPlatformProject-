@@ -13,6 +13,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/** JWT 액세스 토큰을 발급하고 해석한다. */
 @Component
 public class JwtTokenProvider {
 

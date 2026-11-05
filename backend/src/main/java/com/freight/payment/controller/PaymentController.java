@@ -5,6 +5,8 @@ import com.freight.global.security.AuthMember;
 import com.freight.payment.dto.PaymentDetailResponse;
 import com.freight.payment.dto.PayoutResponse;
 import com.freight.payment.service.PaymentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 결제와 지급 내역을 조회하는 컨트롤러.
  */
+@Tag(name = "결제 API", description = "오더 결제 내역과 차주 지급 내역 조회 API")
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class PaymentController {
     /**
      * 화주 본인이나 관리자가 오더의 결제 상태와 건별 내역을 조회한다.
      */
+    @Operation(summary = "오더 결제 내역 조회", description = "화주 본인이나 관리자가 오더의 결제 상태와 건별 거래를 조회합니다.")
     @GetMapping("/orders/{id}/payment")
     @PreAuthorize("hasAnyRole('SHIPPER', 'ADMIN')")
     public ApiResponse<PaymentDetailResponse> getPayment(
@@ -38,6 +42,7 @@ public class PaymentController {
     /**
      * 차주가 자기 지급 내역을 최신순으로 조회한다.
      */
+    @Operation(summary = "내 지급 내역 조회", description = "차주가 자기 지급 내역을 최신순으로 조회합니다.")
     @GetMapping("/payouts")
     @PreAuthorize("hasRole('DRIVER')")
     public ApiResponse<Page<PayoutResponse>> listPayouts(

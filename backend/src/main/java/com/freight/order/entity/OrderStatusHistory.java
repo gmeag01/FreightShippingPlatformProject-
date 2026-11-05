@@ -18,6 +18,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 오더 상태 변경 이력. */
 @Getter
 @Entity
 @Table(name = "order_status_history")

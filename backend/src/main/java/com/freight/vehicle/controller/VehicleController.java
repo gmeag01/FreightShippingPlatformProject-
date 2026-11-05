@@ -28,12 +28,14 @@ public class VehicleController {
 
     private final VehicleService vehicleService;
 
+    /** 로그인한 차주의 차량을 조회한다. */
     @Operation(summary = "내 차량 정보 조회", description = "로그인한 차주 본인의 등록된 차량 정보를 조회합니다.")
     @GetMapping("/me")
     public ApiResponse<VehicleResponse> getMyVehicle(@AuthenticationPrincipal AuthMember me) {
         return ApiResponse.ok(vehicleService.getMyVehicle(me.id()));
     }
 
+    /** 차량을 등록한다. 이미 등록돼 있으면 정보를 갱신한다. */
     @Operation(summary = "내 차량 등록", description = "로그인한 차주의 차량을 등록합니다. 이미 등록된 경우 정보가 갱신됩니다.")
     @PostMapping("/me")
     public ApiResponse<VehicleResponse> registerVehicle(
@@ -41,6 +43,7 @@ public class VehicleController {
         return ApiResponse.ok(vehicleService.registerOrUpdate(me.id(), request));
     }
 
+    /** 차량 정보를 수정한다. */
     @Operation(summary = "내 차량 수정", description = "로그인한 차주의 차량 정보를 수정합니다.")
     @PutMapping("/me")
     public ApiResponse<VehicleResponse> updateVehicle(

@@ -4,6 +4,7 @@ import com.freight.vehicle.entity.BodyType;
 import com.freight.vehicle.entity.VehicleType;
 import java.time.LocalDateTime;
 
+/** 오더 등록과 수정에 쓰는 운송 정보 묶음. */
 public record OrderSpec(
         Location pickup,
         Location dropoff,

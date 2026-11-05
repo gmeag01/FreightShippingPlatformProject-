@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 할증 종류별 할증률. */
 @Getter
 @Entity
 @Table(name = "fare_surcharge")
@@ -32,6 +33,7 @@ public class FareSurcharge {
         this.rate = rate;
     }
 
+    /** 할증률을 수정한다. */
     public void update(BigDecimal rate) {
         this.rate = rate;
     }

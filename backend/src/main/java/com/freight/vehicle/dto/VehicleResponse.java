@@ -4,6 +4,7 @@ import com.freight.vehicle.entity.BodyType;
 import com.freight.vehicle.entity.Vehicle;
 import com.freight.vehicle.entity.VehicleType;
 
+/** 차량 정보 응답. */
 public record VehicleResponse(
         Long id,
         Long driverId,

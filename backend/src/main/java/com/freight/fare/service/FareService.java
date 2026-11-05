@@ -111,7 +111,12 @@ public class FareService {
                 appliedSurcharges);
     }
 
-    /** 중량을 적재할 수 있는 가장 작은 차종을 추천한다. 25톤 초과 시 25톤으로 두고 경고 표시는 화면에 위임한다. */
+    /**
+     * 중량을 적재할 수 있는 가장 작은 차종을 추천한다. 25톤 초과 시 25톤으로 두고 경고 표시는 화면에 위임한다.
+     *
+     * @param weightKg 화물 중량(kg)
+     * @return 추천 차종
+     */
     public VehicleType determineRecommendedVehicleType(int weightKg) {
         for (VehicleType type : VehicleType.values()) {
             if (type.getMaxLoadKg() >= weightKg) {
@@ -121,7 +126,12 @@ public class FareService {
         return VehicleType.TON_25;
     }
 
-    /** 1,000원 단위 반올림 공식 */
+    /**
+     * 금액을 1,000원 단위로 반올림한다.
+     *
+     * @param amount 반올림할 금액
+     * @return 1,000원 단위로 반올림한 금액
+     */
     public long roundToNearestThousand(long amount) {
         return Math.round(amount / 1000.0) * 1000L;
     }

@@ -17,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 차주의 차량. 차주 한 명당 한 대만 등록한다. */
 @Getter
 @Entity
 @Table(name = "vehicles")
@@ -51,6 +52,7 @@ public class Vehicle {
         this.bodyType = bodyType;
     }
 
+    /** 차종, 차량번호, 적재함 형태를 수정한다. */
     public void update(VehicleType vehicleType, String plateNumber, BodyType bodyType) {
         this.vehicleType = vehicleType;
         this.plateNumber = plateNumber;

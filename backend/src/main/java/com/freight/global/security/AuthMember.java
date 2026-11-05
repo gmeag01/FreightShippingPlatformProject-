@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+/** JWT에서 꺼낸 로그인 회원. 컨트롤러는 @AuthenticationPrincipal로 받는다. */
 public record AuthMember(Long id, Role role) implements UserDetails {
 
     @Override

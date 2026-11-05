@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** 로그인한 회원 본인의 정보 조회 API 컨트롤러. */
 @Tag(name = "회원 API", description = "회원 정보 조회 API")
 @RestController
 @RequestMapping("/api/members")
@@ -22,6 +23,7 @@ public class MemberController {
 
     private final MemberService memberService;
 
+    /** 로그인한 회원 본인의 정보를 조회한다. */
     @Operation(
             summary = "내 정보 조회",
             description = "현재 로그인한 사용자의 정보를 조회합니다.",
