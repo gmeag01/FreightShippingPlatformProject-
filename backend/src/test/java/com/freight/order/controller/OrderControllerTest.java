@@ -318,4 +318,63 @@ class OrderControllerTest {
         mvc.perform(get("/api/orders/9999999").header("Authorization", token(shipper)))
                 .andExpect(status().isNotFound());
     }
+
+    @Autowired
+    com.freight.vehicle.repository.VehicleRepository vehicles;
+
+    @Test
+    void assignedDetail_includesDriverVehicleAndCancellationDeadline() throws Exception {
+        vehicles.saveAndFlush(Fixtures.vehicle(driver, com.freight.vehicle.entity.VehicleType.TON_5));
+        order.accept(driver, LocalDateTime.now());
+        orders.flush();
+        mvc.perform(get(path()).header("Authorization", token(shipper)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.driverPhone").value(driver.getPhone()))
+                .andExpect(jsonPath("$.data.driverVehicleType").value("TON_5"))
+                .andExpect(jsonPath("$.data.driverBodyType").value("CARGO"))
+                .andExpect(jsonPath("$.data.driverPlateNumber").value("80아1234"))
+                .andExpect(jsonPath("$.data.driverCancelableUntil")
+                        .value(order.getPickupAt()
+                                .minusHours(2)
+                                .format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                .andExpect(jsonPath("$.data.autoConfirmAt").isEmpty());
+    }
+
+    @Test
+    void awaitingDetail_includesAutoConfirmationDeadlineOnly() throws Exception {
+        order.accept(driver, LocalDateTime.now());
+        order.startTransit(driver);
+        var dropped = LocalDateTime.of(2026, 12, 1, 15, 30);
+        order.completeDropoff(driver, dropped);
+        orders.flush();
+        mvc.perform(get(path()).header("Authorization", token(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.autoConfirmAt")
+                        .value(dropped.plusHours(24).format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                .andExpect(jsonPath("$.data.driverCancelableUntil").isEmpty());
+    }
+
+    @Test
+    void openDetail_hidesDriverAndDeadlineFields() throws Exception {
+        mvc.perform(get(path()).header("Authorization", token(otherDriver)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.driverPhone").isEmpty())
+                .andExpect(jsonPath("$.data.driverPlateNumber").isEmpty())
+                .andExpect(jsonPath("$.data.autoConfirmAt").isEmpty())
+                .andExpect(jsonPath("$.data.driverCancelableUntil").isEmpty());
+    }
+
+    @Test
+    void fareUpdate_recordsPreviousAndNewFareInHistory() throws Exception {
+        long oldFare = order.getFare();
+        mvc.perform(put(path())
+                        .header("Authorization", token(shipper))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(new UpdateOrderRequest(order.getVersion(), OrderRequests.valid(250000)))))
+                .andExpect(status().isOk());
+        var history = histories.findByOrderIdOrderByCreatedAtAscIdAsc(order.getId());
+        assertThat(history.getLast().getMemo()).contains(String.valueOf(oldFare), "250000");
+        assertThat(history.getLast().getFromStatus()).isEqualTo(OrderStatus.REGISTERED);
+        assertThat(history.getLast().getToStatus()).isEqualTo(OrderStatus.REGISTERED);
+    }
 }
