@@ -39,8 +39,8 @@ public class JobController {
     @GetMapping
     public ApiResponse<Page<JobSummaryResponse>> listJobs(
             @AuthenticationPrincipal AuthMember me,
-            @RequestParam(required = false) JobTab status,
-            @RequestParam(defaultValue = "0") int page) {
+            @RequestParam(name = "status", required = false) JobTab status,
+            @RequestParam(name = "page", defaultValue = "0") int page) {
         return ApiResponse.ok(jobQueryService.listJobs(me.id(), status, page));
     }
 
@@ -49,7 +49,8 @@ public class JobController {
      */
     @Operation(summary = "내 운송 상세 조회", description = "내게 배정된 운송의 상세를 조회합니다.")
     @GetMapping("/{orderId}")
-    public ApiResponse<JobDetailResponse> getJob(@PathVariable Long orderId, @AuthenticationPrincipal AuthMember me) {
+    public ApiResponse<JobDetailResponse> getJob(
+            @PathVariable("orderId") Long orderId, @AuthenticationPrincipal AuthMember me) {
         return ApiResponse.ok(jobQueryService.getJob(orderId, me.id()));
     }
 }

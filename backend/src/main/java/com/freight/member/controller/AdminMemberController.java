@@ -42,9 +42,9 @@ public class AdminMemberController {
     @Operation(summary = "회원 목록 조회", description = "역할, 상태, 검색어 필터와 페이징을 통해 회원 목록을 조회합니다.")
     @GetMapping
     public ApiResponse<Page<AdminMemberResponse>> getMembers(
-            @RequestParam(required = false) Role role,
-            @RequestParam(required = false) MemberStatus status,
-            @RequestParam(required = false) String keyword,
+            @RequestParam(name = "role", required = false) Role role,
+            @RequestParam(name = "status", required = false) MemberStatus status,
+            @RequestParam(name = "keyword", required = false) String keyword,
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<AdminMemberResponse> result = adminMemberService.getMembers(role, status, keyword, pageable);
         return ApiResponse.ok(result);
@@ -53,7 +53,7 @@ public class AdminMemberController {
     /** 회원 상세를 조회한다. 차주는 차량 정보와 배차 취소 횟수를 함께 준다. */
     @Operation(summary = "회원 상세 조회", description = "특정 회원의 상세 정보를 조회합니다. 차주인 경우 차량 정보와 배차 취소 횟수를 포함합니다.")
     @GetMapping("/{id}")
-    public ApiResponse<AdminMemberDetailResponse> getMemberDetail(@PathVariable Long id) {
+    public ApiResponse<AdminMemberDetailResponse> getMemberDetail(@PathVariable("id") Long id) {
         AdminMemberDetailResponse result = adminMemberService.getMemberDetail(id);
         return ApiResponse.ok(result);
     }
@@ -62,7 +62,7 @@ public class AdminMemberController {
     @Operation(summary = "회원 상태 변경", description = "회원 계정을 정지(SUSPENDED)하거나 정상(ACTIVE)으로 변경합니다.")
     @PatchMapping("/{id}/status")
     public ApiResponse<AdminMemberResponse> updateMemberStatus(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody UpdateMemberStatusRequest request,
             @AuthenticationPrincipal AuthMember me) {
         AdminMemberResponse result = adminMemberService.updateMemberStatus(id, request.status(), me.id());

@@ -5,10 +5,17 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * AGENTS.md의 '반드시 지킬 것' 중 코드로 검사할 수 있는 규칙을 테스트로 막는다.
@@ -44,4 +51,40 @@ class ArchitectureTest {
             .should()
             .notHaveRawReturnType(resideInAPackage("..entity.."))
             .allowEmptyShould(true);
+
+    /**
+     * 컨트롤러의 @RequestParam, @PathVariable에는 이름을 직접 적는다.
+     * VS Code처럼 -parameters 없이 컴파일하면 Spring이 이름을 알 수 없어 요청이 500으로 실패하기 때문이다.
+     */
+    @ArchTest
+    static final ArchRule controllerParametersDeclareExplicitNames = methods()
+            .that()
+            .areDeclaredInClassesThat()
+            .resideInAPackage("..controller..")
+            .should(declareExplicitWebParameterNames())
+            .allowEmptyShould(true);
+
+    private static ArchCondition<JavaMethod> declareExplicitWebParameterNames() {
+        return new ArchCondition<>("declare explicit names on web parameters") {
+            @Override
+            public void check(JavaMethod method, ConditionEvents events) {
+                method.getParameters().stream()
+                        .filter(parameter -> !hasExplicitWebParameterName(parameter))
+                        .forEach(parameter -> events.add(SimpleConditionEvent.violated(
+                                method, parameter.getDescription() + " has no explicit name")));
+            }
+        };
+    }
+
+    private static boolean hasExplicitWebParameterName(JavaParameter parameter) {
+        if (parameter.isAnnotatedWith(RequestParam.class)) {
+            RequestParam requestParam = parameter.getAnnotationOfType(RequestParam.class);
+            return !requestParam.name().isEmpty() || !requestParam.value().isEmpty();
+        }
+        if (parameter.isAnnotatedWith(PathVariable.class)) {
+            PathVariable pathVariable = parameter.getAnnotationOfType(PathVariable.class);
+            return !pathVariable.name().isEmpty() || !pathVariable.value().isEmpty();
+        }
+        return true;
+    }
 }

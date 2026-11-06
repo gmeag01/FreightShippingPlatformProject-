@@ -111,7 +111,7 @@ class GlobalExceptionHandlerTest {
         }
 
         @GetMapping("/test/number/{id}")
-        ApiResponse<Long> number(@PathVariable Long id) {
+        ApiResponse<Long> number(@PathVariable("id") Long id) {
             return ApiResponse.ok(id);
         }
 

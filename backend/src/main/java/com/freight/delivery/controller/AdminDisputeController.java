@@ -39,7 +39,8 @@ public class AdminDisputeController {
      */
     @Operation(summary = "분쟁 목록 조회", description = "처리 대기 중인 분쟁 목록을 조회합니다.")
     @GetMapping
-    public ApiResponse<Page<DisputeSummaryResponse>> listDisputes(@RequestParam(defaultValue = "0") int page) {
+    public ApiResponse<Page<DisputeSummaryResponse>> listDisputes(
+            @RequestParam(name = "page", defaultValue = "0") int page) {
         return ApiResponse.ok(disputeQueryService.listDisputes(page));
     }
 
@@ -48,7 +49,7 @@ public class AdminDisputeController {
      */
     @Operation(summary = "분쟁 상세 조회", description = "오더의 분쟁 상세를 조회합니다.")
     @GetMapping("/{orderId}")
-    public ApiResponse<DisputeDetailResponse> getDispute(@PathVariable Long orderId) {
+    public ApiResponse<DisputeDetailResponse> getDispute(@PathVariable("orderId") Long orderId) {
         return ApiResponse.ok(disputeQueryService.getDispute(orderId));
     }
 
@@ -58,7 +59,7 @@ public class AdminDisputeController {
     @Operation(summary = "분쟁 처리", description = "분쟁을 차주 지급 또는 화주 환불로 처리해 종료합니다.")
     @PostMapping("/{orderId}/resolve")
     public ApiResponse<DeliveryStatusResponse> resolve(
-            @PathVariable Long orderId,
+            @PathVariable("orderId") Long orderId,
             @AuthenticationPrincipal AuthMember me,
             @Valid @RequestBody ResolveDisputeRequest request) {
         return ApiResponse.ok(deliveryService.resolveDispute(orderId, me.id(), request));
