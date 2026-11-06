@@ -122,7 +122,7 @@
 | `/admin` | 대시보드 | A | [admin-dashboard](screens/admin-dashboard.png) |
 | `/admin/orders` | 오더 관리 | C | [admin-orders](screens/admin-orders.png) |
 | `/admin/orders/:id` | 관리자 오더 상세 | C, E | [admin-order-detail](screens/admin-order-detail.png) |
-| `/admin/disputes` | 분쟁 처리 | E | [admin-disputes](screens/admin-disputes.png) |
+| `/admin/disputes` | 분쟁 처리 | A | [admin-disputes](screens/admin-disputes.png) |
 | `/admin/fares` | 단가표 | B | [admin-fares](screens/admin-fares.png) |
 | `/admin/members` | 회원 관리 | A | [admin-members](screens/admin-members.png) |
 
