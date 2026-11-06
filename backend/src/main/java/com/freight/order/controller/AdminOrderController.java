@@ -33,17 +33,19 @@ public class AdminOrderController {
     @GetMapping
     public ApiResponse<Page<OrderSummaryResponse>> list(
             @AuthenticationPrincipal AuthMember me,
-            @RequestParam(required = false) OrderStatus status,
-            @RequestParam(required = false) VehicleType vehicleType,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
-            @RequestParam(defaultValue = "0") int page) {
+            @RequestParam(name = "status", required = false) OrderStatus status,
+            @RequestParam(name = "vehicleType", required = false) VehicleType vehicleType,
+            @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate from,
+            @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(name = "page", defaultValue = "0") int page) {
         return ApiResponse.ok(service.listAdmin(me.id(), status, vehicleType, from, to, page));
     }
     /** 관리자는 전체 상세 정보와 상태 이력을 확인한다. */
     @Operation(summary = "오더 상세 조회", description = "오더의 전체 상세 정보와 상태 이력을 조회합니다.")
     @GetMapping("/{id}")
-    public ApiResponse<OrderDetailResponse> detail(@PathVariable Long id, @AuthenticationPrincipal AuthMember me) {
+    public ApiResponse<OrderDetailResponse> detail(
+            @PathVariable("id") Long id, @AuthenticationPrincipal AuthMember me) {
         return ApiResponse.ok(service.getDetail(id, me.id()));
     }
     /** 배차 후 취소는 관리자가 사유를 남기고 처리한다. */
@@ -52,7 +54,7 @@ public class AdminOrderController {
             description = "등록(REGISTERED) 또는 배차 완료(ASSIGNED) 상태의 오더를 사유와 함께 취소하고 환불합니다. 조회 시점의 version이 필요합니다.")
     @PostMapping("/{id}/cancel")
     public ApiResponse<OrderDetailResponse> cancel(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal AuthMember me,
             @Valid @RequestBody CancelOrderRequest request) {
         return ApiResponse.ok(service.cancel(id, me.id(), request));

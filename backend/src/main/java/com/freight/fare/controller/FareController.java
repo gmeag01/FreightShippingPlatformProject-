@@ -39,7 +39,7 @@ public class FareController {
     /** 주소를 위도·경도 좌표로 변환한다. */
     @Operation(summary = "주소 좌표 변환", description = "도로명 또는 지번 주소를 위도·경도 좌표로 변환합니다.")
     @GetMapping("/geocode")
-    public ApiResponse<Coordinates> geocode(@RequestParam String address) {
+    public ApiResponse<Coordinates> geocode(@RequestParam("address") String address) {
         return ApiResponse.ok(geocodingService.geocode(address));
     }
 }

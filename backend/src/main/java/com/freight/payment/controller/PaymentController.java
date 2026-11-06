@@ -35,7 +35,7 @@ public class PaymentController {
     @GetMapping("/orders/{id}/payment")
     @PreAuthorize("hasAnyRole('SHIPPER', 'ADMIN')")
     public ApiResponse<PaymentDetailResponse> getPayment(
-            @PathVariable Long id, @AuthenticationPrincipal AuthMember me) {
+            @PathVariable("id") Long id, @AuthenticationPrincipal AuthMember me) {
         return ApiResponse.ok(paymentService.getPaymentDetail(id, me.id(), me.role()));
     }
 
@@ -46,7 +46,7 @@ public class PaymentController {
     @GetMapping("/payouts")
     @PreAuthorize("hasRole('DRIVER')")
     public ApiResponse<Page<PayoutResponse>> listPayouts(
-            @AuthenticationPrincipal AuthMember me, @RequestParam(defaultValue = "0") int page) {
+            @AuthenticationPrincipal AuthMember me, @RequestParam(name = "page", defaultValue = "0") int page) {
         return ApiResponse.ok(paymentService.listPayouts(me.id(), page));
     }
 }

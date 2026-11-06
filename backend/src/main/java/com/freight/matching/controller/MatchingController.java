@@ -42,7 +42,8 @@ public class MatchingController {
     @GetMapping("/open")
     @PreAuthorize("hasRole('DRIVER')")
     public ApiResponse<Page<OpenOrderResponse>> listOpenOrders(
-            @RequestParam(required = false) VehicleType vehicleType, @RequestParam(defaultValue = "0") int page) {
+            @RequestParam(name = "vehicleType", required = false) VehicleType vehicleType,
+            @RequestParam(name = "page", defaultValue = "0") int page) {
         return ApiResponse.ok(matchingService.listOpenOrders(vehicleType, page));
     }
 
@@ -52,7 +53,7 @@ public class MatchingController {
     @Operation(summary = "열린 의뢰 상세 조회", description = "수락 전 의뢰 상세를 조회합니다. 주소는 시·구까지만 보여 주고 상세주소, 연락처, 좌표는 보내지 않습니다.")
     @GetMapping("/open/{id}")
     @PreAuthorize("hasRole('DRIVER')")
-    public ApiResponse<OpenOrderDetailResponse> getOpenOrderDetail(@PathVariable Long id) {
+    public ApiResponse<OpenOrderDetailResponse> getOpenOrderDetail(@PathVariable("id") Long id) {
         return ApiResponse.ok(matchingService.getOpenOrderDetail(id));
     }
 
@@ -66,7 +67,7 @@ public class MatchingController {
     @PostMapping("/{id}/accept")
     @PreAuthorize("hasRole('DRIVER')")
     public ApiResponse<AcceptOrderResponse> acceptOrder(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal AuthMember me,
             @Valid @RequestBody AcceptOrderRequest request) {
         return ApiResponse.ok(matchingService.acceptOrder(id, me.id(), request));
@@ -81,7 +82,7 @@ public class MatchingController {
     @PostMapping("/{id}/cancel-assignment")
     @PreAuthorize("hasRole('DRIVER')")
     public ApiResponse<Void> cancelAssignment(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal AuthMember me,
             @Valid @RequestBody CancelAssignmentRequest request) {
         matchingService.cancelAssignment(id, me.id(), request);

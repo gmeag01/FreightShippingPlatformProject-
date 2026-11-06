@@ -40,8 +40,8 @@ public class OrderController {
     @PreAuthorize("hasRole('SHIPPER')")
     public ApiResponse<Page<OrderSummaryResponse>> list(
             @AuthenticationPrincipal AuthMember me,
-            @RequestParam(required = false) OrderStatus status,
-            @RequestParam(defaultValue = "0") int page) {
+            @RequestParam(name = "status", required = false) OrderStatus status,
+            @RequestParam(name = "page", defaultValue = "0") int page) {
         return ApiResponse.ok(service.listMine(me.id(), status, page));
     }
     /** 상세 주소와 연락처는 소유·배정 관계에 따라 가린다. */
@@ -49,7 +49,8 @@ public class OrderController {
             summary = "오더 상세 조회",
             description = "화주 본인, 배정된 차주, 관리자는 전체 정보를 조회합니다. 배차 전 오더를 조회하는 차주에게는 상세주소와 연락처를 가립니다.")
     @GetMapping("/{id}")
-    public ApiResponse<OrderDetailResponse> detail(@PathVariable Long id, @AuthenticationPrincipal AuthMember me) {
+    public ApiResponse<OrderDetailResponse> detail(
+            @PathVariable("id") Long id, @AuthenticationPrincipal AuthMember me) {
         return ApiResponse.ok(service.getDetail(id, me.id()));
     }
     /** 배차 전 본인 오더만 수정한다. */
@@ -59,7 +60,7 @@ public class OrderController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('SHIPPER')")
     public ApiResponse<OrderDetailResponse> update(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal AuthMember me,
             @Valid @RequestBody UpdateOrderRequest request) {
         return ApiResponse.ok(service.update(id, me.id(), request));
@@ -71,7 +72,7 @@ public class OrderController {
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasRole('SHIPPER')")
     public ApiResponse<OrderDetailResponse> cancel(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal AuthMember me,
             @Valid @RequestBody CancelOrderRequest request) {
         return ApiResponse.ok(service.cancel(id, me.id(), request));

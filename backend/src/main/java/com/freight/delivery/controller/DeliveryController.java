@@ -34,7 +34,8 @@ public class DeliveryController {
     @Operation(summary = "상차 완료", description = "배정된 차주가 상차 완료를 알립니다. 오더가 ASSIGNED에서 운송 중(IN_TRANSIT)으로 바뀝니다.")
     @PostMapping("/{id}/pickup")
     @PreAuthorize("hasRole('DRIVER')")
-    public ApiResponse<DeliveryStatusResponse> pickup(@PathVariable Long id, @AuthenticationPrincipal AuthMember me) {
+    public ApiResponse<DeliveryStatusResponse> pickup(
+            @PathVariable("id") Long id, @AuthenticationPrincipal AuthMember me) {
         return ApiResponse.ok(deliveryService.pickup(id, me.id()));
     }
 
@@ -46,7 +47,8 @@ public class DeliveryController {
             description = "배정된 차주가 하차 완료를 알립니다. 오더가 IN_TRANSIT에서 수령 확인 대기(AWAITING_CONFIRM)로 바뀝니다.")
     @PostMapping("/{id}/dropoff")
     @PreAuthorize("hasRole('DRIVER')")
-    public ApiResponse<DeliveryStatusResponse> dropoff(@PathVariable Long id, @AuthenticationPrincipal AuthMember me) {
+    public ApiResponse<DeliveryStatusResponse> dropoff(
+            @PathVariable("id") Long id, @AuthenticationPrincipal AuthMember me) {
         return ApiResponse.ok(deliveryService.dropoff(id, me.id()));
     }
 
@@ -56,7 +58,8 @@ public class DeliveryController {
     @Operation(summary = "수령 확인", description = "화주가 수령을 확인해 운송을 완료(COMPLETED)하고 운임을 차주에게 지급합니다.")
     @PostMapping("/{id}/confirm")
     @PreAuthorize("hasRole('SHIPPER')")
-    public ApiResponse<DeliveryStatusResponse> confirm(@PathVariable Long id, @AuthenticationPrincipal AuthMember me) {
+    public ApiResponse<DeliveryStatusResponse> confirm(
+            @PathVariable("id") Long id, @AuthenticationPrincipal AuthMember me) {
         return ApiResponse.ok(deliveryService.confirm(id, me.id()));
     }
 
@@ -67,7 +70,7 @@ public class DeliveryController {
     @PostMapping("/{id}/report")
     @PreAuthorize("hasRole('SHIPPER')")
     public ApiResponse<DeliveryStatusResponse> report(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal AuthMember me,
             @Valid @RequestBody ReportIssueRequest request) {
         return ApiResponse.ok(deliveryService.report(id, me.id(), request));
