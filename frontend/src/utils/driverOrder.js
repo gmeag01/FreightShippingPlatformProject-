@@ -1,3 +1,5 @@
+'use strict';
+
 // 차주 화면(의뢰 목록·의뢰 상세)이 함께 쓰는 라벨과 계산 함수 모음.
 
 export const VEHICLE_LABELS = Object.freeze({
@@ -44,16 +46,58 @@ export const PACKAGE_UNIT_LABELS = Object.freeze({
   PIECE: '개',
 });
 
-export function formatDateTime(value) {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString('ko-KR', {
+const SEOUL_TIME_ZONE = 'Asia/Seoul';
+const DRIVER_CANCEL_CUTOFF_HOURS = 2;
+
+// 서버가 시간대 없이 보낸 문자열을 한국 시각(+09:00) Date 객체로 바꾼다.
+function parseSeoulDate(value) {
+  if (!value) return null;
+  const hasZone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(String(value));
+  const date = new Date(hasZone ? value : `${value}+09:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+// Date 객체를 '11.06 13:00' 모양의 문자열로 바꾼다.
+function formatParts(date) {
+  const parts = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: SEOUL_TIME_ZONE,
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-  });
+    hour12: false,
+  }).formatToParts(date);
+  const pick = (type) => parts.find((item) => item.type === type)?.value ?? '';
+  return `${pick('month')}.${pick('day')} ${pick('hour')}:${pick('minute')}`;
+}
+
+// 날짜·시각 문자열을 시안 규격('11.06 13:00')으로 보여 준다.
+export function formatDateTime(value) {
+  const date = parseSeoulDate(value);
+  return date ? formatParts(date) : '-';
+}
+
+// 상차 희망 시각에서 2시간 전(차주 직접 취소 마감 시각)을 계산해 '11.06 11:00' 모양으로 돌려준다.
+export function formatCancelCutoffTime(pickupAt) {
+  const date = parseSeoulDate(pickupAt);
+  if (!date) return '-';
+  const cutoffDate = new Date(date.getTime() - DRIVER_CANCEL_CUTOFF_HOURS * 60 * 60 * 1000);
+  return formatParts(cutoffDate);
+}
+
+// 숫자를 천 단위 쉼표 문자열로 바꾼다.
+export function formatAmount(value) {
+  return new Intl.NumberFormat('ko-KR').format(Number(value ?? 0));
+}
+
+// 차종과 적재함 형태를 '5톤 · 카고'처럼 한 줄 태그 문자열로 합친다.
+export function formatVehicleTag(vehicleType, bodyType) {
+  return [
+    VEHICLE_LABELS[vehicleType] ?? vehicleType,
+    bodyType ? (BODY_LABELS[bodyType] ?? bodyType) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 // 내 차량과 의뢰 조건이 어긋나는 점을 사람이 읽을 문장으로 만든다. 어긋남이 없으면 빈 배열이다.
