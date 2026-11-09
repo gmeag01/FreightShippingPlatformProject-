@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { JOB_TABS, completeDropoff, completePickup } from '../api/jobs';
-import CancelAssignmentModal from '../components/CancelAssignmentModal';
-import JobActionDialog from '../components/jobs/JobActionDialog';
+import { JOB_TABS } from '../api/jobs';
+import JobActionDialogs, { JobBanner } from '../components/jobs/JobActionDialogs';
 import JobCard from '../components/jobs/JobCard';
 import PayoutPanel from '../components/jobs/PayoutPanel';
 import useDriverJobs from '../hooks/useDriverJobs';
+import useJobActions from '../hooks/useJobActions';
 
 const TAB_LABELS = Object.freeze({
   [JOB_TABS.IN_PROGRESS]: '진행 중',
@@ -16,23 +16,13 @@ const EMPTY_MESSAGES = Object.freeze({
   [JOB_TABS.FINISHED]: '끝난 운송이 없습니다.',
 });
 
-const ACTION_REQUESTS = Object.freeze({ pickup: completePickup, dropoff: completeDropoff });
-
-// 진행 버튼이 실패했을 때 보여 줄 문구. 상태가 이미 바뀐 경우(409·404)는 목록을 새로 불러왔다고 알린다.
-function describeActionFailure(error) {
-  const isStale = error.status === 409 || error.status === 404;
-  return isStale ? `${error.message} 최신 정보로 다시 불러왔습니다.` : error.message;
-}
-
 // 차주 내 운송 화면. 진행 중·완료 탭, 상태에 맞는 진행 버튼, 배차 취소, 지급 내역을 보여 준다.
 export default function DriverJobsPage() {
   const [activeTab, setActiveTab] = useState(JOB_TABS.IN_PROGRESS);
   const [page, setPage] = useState(0);
-  const [banner, setBanner] = useState(null);
-  const [pendingAction, setPendingAction] = useState(null);
-  const [submittingId, setSubmittingId] = useState(null);
-  const [cancelTarget, setCancelTarget] = useState(null);
   const { result, isLoading, reload } = useDriverJobs(activeTab, page);
+  const { banner, setBanner, submittingId, requestAction, requestCancel, dialogs } =
+    useJobActions(reload);
 
   const changeTab = (tab) => {
     setActiveTab(tab);
@@ -40,32 +30,11 @@ export default function DriverJobsPage() {
     setBanner(null);
   };
 
-  const runPendingAction = async () => {
-    const { job, action } = pendingAction;
-    setSubmittingId(job.orderId);
-    try {
-      await ACTION_REQUESTS[action.type](job.orderId);
-      setBanner({ type: 'success', text: `#${job.orderId} ${action.label}로 바꿨습니다.` });
-    } catch (error) {
-      setBanner({ type: 'error', text: describeActionFailure(error) });
-    } finally {
-      setSubmittingId(null);
-      setPendingAction(null);
-      reload();
-    }
-  };
-
-  const finishCancelAssignment = () => {
-    setBanner({ type: 'success', text: `#${cancelTarget.orderId} 배차를 취소했습니다.` });
-    setCancelTarget(null);
-    reload();
-  };
-
   return (
     <section className="flex flex-col gap-5 break-keep">
       <h1 className="text-h1-sm text-ink sm:text-h1 font-bold">내 운송</h1>
       <JobTabs activeTab={activeTab} pages={result?.data?.pages} onChange={changeTab} />
-      {banner && <Banner banner={banner} />}
+      <JobBanner banner={banner} />
 
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <JobList
@@ -74,8 +43,8 @@ export default function DriverJobsPage() {
           activeTab={activeTab}
           submittingId={submittingId}
           onRetry={reload}
-          onAction={(job, action) => setPendingAction({ job, action })}
-          onCancelAssignment={setCancelTarget}
+          onAction={requestAction}
+          onCancelAssignment={requestCancel}
           onPageChange={setPage}
           page={page}
         />
@@ -85,22 +54,7 @@ export default function DriverJobsPage() {
         />
       </div>
 
-      {pendingAction && (
-        <JobActionDialog
-          job={pendingAction.job}
-          action={pendingAction.action}
-          isSubmitting={submittingId === pendingAction.job.orderId}
-          onCancel={() => setPendingAction(null)}
-          onConfirm={runPendingAction}
-        />
-      )}
-      {cancelTarget && (
-        <CancelAssignmentModal
-          orderId={cancelTarget.orderId}
-          onClose={() => setCancelTarget(null)}
-          onCancelled={finishCancelAssignment}
-        />
-      )}
+      <JobActionDialogs {...dialogs} />
     </section>
   );
 }
@@ -129,19 +83,6 @@ function JobTabs({ activeTab, pages, onChange }) {
         );
       })}
     </div>
-  );
-}
-
-// 처리 결과 알림. 성공은 안내 알림, 실패는 오류 알림 모양이다.
-function Banner({ banner }) {
-  const className =
-    banner.type === 'success'
-      ? 'border-blue-200 bg-primary-soft text-blue-900'
-      : 'border-red-200 bg-danger-soft text-red-800';
-  return (
-    <p role="status" className={`rounded-lg border px-4 py-3.5 text-sm ${className}`}>
-      {banner.text}
-    </p>
   );
 }
 
