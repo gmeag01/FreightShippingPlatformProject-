@@ -10,6 +10,9 @@ export const JOB_TABS = Object.freeze({
 export const fetchMyJobs = ({ tab, page = 0 } = {}) =>
   client.get('/jobs', { params: { status: tab, page } });
 
+// 내게 배정된 운송 한 건의 상세(상세주소, 연락처, 화물, 상태 이력)를 조회한다. 배정된 차주만 볼 수 있다.
+export const fetchMyJob = (orderId) => client.get(`/jobs/${orderId}`);
+
 // 내 지급 내역을 최신순으로 조회한다.
 export const fetchMyPayouts = ({ page = 0 } = {}) => client.get('/payouts', { params: { page } });
 

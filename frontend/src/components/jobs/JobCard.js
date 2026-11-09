@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   JOB_ACTIONS,
   JOB_STATUS,
@@ -10,8 +11,8 @@ import {
 
 const BUTTON_BASE =
   'inline-flex min-h-11 items-center justify-center rounded-md border px-4.5 font-semibold whitespace-nowrap disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-muted';
-const PRIMARY_BUTTON = `${BUTTON_BASE} border-transparent bg-primary text-white hover:bg-primary-dark`;
-const SECONDARY_BUTTON = `${BUTTON_BASE} border-line-strong bg-white text-copy hover:bg-slate-50`;
+export const PRIMARY_BUTTON = `${BUTTON_BASE} border-transparent bg-primary text-white hover:bg-primary-dark`;
+export const SECONDARY_BUTTON = `${BUTTON_BASE} border-line-strong bg-white text-copy hover:bg-slate-50`;
 
 // 오더 상태를 글자와 색으로 함께 보여 주는 뱃지.
 export function JobStatusBadge({ status }) {
@@ -26,9 +27,9 @@ export function JobStatusBadge({ status }) {
 }
 
 // 출발지(파란 원)와 도착지(ink 사각형)를 선으로 잇는 구간 표시.
-function RouteLine({ pickup, dropoff }) {
+export function RouteLine({ pickup, dropoff, size = 'text-h2' }) {
   return (
-    <p className="text-h2 text-ink flex flex-wrap items-center gap-x-2 font-bold">
+    <p className={`${size} text-ink flex flex-wrap items-center gap-x-2 font-bold`}>
       <span>{pickup?.region ?? '-'}</span>
       <span aria-hidden="true" className="flex items-center">
         <span className="bg-primary size-2 rounded-full" />
@@ -42,7 +43,7 @@ function RouteLine({ pickup, dropoff }) {
 }
 
 // 배차 → 상차 → 운송 → 하차 → 지급 다섯 단계 중 어디까지 왔는지 보여 준다.
-function JobProgress({ status }) {
+export function JobProgress({ status }) {
   const currentIndex = findCurrentStepIndex(status);
   if (currentIndex === null) return null;
   return (
@@ -80,7 +81,7 @@ function JobProgress({ status }) {
 }
 
 // 항목 이름과 값을 한 칸으로 보여 준다.
-function JobField({ label, children }) {
+export function JobField({ label, children }) {
   return (
     <div className="min-w-0">
       <dt className="text-caption text-subtle">{label}</dt>
@@ -107,7 +108,7 @@ function JobLocationFields({ job }) {
 }
 
 // 지금 차주가 버튼으로 할 일이 없는 상태의 안내 문구.
-function JobStatusNotice({ status }) {
+export function JobStatusNotice({ status }) {
   if (status === 'AWAITING_CONFIRM') {
     return (
       <p className="bg-primary-soft rounded-lg border border-blue-200 px-4 py-3.5 text-sm text-blue-900">
@@ -149,7 +150,8 @@ export default function JobCard({ job, payout, now, isBusy, onAction, onCancelAs
   const isAssigned = job.status === 'ASSIGNED';
   // 설계 문서 3장: 상차 희망 시각 2시간 전부터는 차주가 직접 배차를 취소할 수 없다.
   const isCancelClosed = isPast(job.driverCancelableUntil, now);
-  const isFinished = job.status === 'COMPLETED' || job.status === 'CANCELLED';
+  const isCancelled = job.status === 'CANCELLED';
+  const isFinished = job.status === 'COMPLETED' || isCancelled;
 
   return (
     <li className="border-line bg-card flex flex-col gap-4 rounded-lg border p-4 sm:p-5">
@@ -170,9 +172,11 @@ export default function JobCard({ job, payout, now, isBusy, onAction, onCancelAs
       )}
       <JobStatusNotice status={job.status} />
 
-      {(action || isAssigned) && (
+      {!isCancelled && (
         <div className="flex flex-wrap gap-2">
-          {/* TODO(E): 운송 상세(/driver/jobs/:id) 화면을 만들면 '상세' 버튼을 여기에 둔다. */}
+          <Link to={`/driver/jobs/${job.orderId}`} className={SECONDARY_BUTTON}>
+            상세
+          </Link>
           {action && (
             <button
               type="button"

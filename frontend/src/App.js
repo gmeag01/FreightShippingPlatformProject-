@@ -4,6 +4,7 @@ import { ROLE_HOME } from './auth/roles';
 import { useAuth } from './auth/useAuth';
 import AppLayout from './layouts/AppLayout';
 import AdminOrdersPage from './pages/AdminOrdersPage';
+import DriverJobDetailPage from './pages/DriverJobDetailPage';
 import DriverJobsPage from './pages/DriverJobsPage';
 import DriverOrderDetailPage from './pages/DriverOrderDetailPage';
 import DriverOrdersPage from './pages/DriverOrdersPage';
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/driver/orders" element={<DriverOrdersPage />} />
         <Route path="/driver/orders/:id" element={<DriverOrderDetailPage />} />
         <Route path="/driver/jobs" element={<DriverJobsPage />} />
+        <Route path="/driver/jobs/:id" element={<DriverJobDetailPage />} />
         <Route path="/driver/vehicle" element={<PlaceholderPage title="내 차량" />} />
       </Route>
 
