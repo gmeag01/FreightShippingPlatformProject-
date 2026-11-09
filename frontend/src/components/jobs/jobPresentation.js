@@ -18,11 +18,11 @@ export const JOB_STATUS = Object.freeze({
 export const JOB_STEPS = Object.freeze(['배차', '상차', '운송', '하차', '지급']);
 
 // 상태별 '지금 단계'의 위치. 모든 칸이 끝났으면 JOB_STEPS.length다.
-// 배차완료면 다음 할 일이 상차이고, 수령확인대기면 하차까지 끝나고 지급을 기다린다.
+// 시안(driver-jobs, driver-job-detail)대로 배차완료는 '배차', 운송중은 '운송', 수령확인대기는 '하차' 칸이다.
 const CURRENT_STEP_INDEX = Object.freeze({
-  ASSIGNED: 1,
+  ASSIGNED: 0,
   IN_TRANSIT: 2,
-  AWAITING_CONFIRM: 4,
+  AWAITING_CONFIRM: 3,
   COMPLETED: JOB_STEPS.length,
 });
 
@@ -43,6 +43,13 @@ export const JOB_ACTIONS = Object.freeze({
     label: '하차 완료',
     confirmText: '하차 완료로 바꾸면 화주에게 수령 확인을 요청하고 되돌릴 수 없습니다.',
   },
+});
+
+// 결제(에스크로) 상태 이름. 서버의 PaymentStatus와 같아야 한다.
+export const PAYMENT_STATUS_LABELS = Object.freeze({
+  HELD: '보관중',
+  RELEASED: '지급완료',
+  REFUNDED: '환불완료',
 });
 
 const SEOUL_TIME_ZONE = 'Asia/Seoul';
