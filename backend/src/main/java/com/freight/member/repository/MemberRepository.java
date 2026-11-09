@@ -17,6 +17,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     boolean existsByEmailIgnoreCase(String email);
 
+    long countByRole(Role role);
+
     @Query("SELECT m FROM Member m WHERE "
             + "(:role IS NULL OR m.role = :role) AND "
             + "(:status IS NULL OR m.status = :status) AND "

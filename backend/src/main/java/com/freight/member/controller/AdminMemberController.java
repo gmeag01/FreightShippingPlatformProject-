@@ -4,6 +4,7 @@ import com.freight.global.common.ApiResponse;
 import com.freight.global.security.AuthMember;
 import com.freight.member.dto.AdminMemberDetailResponse;
 import com.freight.member.dto.AdminMemberResponse;
+import com.freight.member.dto.MemberCountsResponse;
 import com.freight.member.dto.UpdateMemberStatusRequest;
 import com.freight.member.entity.MemberStatus;
 import com.freight.member.entity.Role;
@@ -48,6 +49,14 @@ public class AdminMemberController {
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<AdminMemberResponse> result = adminMemberService.getMembers(role, status, keyword, pageable);
         return ApiResponse.ok(result);
+    }
+
+    /** 회원 역할별 카운트(전체, 화주, 차주)를 조회한다. */
+    @Operation(summary = "회원 통계 카운트", description = "전체, 화주, 차주 회원 수를 조회합니다.")
+    @GetMapping("/counts")
+    public ApiResponse<MemberCountsResponse> getMemberCounts() {
+        MemberCountsResponse counts = adminMemberService.getMemberCounts();
+        return ApiResponse.ok(counts);
     }
 
     /** 회원 상세를 조회한다. 차주는 차량 정보와 배차 취소 횟수를 함께 준다. */

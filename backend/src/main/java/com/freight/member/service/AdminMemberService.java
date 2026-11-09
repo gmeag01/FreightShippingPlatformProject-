@@ -4,6 +4,7 @@ import com.freight.global.exception.BusinessException;
 import com.freight.global.exception.ErrorCode;
 import com.freight.member.dto.AdminMemberDetailResponse;
 import com.freight.member.dto.AdminMemberResponse;
+import com.freight.member.dto.MemberCountsResponse;
 import com.freight.member.entity.Member;
 import com.freight.member.entity.MemberStatus;
 import com.freight.member.entity.Role;
@@ -51,7 +52,28 @@ public class AdminMemberService {
         Pageable safePageable = sanitizePageable(pageable);
         return memberRepository
                 .findMembersByFilter(role, status, keyword, safePageable)
-                .map(AdminMemberResponse::from);
+                .map(this::toAdminMemberResponse);
+    }
+
+    private AdminMemberResponse toAdminMemberResponse(Member member) {
+        if (member.getRole() == Role.DRIVER) {
+            Vehicle vehicle = vehicleService.findByDriverId(member.getId()).orElse(null);
+            long cancellationCount = orderService.countDriverCancellations(member.getId());
+            return AdminMemberResponse.of(member, vehicle, cancellationCount);
+        }
+        return AdminMemberResponse.from(member);
+    }
+
+    /**
+     * 전체, 화주, 차주 회원 수를 조회한다.
+     *
+     * @return 역할별 회원 수 통계 DTO
+     */
+    public MemberCountsResponse getMemberCounts() {
+        long total = memberRepository.count();
+        long shipper = memberRepository.countByRole(Role.SHIPPER);
+        long driver = memberRepository.countByRole(Role.DRIVER);
+        return new MemberCountsResponse(total, shipper, driver);
     }
 
     /**
