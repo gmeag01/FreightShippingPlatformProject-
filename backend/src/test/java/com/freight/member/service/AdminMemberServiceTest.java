@@ -10,6 +10,7 @@ import com.freight.global.exception.BusinessException;
 import com.freight.global.exception.ErrorCode;
 import com.freight.member.dto.AdminMemberDetailResponse;
 import com.freight.member.dto.AdminMemberResponse;
+import com.freight.member.dto.MemberCountsResponse;
 import com.freight.member.entity.Member;
 import com.freight.member.entity.MemberStatus;
 import com.freight.member.entity.Role;
@@ -192,5 +193,22 @@ class AdminMemberServiceTest {
         assertThatThrownBy(() -> adminMemberService.updateMemberStatus(adminId, MemberStatus.SUSPENDED, adminId))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_CANNOT_SUSPEND_SELF);
+    }
+
+    @Test
+    @DisplayName("회원 역할별 카운트 통계 조회 성공")
+    void getMemberCounts_success() {
+        // given
+        given(memberRepository.count()).willReturn(7L);
+        given(memberRepository.countByRole(Role.SHIPPER)).willReturn(2L);
+        given(memberRepository.countByRole(Role.DRIVER)).willReturn(5L);
+
+        // when
+        MemberCountsResponse counts = adminMemberService.getMemberCounts();
+
+        // then
+        assertThat(counts.total()).isEqualTo(7L);
+        assertThat(counts.shipper()).isEqualTo(2L);
+        assertThat(counts.driver()).isEqualTo(5L);
     }
 }
