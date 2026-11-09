@@ -3,6 +3,7 @@ import RequireRole from './auth/RequireRole';
 import { ROLE_HOME } from './auth/roles';
 import { useAuth } from './auth/useAuth';
 import AppLayout from './layouts/AppLayout';
+import AdminDisputesPage from './pages/AdminDisputesPage';
 import AdminMembersPage from './pages/AdminMembersPage';
 import AdminOrdersPage from './pages/AdminOrdersPage';
 import DriverOrderDetailPage from './pages/DriverOrderDetailPage';
@@ -57,7 +58,7 @@ export default function App() {
         <Route path="/admin" element={<PlaceholderPage title="관리자 대시보드" />} />
         <Route path="/admin/orders" element={<AdminOrdersPage />} />
         <Route path="/admin/orders/:id" element={<ShipperOrderDetailPage admin />} />
-        <Route path="/admin/disputes" element={<PlaceholderPage title="분쟁 처리" />} />
+        <Route path="/admin/disputes" element={<AdminDisputesPage />} />
         <Route path="/admin/fares" element={<PlaceholderPage title="운임 단가표" />} />
         <Route path="/admin/members" element={<AdminMembersPage />} />
       </Route>
