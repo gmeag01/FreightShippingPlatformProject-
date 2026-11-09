@@ -3,7 +3,7 @@ import { cancelOrderAssignment } from '../api/matching';
 
 // 배차 취소 사유를 입력받아 취소를 요청하는 창. 사유는 필수이고, 상차 2시간 전부터는 서버가 거절한다.
 // 설계 문서 3장: 거절 사유(DRIVER_CANCEL_CUTOFF_PASSED)는 서버 메시지를 그대로 보여 준다.
-// TODO(E): '차주 내 운송' 화면의 배정된 오더에서 이 창을 열어 쓴다(성공하면 onCancelled로 목록을 새로 불러온다).
+// 차주 내 운송 화면(DriverJobsPage)의 배차완료 오더에서 연다. 성공하면 onCancelled로 목록을 새로 불러온다.
 export default function CancelAssignmentModal({ orderId, onClose, onCancelled }) {
   const [reason, setReason] = useState('');
   const [errorMessage, setErrorMessage] = useState('');

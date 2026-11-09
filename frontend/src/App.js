@@ -6,6 +6,7 @@ import AppLayout from './layouts/AppLayout';
 import AdminDisputesPage from './pages/AdminDisputesPage';
 import AdminMembersPage from './pages/AdminMembersPage';
 import AdminOrdersPage from './pages/AdminOrdersPage';
+import DriverJobsPage from './pages/DriverJobsPage';
 import DriverOrderDetailPage from './pages/DriverOrderDetailPage';
 import DriverOrdersPage from './pages/DriverOrdersPage';
 import LoginPage from './pages/LoginPage';
@@ -50,7 +51,7 @@ export default function App() {
       <Route element={renderRoleArea('DRIVER')}>
         <Route path="/driver/orders" element={<DriverOrdersPage />} />
         <Route path="/driver/orders/:id" element={<DriverOrderDetailPage />} />
-        <Route path="/driver/jobs" element={<PlaceholderPage title="내 운송" />} />
+        <Route path="/driver/jobs" element={<DriverJobsPage />} />
         <Route path="/driver/vehicle" element={<PlaceholderPage title="내 차량" />} />
       </Route>
 
