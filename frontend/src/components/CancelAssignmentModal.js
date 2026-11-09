@@ -1,3 +1,5 @@
+'use strict';
+
 import { useState } from 'react';
 import { cancelOrderAssignment } from '../api/matching';
 
@@ -28,15 +30,19 @@ export default function CancelAssignmentModal({ orderId, onClose, onCancelled })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-lg">
-        <h2 className="text-base font-bold text-gray-900">배차 취소</h2>
-        <p className="mt-2 text-xs text-gray-500">
-          상차 2시간 전부터는 직접 취소할 수 없습니다. 취소하면 이 오더는 다시 의뢰 목록에 올라가고,
-          취소 횟수가 기록됩니다.
-        </p>
-        <label htmlFor="cancel-reason" className="mt-3 block text-sm font-medium text-gray-800">
-          취소 사유
+    <div className="bg-ink/50 fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cancel-assignment-title"
+        className="w-full max-w-105 rounded-[10px] bg-white p-6 break-keep shadow-lg"
+      >
+        <p className="text-caption text-subtle">차주 · 내 운송</p>
+        <h2 id="cancel-assignment-title" className="text-h2 text-ink mt-1 font-bold">
+          배차를 취소할까요?
+        </h2>
+        <label htmlFor="cancel-reason" className="text-copy mt-4 block text-sm font-medium">
+          취소 사유 <span className="text-danger">*</span>
         </label>
         <textarea
           id="cancel-reason"
@@ -44,25 +50,33 @@ export default function CancelAssignmentModal({ orderId, onClose, onCancelled })
           onChange={(event) => setReason(event.target.value)}
           rows={3}
           maxLength={200}
-          className="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm"
-          placeholder="예: 차량 점검이 필요합니다"
+          className={`text-ink mt-1.5 min-h-24 w-full rounded-md bg-white px-3 py-2 text-sm ${
+            errorMessage ? 'border-danger border-2' : 'border-line-strong border'
+          }`}
+          placeholder="차량 고장으로 상차가 어렵습니다."
         />
-        {errorMessage && <p className="mt-2 text-sm text-red-600">{errorMessage}</p>}
-        <div className="mt-4 flex justify-end gap-2">
+        {errorMessage && (
+          <p className="text-caption text-danger mt-1.5 font-medium">{errorMessage}</p>
+        )}
+        <p className="text-caption text-muted mt-2">
+          오더는 의뢰 목록으로 돌아가고, 화주에게 사유가 표시됩니다.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-end gap-2">
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={onClose}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="border-line-strong text-copy inline-flex min-h-11 items-center justify-center rounded-md border bg-white px-4.5 font-semibold whitespace-nowrap hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            닫기
+            돌아가기
           </button>
           <button
             type="button"
             disabled={isSubmitting}
             onClick={handleSubmit}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+            className="text-danger disabled:text-muted inline-flex min-h-11 items-center justify-center rounded-md border border-red-300 bg-white px-4.5 font-semibold whitespace-nowrap hover:bg-red-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200"
           >
-            {isSubmitting ? '처리 중...' : '배차 취소'}
+            {isSubmitting ? '처리 중…' : '배차 취소'}
           </button>
         </div>
       </div>
