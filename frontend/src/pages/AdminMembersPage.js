@@ -164,7 +164,7 @@ export default function AdminMembersPage() {
     const bodyLabel = BODY_LABELS[member.vehicle.bodyType] || member.vehicle.bodyType;
     return (
       <span className="text-body text-copy">
-        {typeLabel} {bodyLabel} · {member.vehicle.plateNumber}
+        {typeLabel} {bodyLabel} · <span className="font-mono">{member.vehicle.plateNumber}</span>
       </span>
     );
   };
@@ -257,7 +257,7 @@ export default function AdminMembersPage() {
       </div>
 
       {/* 3. 회원 목록 테이블 (시안 레이아웃 및 컬럼 일치) */}
-      <div className="border-line overflow-x-auto rounded-lg border bg-white">
+      <div className="border-line bg-card overflow-x-auto rounded-lg border shadow-xs">
         <table className="text-body text-copy w-full text-left">
           <thead className="border-line text-caption text-muted border-b bg-slate-50 font-semibold">
             <tr>
@@ -277,7 +277,7 @@ export default function AdminMembersPage() {
                 계정
               </th>
               <th scope="col" className="px-5 py-4 text-right">
-                행동
+                관리
               </th>
             </tr>
           </thead>
