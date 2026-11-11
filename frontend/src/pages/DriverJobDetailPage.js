@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { fetchMyJob } from '../api/jobs';
 import JobActionDialogs, { JobBanner } from '../components/jobs/JobActionDialogs';
+import OrderMap from '../components/OrderMap';
 import {
   JobField,
   JobProgress,
@@ -261,7 +262,7 @@ function TransportInfo({ job }) {
           <JobField label="요청 사항">{job.memo}</JobField>
         </dl>
       )}
-      {/* TODO(E): B의 공통 지도 컴포넌트 OrderMap이 나오면 두 지점 지도를 이 자리에 넣는다. */}
+      <OrderMap pickup={job.pickup} dropoff={job.dropoff} />
       <a
         href={buildKakaoRouteUrl(job.pickup, job.dropoff)}
         target="_blank"

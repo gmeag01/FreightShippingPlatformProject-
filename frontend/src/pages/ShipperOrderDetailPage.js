@@ -2,6 +2,7 @@ import { OrderDeliveryActions, OrderPaymentPanel } from '../components/orders/Or
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { fetchOrderDetail, fetchAdminOrderDetail } from '../api/orders';
+import OrderMap from '../components/OrderMap';
 import OrderCancel from '../components/orders/OrderCancel';
 import { DetailField, OrderLoadError, OrderStatusBadge } from '../components/orders/OrderDisplay';
 import {
@@ -223,6 +224,30 @@ function OrderDetail({ order }) {
           timeLabel="도착 희망 시각"
         />
       </div>
+      <section className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex flex-col gap-4">
+          <OrderMap
+            pickup={order.pickup}
+            dropoff={order.dropoff}
+            pickupRegion={order.pickup?.region}
+            dropoffRegion={order.dropoff?.region}
+          />
+          {order.pickup?.latitude != null && order.dropoff?.latitude != null && (
+            <a
+              href={`https://map.kakao.com/link/from/${encodeURIComponent(
+                `상차지,${order.pickup.latitude},${order.pickup.longitude}`,
+              )}/to/${encodeURIComponent(
+                `하차지,${order.dropoff.latitude},${order.dropoff.longitude}`,
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              className="border-line-strong text-copy inline-flex min-h-11 items-center justify-center self-end rounded-md border bg-white px-4.5 text-sm font-semibold whitespace-nowrap hover:bg-slate-50"
+            >
+              카카오맵에서 길찾기
+            </a>
+          )}
+        </div>
+      </section>
       <section className="rounded-xl border border-gray-200 bg-white p-5">
         <h2 className="font-bold text-gray-900">화물 및 차량 조건</h2>
         <dl className="mt-4 grid grid-cols-2 gap-5 sm:grid-cols-3">
