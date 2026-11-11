@@ -1,4 +1,6 @@
-import { GeocodeButton } from './OrderIntegrationFields';
+import { AddressSearchButton } from './OrderIntegrationFields';
+import { useRef, useState } from 'react';
+import { geocodeAddress } from '../../api/fare';
 import {
   BODY_LABELS,
   CARGO_LABELS,
@@ -54,6 +56,55 @@ export function FormField({ label, name, error, children, ...props }) {
 
 // 상하차 주소·현장 연락처와 실제 지도 위치를 입력한다. 좌표는 임의로 채우지 않는다.
 export function LocationFields({ name, title, initial = {}, errors, onCoordinatesChange }) {
+  const pending = useRef(null);
+  const [locationMessage, setLocationMessage] = useState('');
+  const lookupFailure = '주소의 위치를 확인하지 못했습니다. 주소를 확인하고 다시 입력해 주세요.';
+
+  async function locateAddress(form, value) {
+    const address = value.trim();
+    const latitude = form.elements.namedItem(`${name}.latitude`);
+    const longitude = form.elements.namedItem(`${name}.longitude`);
+    if (!address || pending.current || (latitude.value && longitude.value)) return;
+
+    const request = Symbol();
+    pending.current = request;
+    setLocationMessage('주소의 위치를 확인하는 중입니다…');
+    try {
+      const result = await geocodeAddress(address);
+      if (
+        pending.current !== request ||
+        form.elements.namedItem(`${name}.address`).value.trim() !== address
+      )
+        return;
+      if (
+        !Number.isFinite(result.latitude) ||
+        !Number.isFinite(result.longitude) ||
+        Math.abs(result.latitude) > 90 ||
+        Math.abs(result.longitude) > 180 ||
+        (result.latitude === 37.5665 && result.longitude === 126.978)
+      ) {
+        setLocationMessage(lookupFailure);
+        return;
+      }
+      latitude.value = result.latitude;
+      longitude.value = result.longitude;
+      onCoordinatesChange();
+      setLocationMessage('위치를 확인했습니다.');
+    } catch {
+      if (pending.current === request) setLocationMessage(lookupFailure);
+    } finally {
+      if (pending.current === request) pending.current = null;
+    }
+  }
+
+  function selectAddress(form, address) {
+    pending.current = null;
+    form.elements.namedItem(`${name}.latitude`).value = '';
+    form.elements.namedItem(`${name}.longitude`).value = '';
+    onCoordinatesChange();
+    locateAddress(form, address);
+  }
+
   const field = (key, label, props = {}) => (
     <FormField
       name={`${name}.${key}`}
@@ -67,30 +118,41 @@ export function LocationFields({ name, title, initial = {}, errors, onCoordinate
   return (
     <fieldset className="rounded-xl border border-gray-200 bg-white p-5">
       <legend className="px-2 font-bold text-gray-900">{title}</legend>
-      <GeocodeButton name={name} onCoordinatesChange={onCoordinatesChange} />
+      <AddressSearchButton name={name} onAddressSelected={selectAddress} />
       <div className="grid gap-4 sm:grid-cols-2">
-        {field('address', '주소', { maxLength: 255 })}
+        <div>
+          <FormField
+            name={`${name}.address`}
+            label="주소"
+            defaultValue={initial.address ?? ''}
+            error={errors[`${name}.address`]}
+            required
+            maxLength={255}
+            onBlur={(event) => locateAddress(event.currentTarget.form, event.currentTarget.value)}
+            onChange={() => {
+              pending.current = null;
+              setLocationMessage('');
+            }}
+          />
+          {locationMessage && (
+            <p role="status" className="text-muted mt-1 text-xs">
+              {locationMessage}
+            </p>
+          )}
+        </div>
         {field('detailAddress', '상세주소', { maxLength: 255 })}
         {field('region', '지역 (시·구)', { placeholder: '예: 서울 강남구', maxLength: 255 })}
         {field('contactName', '현장 담당자 이름', { maxLength: 50 })}
         {field('contactPhone', '현장 연락처', { type: 'tel', maxLength: 20 })}
       </div>
-      <div className="mt-4 rounded-lg bg-gray-50 p-4">
-        <p className="text-sm font-semibold text-gray-700">지도 위치</p>
-        <p className="mt-1 text-xs text-gray-500">
-          주소의 위치를 위도·경도로 입력해 주세요. 위도와 경도를 모르면 임의로 입력하지 마세요.
-        </p>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          {field('latitude', '위도', { type: 'number', min: -90, max: 90, step: 'any' })}
-          {field('longitude', '경도', { type: 'number', min: -180, max: 180, step: 'any' })}
-        </div>
-      </div>
+      <input hidden name={`${name}.latitude`} defaultValue={initial.latitude ?? ''} />
+      <input hidden name={`${name}.longitude`} defaultValue={initial.longitude ?? ''} />
     </fieldset>
   );
 }
 
 // 화물·차량·일정을 서버 입력 규칙에 맞춰 입력한다.
-export function CargoScheduleFields({ initial, errors }) {
+export function CargoScheduleFields({ initial, errors, pickupMin, arriveMin, onPickupFocus }) {
   const cargo = initial.cargo ?? {};
   const field = (name, label, props = {}) => (
     <FormField
@@ -118,8 +180,12 @@ export function CargoScheduleFields({ initial, errors }) {
         <legend className="px-2 font-bold text-gray-900">운송 일정</legend>
         <p className="mb-4 text-xs text-gray-500">모든 일정은 한국 시간 기준입니다.</p>
         <div className="grid gap-4 sm:grid-cols-2">
-          {field('pickupAt', '상차 희망 시각', { type: 'datetime-local' })}
-          {field('arriveBy', '도착 희망 시각', { type: 'datetime-local' })}
+          {field('pickupAt', '상차 희망 시각', {
+            type: 'datetime-local',
+            min: pickupMin,
+            onFocus: onPickupFocus,
+          })}
+          {field('arriveBy', '도착 희망 시각', { type: 'datetime-local', min: arriveMin })}
         </div>
       </fieldset>
       <fieldset className="rounded-xl border border-gray-200 bg-white p-5">

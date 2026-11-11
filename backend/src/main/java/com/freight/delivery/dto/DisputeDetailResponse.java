@@ -10,7 +10,7 @@ import com.freight.vehicle.entity.VehicleType;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/** 관리자 분쟁 상세. 판단에 필요한 신고 사유, 회원, 차량, 화물, 결제 상태, 상태 이력을 담는다. 차량이 없으면 차량 값은 null이다. */
+/** 관리자 분쟁 상세. 판단에 필요한 신고 사유, 회원 연락처, 차량, 화물, 결제 상태, 상태 이력을 담는다. 차량이 없으면 차량 값은 null이다. */
 public record DisputeDetailResponse(
         Long orderId,
         OrderStatus status,
@@ -21,7 +21,9 @@ public record DisputeDetailResponse(
         String reason,
         LocalDateTime reportedAt,
         String shipperName,
+        String shipperPhone,
         String driverName,
+        String driverPhone,
         VehicleType vehicleType,
         String plateNumber,
         String itemName,
@@ -44,7 +46,9 @@ public record DisputeDetailResponse(
                 report.getMemo(),
                 report.getCreatedAt(),
                 order.getShipper().getName(),
+                order.getShipper().getPhone(),
                 order.getDriver().getName(),
+                order.getDriver().getPhone(),
                 vehicle != null ? vehicle.getVehicleType() : null,
                 vehicle != null ? vehicle.getPlateNumber() : null,
                 order.getCargo().getItemName(),

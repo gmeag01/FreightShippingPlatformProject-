@@ -2,7 +2,12 @@ import { FareEstimatePanel } from './OrderIntegrationFields';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createOrder, updateOrder } from '../../api/orders';
-import { readOrderForm, validateOrderForm } from '../../order/form';
+import {
+  nextKoreanMinute,
+  parseKoreanTime,
+  readOrderForm,
+  validateOrderForm,
+} from '../../order/form';
 import {
   BODY_LABELS,
   formatDateTime,
@@ -22,6 +27,8 @@ export default function OrderForm({ initial, isEditing, onReload }) {
   const [submitting, setSubmitting] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [pickupAt, setPickupAt] = useState(initial.pickupAt ?? '');
+  const [pickupMin, setPickupMin] = useState(() => nextKoreanMinute(Date.now()));
   const inFlight = useRef(false);
   const formRef = useRef(null);
   const quoteRef = useRef(null);
@@ -34,6 +41,14 @@ export default function OrderForm({ initial, isEditing, onReload }) {
   }
   function changeInput(event) {
     setDirty(true);
+    if (['pickup.address', 'dropoff.address'].includes(event.target.name)) {
+      const location = event.target.name.split('.')[0];
+      // 주소가 바뀌면 이전 주소의 위치로 견적을 내거나 등록하지 않는다.
+      for (const coordinate of ['latitude', 'longitude']) {
+        formRef.current.elements.namedItem(`${location}.${coordinate}`).value = '';
+      }
+    }
+    if (event.target.name === 'pickupAt') setPickupAt(event.target.value);
     if (
       [
         'pickup.address',
@@ -44,6 +59,7 @@ export default function OrderForm({ initial, isEditing, onReload }) {
         'dropoff.longitude',
         'cargo.weightKg',
         'pickupAt',
+        'arriveBy',
         'requiredVehicleType',
         'loadingMethod',
       ].includes(event.target.name)
@@ -82,6 +98,7 @@ export default function OrderForm({ initial, isEditing, onReload }) {
       if (input.type === 'checkbox') input.checked = value;
       else input.value = String(value);
     }
+    setPickupAt(formRef.current.elements.namedItem('pickupAt').value);
     setErrors({});
     setMessage('');
     setDirty(true);
@@ -204,6 +221,7 @@ export default function OrderForm({ initial, isEditing, onReload }) {
             errors={errors}
             onCoordinatesChange={() => {
               setDirty(true);
+              setErrors((previous) => ({ ...previous, ['pickup.address']: undefined }));
               invalidateQuote();
             }}
           />
@@ -214,10 +232,17 @@ export default function OrderForm({ initial, isEditing, onReload }) {
             errors={errors}
             onCoordinatesChange={() => {
               setDirty(true);
+              setErrors((previous) => ({ ...previous, ['dropoff.address']: undefined }));
               invalidateQuote();
             }}
           />
-          <CargoScheduleFields initial={initial} errors={errors} />
+          <CargoScheduleFields
+            initial={initial}
+            errors={errors}
+            pickupMin={isEditing ? undefined : pickupMin}
+            arriveMin={nextKoreanMinute(parseKoreanTime(pickupAt))}
+            onPickupFocus={() => setPickupMin(nextKoreanMinute(Date.now()))}
+          />
           <fieldset className="rounded-xl border border-gray-200 bg-white p-5">
             <legend className="px-2 font-bold text-gray-900">운임</legend>
             <FormField
@@ -263,7 +288,7 @@ export default function OrderForm({ initial, isEditing, onReload }) {
       </form>
       {review && (
         <section
-          className="space-y-4 rounded-xl border border-blue-200 bg-blue-50 p-5"
+          className="border-primary bg-card space-y-4 rounded-xl border-2 p-5"
           aria-labelledby="review-title"
         >
           <h2
@@ -286,8 +311,6 @@ export default function OrderForm({ initial, isEditing, onReload }) {
                   {location.address} {location.detailAddress}
                   <br />
                   {location.region} · {location.contactName} · {location.contactPhone}
-                  <br />
-                  위도 {location.latitude} / 경도 {location.longitude}
                 </dd>
               </div>
             ))}

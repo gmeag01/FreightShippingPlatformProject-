@@ -320,6 +320,12 @@ class FreightScenarioTest {
         JsonNode dispute =
                 api.get("/api/admin/disputes/" + orderId, admin.token()).data();
         assertThat(dispute.path("reason").asText()).isEqualTo("화물 파손");
+        assertThat(dispute.path("shipperPhone").asText()).isNotBlank();
+        assertThat(dispute.path("driverPhone").asText()).isNotBlank();
+        assertThat(api.get("/api/admin/disputes/" + orderId, shipper.token()).status())
+                .isEqualTo(HTTP_FORBIDDEN);
+        assertThat(api.get("/api/admin/disputes/" + orderId, driver.token()).status())
+                .isEqualTo(HTTP_FORBIDDEN);
         assertThat(dispute.path("paymentStatus").asText()).isEqualTo("HELD");
         ResolveDisputeRequest noMemo = new ResolveDisputeRequest(DisputeResolution.REFUND_SHIPPER, " ");
         assertThat(api.post(resolvePath(orderId), admin.token(), noMemo).status())

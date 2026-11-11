@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { estimateFare, geocodeAddress } from '../../api/fare';
+import { estimateFare } from '../../api/fare';
+import { validateOrderSchedule } from '../../order/form';
 import { formatNumber, VEHICLE_LABELS } from '../../order/presentation';
 
 const DAUM_POSTCODE_SCRIPT_URL =
@@ -54,53 +55,9 @@ function selectVehicleTypeByWeight(weightKg) {
   return 'TON_25';
 }
 
-// 다음 우편번호 검색창과 주소→좌표 변환(Geocode)을 제공하는 버튼 모음.
-export function GeocodeButton({ name, onCoordinatesChange }) {
-  const [busy, setBusy] = useState(false);
+// 다음 우편번호에서 선택한 주소를 등록 폼에 전달한다.
+export function AddressSearchButton({ name, onAddressSelected }) {
   const [message, setMessage] = useState('');
-  const inFlight = useRef(false);
-
-  async function lookupCoordinates(form, targetAddress) {
-    const field = (key) => form.elements.namedItem(`${name}.${key}`);
-    const address = (targetAddress ?? field('address')?.value ?? '').trim();
-    if (!address) {
-      setMessage('주소를 먼저 입력해 주세요.');
-      return;
-    }
-    if (inFlight.current) return;
-
-    inFlight.current = true;
-    setBusy(true);
-    setMessage('');
-    try {
-      const result = await geocodeAddress(address);
-      if (field('address').value.trim() !== address) {
-        setMessage('주소가 바뀌었습니다. 다시 조회해 주세요.');
-        return;
-      }
-      if (
-        !Number.isFinite(result.latitude) ||
-        !Number.isFinite(result.longitude) ||
-        Math.abs(result.latitude) > 90 ||
-        Math.abs(result.longitude) > 180 ||
-        (result.latitude === 37.5665 && result.longitude === 126.978)
-      ) {
-        setMessage(
-          '정확한 위치를 확인하지 못했습니다. 지도 키 설정을 확인하거나 좌표를 직접 입력해 주세요.',
-        );
-        return;
-      }
-      field('latitude').value = result.latitude;
-      field('longitude').value = result.longitude;
-      onCoordinatesChange();
-      setMessage('위치를 채웠습니다. 주소와 일치하는지 확인해 주세요.');
-    } catch (error) {
-      setMessage(error.message);
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
-    }
-  }
 
   async function handleSearchPostcode(event) {
     const form = event.currentTarget.form;
@@ -122,10 +79,7 @@ export function GeocodeButton({ name, onCoordinatesChange }) {
           if (regionInput && regionText) {
             regionInput.value = regionText;
           }
-          onCoordinatesChange();
-          if (roadOrJibun) {
-            lookupCoordinates(form, roadOrJibun);
-          }
+          if (roadOrJibun) onAddressSelected(form, roadOrJibun);
           detailInput?.focus();
         },
       }).open();
@@ -134,30 +88,15 @@ export function GeocodeButton({ name, onCoordinatesChange }) {
     }
   }
 
-  function handleLocateClick(event) {
-    const form = event.currentTarget.form;
-    if (!form) return;
-    lookupCoordinates(form);
-  }
-
   return (
     <div className="mb-3">
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={busy}
           onClick={handleSearchPostcode}
           className="border-line-strong bg-card text-ink inline-flex min-h-11 items-center justify-center rounded-md border px-3.5 py-2 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
         >
           주소 검색 (우편번호)
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={handleLocateClick}
-          className="border-line-strong bg-card text-primary-dark inline-flex min-h-11 items-center justify-center rounded-md border px-3.5 py-2 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
-        >
-          {busy ? '위치 조회 중…' : '주소로 위치 찾기'}
         </button>
       </div>
       {message && (
@@ -221,6 +160,7 @@ function readEstimateCommandFromForm(form) {
     command.pickupAt,
     command.vehicleType,
     command.loadingMethod,
+    fields.get('arriveBy'),
   ].join('|');
 
   return { ready: true, weightKg, command, snapshotKey };
@@ -244,8 +184,16 @@ export function FareEstimatePanel({ formRef, onEstimate }) {
 
     if (!ready) {
       if (!silentWhenIncomplete) {
-        setError('상하차 좌표, 중량, 상차 시각과 차량 조건을 먼저 입력해 주세요.');
+        setError('상하차 주소의 위치를 확인하고 중량, 상차 시각과 차량 조건을 입력해 주세요.');
       }
+      return;
+    }
+
+    const arriveBy = form.elements.namedItem('arriveBy').value;
+    const scheduleErrors = validateOrderSchedule({ pickupAt: command.pickupAt, arriveBy }, false);
+    const scheduleError = scheduleErrors.pickupAt || (arriveBy && scheduleErrors.arriveBy);
+    if (scheduleError) {
+      if (!silentWhenIncomplete) setError(scheduleError);
       return;
     }
 

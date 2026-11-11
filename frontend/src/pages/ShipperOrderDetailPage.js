@@ -168,7 +168,8 @@ export default function ShipperOrderDetailPage({ admin = false }) {
               />
             )}
             <OrderDetail order={order} />
-            <OrderPaymentPanel key={requestKey} orderId={order.id} />
+            {/* 취소 응답으로 오더 상태가 바뀌면 결제 내역도 다시 조회한다. */}
+            <OrderPaymentPanel key={`${requestKey}:${order.status}`} orderId={order.id} />
           </>
         )
       )}

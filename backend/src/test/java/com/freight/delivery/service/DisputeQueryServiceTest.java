@@ -124,6 +124,8 @@ class DisputeQueryServiceTest {
         assertThat(dispute.reason()).isEqualTo(REASON);
         assertThat(dispute.shipperName()).isEqualTo("화주");
         assertThat(dispute.driverName()).isEqualTo("차주");
+        assertThat(dispute.shipperPhone()).isEqualTo(shipper.getPhone());
+        assertThat(dispute.driverPhone()).isEqualTo(driver.getPhone());
         assertThat(dispute.vehicleType()).isEqualTo(VehicleType.TON_5);
         assertThat(dispute.plateNumber()).isEqualTo("80아1234");
         assertThat(dispute.itemName()).isEqualTo("전자부품 파렛트");

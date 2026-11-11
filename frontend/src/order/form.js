@@ -37,7 +37,7 @@ export function readOrderForm(form, initial) {
       ].map((field) => [
         field,
         ['latitude', 'longitude'].includes(field)
-          ? number(`${name}.${field}`)
+          ? optionalNumber(`${name}.${field}`)
           : text(`${name}.${field}`),
       ]),
     );
@@ -69,6 +69,33 @@ export function readOrderForm(form, initial) {
   };
 }
 
+const MINUTE_MS = 60_000;
+const KOREA_OFFSET_MS = 9 * 60 * MINUTE_MS;
+
+// 한국 시각 기준으로 주어진 시각보다 늦은 첫 번째 입력 가능 분을 반환한다.
+export function nextKoreanMinute(timestamp) {
+  if (!Number.isFinite(timestamp)) return undefined;
+  const nextMinute = (Math.floor(timestamp / MINUTE_MS) + 1) * MINUTE_MS;
+  return new Date(nextMinute + KOREA_OFFSET_MS).toISOString().slice(0, 16);
+}
+
+// datetime-local 입력값을 한국 시각으로 해석한다.
+export function parseKoreanTime(value) {
+  return new Date(`${value}+09:00`).getTime();
+}
+
+// 등록 확인과 추천 운임 계산에서 같은 시각 규칙을 적용한다.
+export function validateOrderSchedule(details, isEditing, now = Date.now()) {
+  const errors = {};
+  const pickup = parseKoreanTime(details.pickupAt);
+  const dropoff = parseKoreanTime(details.arriveBy);
+  if (!Number.isFinite(pickup)) errors.pickupAt = '상차 희망 시각을 입력해 주세요.';
+  else if (!isEditing && pickup <= now) errors.pickupAt = '상차 희망 시각은 현재 이후여야 합니다.';
+  if (!Number.isFinite(dropoff) || dropoff <= pickup)
+    errors.arriveBy = '도착 희망 시각은 상차 이후로 선택해 주세요.';
+  return errors;
+}
+
 // 브라우저 기본 검증에 업무상 일정·정수 범위·공백 입력 검증을 더한다.
 export function validateOrderForm(details, isEditing, now = Date.now()) {
   const errors = {};
@@ -76,14 +103,20 @@ export function validateOrderForm(details, isEditing, now = Date.now()) {
     for (const field of ['address', 'detailAddress', 'region', 'contactName', 'contactPhone']) {
       if (!details[name][field]) errors[`${name}.${field}`] = '공백 없이 내용을 입력해 주세요.';
     }
+    const { latitude, longitude } = details[name];
+    if (
+      !errors[`${name}.address`] &&
+      (!Number.isFinite(latitude) ||
+        Math.abs(latitude) > 90 ||
+        !Number.isFinite(longitude) ||
+        Math.abs(longitude) > 180)
+    ) {
+      errors[`${name}.address`] =
+        '주소의 위치를 확인할 수 있도록 주소를 입력한 뒤 다른 칸으로 이동해 주세요.';
+    }
   }
   if (!details.cargo.itemName) errors['cargo.itemName'] = '품명을 입력해 주세요.';
-  const pickup = new Date(`${details.pickupAt}+09:00`).getTime();
-  const dropoff = new Date(`${details.arriveBy}+09:00`).getTime();
-  if (!Number.isFinite(pickup)) errors.pickupAt = '상차 희망 시각을 입력해 주세요.';
-  else if (!isEditing && pickup <= now) errors.pickupAt = '상차 희망 시각은 현재 이후여야 합니다.';
-  if (!Number.isFinite(dropoff) || dropoff <= pickup)
-    errors.arriveBy = '도착 희망 시각은 상차 이후로 선택해 주세요.';
+  Object.assign(errors, validateOrderSchedule(details, isEditing, now));
   for (const field of ['weightKg', 'quantity', 'widthCm', 'depthCm', 'heightCm']) {
     const value = details.cargo[field];
     if (value != null && (!Number.isInteger(value) || value <= 0 || value > 2147483647))
