@@ -42,7 +42,8 @@ export default function AdminDashboardPage() {
     fetchAdminDashboard({ signal: controller.signal })
       .then((res) => {
         if (!controller.signal.aborted) {
-          setResult({ attempt, data: res.data, fetchedAt: new Date() });
+          // client.js가 ApiResponse를 벗겨 data만 돌려주므로 res가 곧 대시보드 응답이다.
+          setResult({ attempt, data: res, fetchedAt: new Date() });
         }
       })
       .catch((err) => {
@@ -59,7 +60,7 @@ export default function AdminDashboardPage() {
   const data = result?.data;
   const error = result?.error;
   const lastFetchedAt = result?.fetchedAt;
-  const metrics = data?.metrics;
+  const metrics = data?.summary;
   const urgentOrders = data?.urgentOrders || [];
   const disputeOrders = data?.disputeOrders || [];
 
@@ -168,14 +169,13 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <span className="text-caption text-subtle tabular-nums">
-                      {formatShortDateTime(order.disputedAt)}
+                      {/* 응답에는 신고 시각이 없어 오더 등록 시각을 보여 준다. */}
+                      등록 {formatShortDateTime(order.createdAt)}
                     </span>
                   </div>
                   <div className="mt-1.5 flex items-center justify-between">
                     <p className="text-body text-copy truncate font-medium">
-                      {order.originCity} {order.originDistrict} → {order.destCity}{' '}
-                      {order.destDistrict}
-                      {order.disputeReason ? ` · ${order.disputeReason}` : ''}
+                      {order.pickupRegion} → {order.dropoffRegion}
                     </p>
                     <Link
                       to="/admin/disputes"
@@ -220,9 +220,10 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="mt-1.5 flex items-center justify-between">
                     <p className="text-body text-copy truncate font-medium">
-                      {order.originCity} {order.originDistrict} → {order.destCity}{' '}
-                      {order.destDistrict}
-                      {order.tonnage ? ` · ${VEHICLE_LABELS[order.tonnage] || order.tonnage}` : ''}
+                      {order.pickupRegion} → {order.dropoffRegion}
+                      {order.requiredVehicleType
+                        ? ` · ${VEHICLE_LABELS[order.requiredVehicleType] || order.requiredVehicleType}`
+                        : ''}
                     </p>
                     <Link
                       to={`/admin/orders/${order.orderId}`}
