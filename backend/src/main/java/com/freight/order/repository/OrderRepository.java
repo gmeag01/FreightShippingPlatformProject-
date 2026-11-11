@@ -28,8 +28,6 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
-    Page<Order> findByStatusOrderByCreatedAtDesc(OrderStatus status, Pageable pageable);
-
     @Query("select o.id from Order o where o.status = :status and o.droppedOffAt <= :droppedOffBefore")
     List<Long> findIdsByStatusAndDroppedOffBefore(
             @Param("status") OrderStatus status, @Param("droppedOffBefore") LocalDateTime droppedOffBefore);

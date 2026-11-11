@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
+import com.freight.delivery.dto.DisputeSummaryResponse;
+import com.freight.delivery.service.DisputeQueryService;
 import com.freight.member.dto.AdminDashboardResponse;
 import com.freight.order.entity.Cargo;
 import com.freight.order.entity.CargoType;
@@ -24,12 +26,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
 
 @ExtendWith(MockitoExtension.class)
 class AdminDashboardServiceTest {
 
     @Mock
     private OrderService orderService;
+
+    @Mock
+    private DisputeQueryService disputeQueryService;
 
     @InjectMocks
     private AdminDashboardService adminDashboardService;
@@ -82,11 +88,12 @@ class AdminDashboardServiceTest {
                 .fare(350000L)
                 .build();
 
-        Order disputeOrder = Order.builder()
-                .id(102L)
+        Order overdueOrder = Order.builder()
+                .id(103L)
+                .status(OrderStatus.REGISTERED)
                 .pickup(pickup)
                 .dropoff(dropoff)
-                .pickupAt(LocalDateTime.now().minusDays(1))
+                .pickupAt(LocalDateTime.now().minusHours(1))
                 .cargo(cargo)
                 .requiredVehicleType(VehicleType.TON_1)
                 .bodyType(BodyType.CARGO)
@@ -94,8 +101,11 @@ class AdminDashboardServiceTest {
                 .fare(120000L)
                 .build();
 
-        given(orderService.findUrgentUnassignedOrders(5)).willReturn(List.of(urgentOrder));
-        given(orderService.findRecentDisputedOrders(5)).willReturn(List.of(disputeOrder));
+        LocalDateTime reportedAt = LocalDateTime.of(2026, 11, 11, 14, 10);
+        DisputeSummaryResponse dispute = new DisputeSummaryResponse(102L, "서울 강남구", "부산 해운대구", reportedAt, "화물 파손");
+
+        given(orderService.findUrgentUnassignedOrders(5)).willReturn(List.of(overdueOrder, urgentOrder));
+        given(disputeQueryService.listDisputes(0)).willReturn(new PageImpl<>(List.of(dispute)));
 
         // when
         AdminDashboardResponse response = adminDashboardService.getDashboard();
@@ -110,14 +120,19 @@ class AdminDashboardServiceTest {
         assertThat(response.summary().unassignedCount()).isEqualTo(6L);
         assertThat(response.summary().disputedCount()).isEqualTo(2L);
 
-        assertThat(response.urgentOrders()).hasSize(1);
-        assertThat(response.urgentOrders().get(0).orderId()).isEqualTo(101L);
-        assertThat(response.urgentOrders().get(0).pickupRegion()).isEqualTo("서울 강남구");
-        assertThat(response.urgentOrders().get(0).dropoffRegion()).isEqualTo("부산 해운대구");
-        assertThat(response.urgentOrders().get(0).fare()).isEqualTo(350000L);
+        assertThat(response.urgentOrders()).hasSize(2);
+        assertThat(response.urgentOrders().get(1).orderId()).isEqualTo(101L);
+        assertThat(response.urgentOrders().get(1).pickupRegion()).isEqualTo("서울 강남구");
+        assertThat(response.urgentOrders().get(1).dropoffRegion()).isEqualTo("부산 해운대구");
+        assertThat(response.urgentOrders().get(1).fare()).isEqualTo(350000L);
+        // 화주 목록과 같은 규칙: 상차 희망 시각이 지난 REGISTERED만 미배차다.
+        assertThat(response.urgentOrders().get(0).isUnassigned()).isTrue();
+        assertThat(response.urgentOrders().get(1).isUnassigned()).isFalse();
 
+        // 설계 시안(admin-dashboard.png): 분쟁 줄에 신고 사유와 신고 시각을 보여 준다.
         assertThat(response.disputeOrders()).hasSize(1);
         assertThat(response.disputeOrders().get(0).orderId()).isEqualTo(102L);
-        assertThat(response.disputeOrders().get(0).fare()).isEqualTo(120000L);
+        assertThat(response.disputeOrders().get(0).reason()).isEqualTo("화물 파손");
+        assertThat(response.disputeOrders().get(0).reportedAt()).isEqualTo(reportedAt);
     }
 }
