@@ -3,7 +3,7 @@ import client from './client';
 // 로그인한 차주의 등록 차량 정보를 조회한다. 미등록 상태(404)면 null을 돌려준다.
 export const fetchMyVehicle = () =>
   client.get('/vehicles/me').catch((error) => {
-    if (error.status === 404 || error.code === 'NOT_FOUND') {
+    if (error.status === 404 || error.code === 'NOT_FOUND' || error.code === 'VEHICLE_NOT_FOUND') {
       return null;
     }
     throw error;

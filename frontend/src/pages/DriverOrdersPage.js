@@ -284,17 +284,22 @@ export default function DriverOrdersPage() {
       setBanner({ type: 'error', text: error.message });
       await reloadCurrentOrders();
     },
-    onFailed: (error) => setBanner({ type: 'error', text: error.message }),
+    onFailed: (error) => setBanner({ type: 'error', code: error.code, text: error.message }),
   });
 
   const handleTabChange = (tabKey) => {
+    setBanner(null);
+    if (tabKey === activeTab && page === 0) {
+      reloadCurrentOrders();
+      return;
+    }
     setLoading(true);
     setActiveTab(tabKey);
     setPage(0);
-    setBanner(null);
   };
 
   const handlePageChange = (nextPage) => {
+    if (nextPage === page) return;
     setLoading(true);
     setPage(nextPage);
   };
@@ -313,7 +318,12 @@ export default function DriverOrdersPage() {
               : 'bg-danger-soft border-red-200 text-red-800'
           }`}
         >
-          {banner.text}
+          <span>{banner.text}</span>
+          {banner.code === 'VEHICLE_REQUIRED' && (
+            <Link to="/driver/vehicle" className="ml-2 font-semibold underline">
+              차량 등록하러 가기
+            </Link>
+          )}
         </p>
       )}
 

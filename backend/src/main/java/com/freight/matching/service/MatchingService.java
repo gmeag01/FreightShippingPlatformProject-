@@ -20,10 +20,9 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -92,8 +91,8 @@ public class MatchingService {
                 validateAcceptability(order, vehicle, request);
                 return order.accept(driver, LocalDateTime.now());
             });
-        } catch (ObjectOptimisticLockingFailureException | OptimisticLockException | CannotAcquireLockException ex) {
-            // 설계 문서 5장: 동시 수락으로 낙관적 락 충돌이 발생하면 ORDER_ALREADY_ASSIGNED로 변환한다.
+        } catch (ConcurrencyFailureException | OptimisticLockException ex) {
+            // 설계 문서 5장: 동시 수락으로 낙관적 락·데드락 충돌이 발생하면 ORDER_ALREADY_ASSIGNED로 변환한다.
             throw new BusinessException(ErrorCode.ORDER_ALREADY_ASSIGNED);
         }
 
