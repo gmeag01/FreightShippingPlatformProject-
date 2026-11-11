@@ -214,8 +214,18 @@ function DisputeSummary({ dispute }) {
         <p className="mt-1 wrap-anywhere whitespace-pre-wrap">{dispute.reason}</p>
       </div>
       <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <DetailField label="화주">{dispute.shipperName}</DetailField>
-        <DetailField label="차주">{dispute.driverName}</DetailField>
+        <DetailField label="화주">
+          {dispute.shipperName}
+          <span className="text-muted mt-1 block text-sm">
+            {dispute.shipperPhone?.trim() || '등록된 연락처 없음'}
+          </span>
+        </DetailField>
+        <DetailField label="차주">
+          {dispute.driverName}
+          <span className="text-muted mt-1 block text-sm">
+            {dispute.driverPhone?.trim() || '등록된 연락처 없음'}
+          </span>
+        </DetailField>
         <DetailField label="차량">{vehicle || null}</DetailField>
         <DetailField label="화물">
           {dispute.itemName} · {formatNumber(dispute.weightKg)}kg
