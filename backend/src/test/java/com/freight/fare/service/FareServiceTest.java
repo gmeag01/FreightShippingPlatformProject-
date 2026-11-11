@@ -223,6 +223,22 @@ class FareServiceTest {
     }
 
     @Test
+    @DisplayName("등록 후 24시간 30분 뒤 상차는 24시간을 넘었으므로 긴급 할증을 붙이지 않는다")
+    void estimate_pickupJustOver24Hours_isNotUrgent() {
+        when(distanceCalculationService.calculateDistance(anyDouble(), anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(new DistanceCalculationService.DistanceResult(100.0, false));
+
+        // 2026-11-05(목) 13:30 등록, 2026-11-06(금) 14:00 상차: 평일 주간, 지게차
+        LocalDateTime requestedAt = LocalDateTime.of(2026, 11, 5, 13, 30);
+        LocalDateTime pickupAt = LocalDateTime.of(2026, 11, 6, 14, 0);
+
+        FareEstimate result = fareService.estimate(new FareEstimateCommand(
+                37.5, 127.0, 35.1, 129.0, 5000, VehicleType.TON_5, pickupAt, LoadingMethod.FORKLIFT, requestedAt));
+
+        assertThat(result.appliedSurcharges()).isEmpty();
+    }
+
+    @Test
     @DisplayName("단가표 및 할증률 전체 조회 시 5개 차종과 4개 할증 정보를 모두 반환한다")
     void getFareTable_returnsAllRatesAndSurcharges() {
         when(fareRateRepository.findAll())

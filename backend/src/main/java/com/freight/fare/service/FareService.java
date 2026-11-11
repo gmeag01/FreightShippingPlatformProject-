@@ -34,6 +34,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class FareService {
 
+    // 설계 문서 4장: 상차 희망 시각이 등록 시각으로부터 24시간 이내면 긴급 할증을 붙인다.
+    private static final Duration URGENT_WINDOW = Duration.ofHours(24);
+
     private final FareRateRepository fareRateRepository;
     private final FareSurchargeRepository fareSurchargeRepository;
     private final DistanceCalculationService distanceCalculationService;
@@ -238,7 +241,8 @@ public class FareService {
         if (pickupAt == null) return false;
         LocalDateTime baseTime = requestedAt != null ? requestedAt : LocalDateTime.now();
         Duration diff = Duration.between(baseTime, pickupAt);
-        return !diff.isNegative() && diff.toHours() <= 24;
+        // toHours()는 분을 버려 24시간 59분도 24로 보므로 Duration끼리 비교한다.
+        return !diff.isNegative() && diff.compareTo(URGENT_WINDOW) <= 0;
     }
 
     private Map<SurchargeType, BigDecimal> getSurchargeRates() {

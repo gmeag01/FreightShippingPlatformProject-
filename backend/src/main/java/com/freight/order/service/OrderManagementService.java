@@ -56,9 +56,7 @@ public class OrderManagementService {
     public OrderDetailResponse create(Long shipperId, SaveOrderRequest request) {
         Member shipper = memberService.getById(shipperId);
         requireRole(shipper, Role.SHIPPER);
-        if (!request.pickupAt().isAfter(LocalDateTime.now())) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
-        }
+        requireFuturePickup(request);
         Order order = orderRepository.saveAndFlush(Order.create(shipper, request.toSpec()));
         saveHistory(order, shipper, null, OrderStatus.REGISTERED, "화주 오더 등록");
         paymentPort.hold(order.getId(), order.getFare());
@@ -117,6 +115,7 @@ public class OrderManagementService {
         requireRole(shipper, Role.SHIPPER);
         requireOwner(order, shipperId);
         requireVersion(order, request.version());
+        requireFuturePickup(request.details());
         long previousFare = order.updateDetails(shipper, request.details().toSpec());
         orderRepository.saveAndFlush(order);
         if (previousFare != order.getFare()) paymentPort.adjust(orderId, order.getFare());
@@ -213,6 +212,11 @@ public class OrderManagementService {
     private void requireOwner(Order order, Long shipperId) {
         if (!Objects.equals(order.getShipper().getId(), shipperId))
             throw new BusinessException(ErrorCode.NOT_ORDER_OWNER);
+    }
+
+    // 등록과 수정이 같은 규칙을 쓴다. 지난 상차 시각의 오더는 바로 미배차가 되어 차주 목록을 어지럽힌다.
+    private void requireFuturePickup(SaveOrderRequest request) {
+        if (!request.pickupAt().isAfter(LocalDateTime.now())) throw new BusinessException(ErrorCode.INVALID_INPUT);
     }
 
     private void requireVersion(Order order, Long version) {
