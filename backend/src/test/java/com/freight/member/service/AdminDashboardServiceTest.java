@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 
 import com.freight.delivery.dto.DisputeSummaryResponse;
 import com.freight.delivery.service.DisputeQueryService;
+import com.freight.member.dto.AdminDashboardOrderDto;
 import com.freight.member.dto.AdminDashboardResponse;
 import com.freight.order.entity.Cargo;
 import com.freight.order.entity.CargoType;
@@ -134,5 +135,41 @@ class AdminDashboardServiceTest {
         assertThat(response.disputeOrders().get(0).orderId()).isEqualTo(102L);
         assertThat(response.disputeOrders().get(0).reason()).isEqualTo("화물 파손");
         assertThat(response.disputeOrders().get(0).reportedAt()).isEqualTo(reportedAt);
+    }
+
+    @Test
+    @DisplayName("통계 카드 유형별 상세 오더 목록을 정상 조회한다")
+    void getDashboardOrders_byType() {
+        // given
+        Location pickup =
+                Location.builder().region("서울 중구").address("서울 중구 세종대로 1").build();
+        Location dropoff =
+                Location.builder().region("부산 연제구").address("부산 연제구 중앙대로 1").build();
+        Cargo cargo = Cargo.builder().itemName("전자제품").build();
+
+        Order order = Order.builder()
+                .id(201L)
+                .status(OrderStatus.ASSIGNED)
+                .pickup(pickup)
+                .dropoff(dropoff)
+                .cargo(cargo)
+                .requiredVehicleType(VehicleType.TON_5)
+                .bodyType(BodyType.WING)
+                .fare(500000L)
+                .pickupAt(LocalDateTime.now().plusDays(1))
+                .assignedAt(LocalDateTime.now())
+                .build();
+
+        given(orderService.findOrdersAssignedBetween(any(), any())).willReturn(List.of(order));
+
+        // when
+        List<AdminDashboardOrderDto> result = adminDashboardService.getDashboardOrders("TODAY_ASSIGNED");
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).orderId()).isEqualTo(201L);
+        assertThat(result.get(0).pickupRegion()).isEqualTo("서울 중구");
+        assertThat(result.get(0).dropoffRegion()).isEqualTo("부산 연제구");
+        assertThat(result.get(0).fare()).isEqualTo(500000L);
     }
 }

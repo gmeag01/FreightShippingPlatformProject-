@@ -2,6 +2,7 @@ package com.freight.member.service;
 
 import com.freight.delivery.dto.DisputeSummaryResponse;
 import com.freight.delivery.service.DisputeQueryService;
+import com.freight.member.dto.AdminDashboardOrderDto;
 import com.freight.member.dto.AdminDashboardResponse;
 import com.freight.member.dto.AdminDashboardResponse.SummaryMetrics;
 import com.freight.member.dto.AdminDashboardResponse.UrgentOrderDto;
@@ -87,5 +88,42 @@ public class AdminDashboardService {
 
     private long orderStatusCompletedYesterday(LocalDateTime start, LocalDateTime end) {
         return orderService.countStatusTransitions(OrderStatus.COMPLETED, start, end);
+    }
+
+    /**
+     * 통계 카드별 상세 오더 목록을 조회한다.
+     *
+     * @param type 통계 유형 (TODAY_REGISTERED, TODAY_ASSIGNED, TODAY_COMPLETED, URGENT_UNASSIGNED)
+     * @return 상세 오더 목록
+     */
+    public List<AdminDashboardOrderDto> getDashboardOrders(String type) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
+        LocalDateTime todayStart = today.atStartOfDay();
+        LocalDateTime todayEnd = today.atTime(LocalTime.MAX);
+
+        if (type == null) {
+            return List.of();
+        }
+
+        return switch (type.toUpperCase()) {
+            case "TODAY_REGISTERED" ->
+                orderService.findOrdersCreatedBetween(todayStart, todayEnd).stream()
+                        .map(order -> AdminDashboardOrderDto.of(order, order.getCreatedAt()))
+                        .toList();
+            case "TODAY_ASSIGNED" ->
+                orderService.findOrdersAssignedBetween(todayStart, todayEnd).stream()
+                        .map(order -> AdminDashboardOrderDto.of(order, order.getAssignedAt()))
+                        .toList();
+            case "TODAY_COMPLETED" ->
+                orderService.findOrdersCompletedBetween(todayStart, todayEnd).stream()
+                        .map(order -> AdminDashboardOrderDto.of(order, order.getCompletedAt()))
+                        .toList();
+            case "URGENT_UNASSIGNED" ->
+                orderService.findUrgentUnassignedOrdersPastPickup(now).stream()
+                        .map(order -> AdminDashboardOrderDto.of(order, order.getPickupAt()))
+                        .toList();
+            default -> List.of();
+        };
     }
 }

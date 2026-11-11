@@ -193,4 +193,47 @@ public class OrderService {
                 .findByStatusOrderByPickupAtAsc(OrderStatus.REGISTERED, PageRequest.of(0, limit))
                 .getContent();
     }
+
+    /**
+     * 특정 기간 동안 등록된 오더 목록을 최신순으로 조회한다.
+     *
+     * @param start 조회 시작 일시
+     * @param end 조회 종료 일시
+     * @return 등록된 오더 목록
+     */
+    public List<Order> findOrdersCreatedBetween(LocalDateTime start, LocalDateTime end) {
+        return orderRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(start, end);
+    }
+
+    /**
+     * 특정 기간 동안 배차된 오더 목록을 최신순으로 조회한다.
+     *
+     * @param start 조회 시작 일시
+     * @param end 조회 종료 일시
+     * @return 배차된 오더 목록
+     */
+    public List<Order> findOrdersAssignedBetween(LocalDateTime start, LocalDateTime end) {
+        return orderRepository.findByAssignedAtBetweenOrderByAssignedAtDesc(start, end);
+    }
+
+    /**
+     * 특정 기간 동안 완료된 오더 목록을 최신순으로 조회한다.
+     *
+     * @param start 조회 시작 일시
+     * @param end 조회 종료 일시
+     * @return 완료된 오더 목록
+     */
+    public List<Order> findOrdersCompletedBetween(LocalDateTime start, LocalDateTime end) {
+        return orderRepository.findByCompletedAtBetweenOrderByCompletedAtDesc(start, end);
+    }
+
+    /**
+     * 상차 희망 시각이 지났는데 아직 배차 대기(REGISTERED) 상태인 미배차 오더 목록을 조회한다.
+     *
+     * @param now 기준 시각
+     * @return 상차 시각 지난 미배차 오더 목록
+     */
+    public List<Order> findUrgentUnassignedOrdersPastPickup(LocalDateTime now) {
+        return orderRepository.findByStatusAndPickupAtBeforeOrderByPickupAtAsc(OrderStatus.REGISTERED, now);
+    }
 }
