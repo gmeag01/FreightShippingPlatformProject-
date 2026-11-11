@@ -236,6 +236,19 @@ class OrderControllerTest {
     }
 
     @Test
+    void update_withPastPickup_returns400() throws Exception {
+        var body = mapper.valueToTree(new UpdateOrderRequest(order.getVersion(), OrderRequests.valid(400000)));
+        ((com.fasterxml.jackson.databind.node.ObjectNode) body.get("details"))
+                .put("pickupAt", LocalDateTime.now().minusDays(1).toString());
+        mvc.perform(put(path())
+                        .header("Authorization", token(shipper))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(body)))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(payment);
+    }
+
+    @Test
     void update_otherShipperAndAssignedOrderAreRejected() throws Exception {
         String body = json(new UpdateOrderRequest(order.getVersion(), OrderRequests.valid(400000)));
         mvc.perform(put(path())

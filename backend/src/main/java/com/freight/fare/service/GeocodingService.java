@@ -6,6 +6,7 @@ import com.freight.fare.dto.Coordinates;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -17,6 +18,10 @@ public class GeocodingService {
     private static final String KAKAO_GEOCODE_URL = "https://dapi.kakao.com/v2/local/search/address.json";
     private static final Coordinates DEFAULT_COORDINATES = new Coordinates(37.5665, 126.9780); // 서울시청
 
+    // 카카오가 응답 없이 멈춰도 요청이 끝없이 기다리지 않고 예외를 내 대체 로직으로 넘어가게 한다.
+    private static final int KAKAO_CONNECT_TIMEOUT_MS = 3_000;
+    private static final int KAKAO_READ_TIMEOUT_MS = 5_000;
+
     private final String kakaoApiKey;
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
@@ -24,7 +29,10 @@ public class GeocodingService {
     public GeocodingService(@Value("${app.kakao.rest-api-key:}") String kakaoApiKey, ObjectMapper objectMapper) {
         this.kakaoApiKey = kakaoApiKey;
         this.objectMapper = objectMapper;
-        this.restClient = RestClient.builder().build();
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(KAKAO_CONNECT_TIMEOUT_MS);
+        requestFactory.setReadTimeout(KAKAO_READ_TIMEOUT_MS);
+        this.restClient = RestClient.builder().requestFactory(requestFactory).build();
     }
 
     /**
