@@ -35,7 +35,8 @@ public class AdminDashboardService {
      * @return 대시보드 응답 DTO
      */
     public AdminDashboardResponse getDashboard() {
-        LocalDate today = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
         LocalDateTime todayStart = today.atStartOfDay();
         LocalDateTime todayEnd = today.atTime(LocalTime.MAX);
 
@@ -57,7 +58,7 @@ public class AdminDashboardService {
         long yesterdayCompleted = orderStatusCompletedYesterday(yesterdayStart, yesterdayEnd);
 
         // 4. 현재 대기 상태 (미배차, 분쟁)
-        long unassignedCount = orderService.countOrdersByStatus(OrderStatus.REGISTERED);
+        long unassignedCount = orderService.countUnassignedOrders(now);
         long disputedCount = orderService.countOrdersByStatus(OrderStatus.DISPUTED);
 
         SummaryMetrics summary = new SummaryMetrics(
@@ -71,7 +72,6 @@ public class AdminDashboardService {
                 disputedCount);
 
         // 5. 상차 임박 미배차 오더 (최대 5건)
-        LocalDateTime now = LocalDateTime.now();
         List<UrgentOrderDto> urgentOrders = orderService.findUrgentUnassignedOrders(DASHBOARD_LIST_SIZE).stream()
                 .map(order -> UrgentOrderDto.from(order, now))
                 .toList();

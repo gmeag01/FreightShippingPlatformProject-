@@ -127,14 +127,17 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* 미배차 */}
-        <div className="border-line bg-card rounded-lg border p-5">
+        {/* 미배차: 상차 희망 시각이 지난 등록됨 오더. 누르면 관리자 오더 관리로 간다. */}
+        <Link
+          to="/admin/orders"
+          className="border-line bg-card hover:border-line-strong block rounded-lg border p-5"
+        >
           <div className="text-caption text-subtle font-medium">미배차</div>
           <div className="text-signal mt-2 text-3xl font-bold tabular-nums">
             {loading && !data ? '-' : `${metrics?.unassignedCount ?? 0}건`}
           </div>
-          <div className="text-caption text-muted mt-2">등록됨 상태로 남은 오더</div>
-        </div>
+          <div className="text-caption text-muted mt-2">상차 희망 시각이 지난 등록됨 오더</div>
+        </Link>
       </div>
 
       {/* 하단 2분할 섹션: 처리할 분쟁 & 상차일이 가까운 미배차 */}

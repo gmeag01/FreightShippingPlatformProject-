@@ -140,6 +140,16 @@ public class OrderService {
     }
 
     /**
+     * 미배차 오더 수를 센다. 화주 오더 목록과 같은 규칙으로, 상차 희망 시각이 지났는데 아직 REGISTERED인 오더다.
+     *
+     * @param now 기준 시각
+     * @return 미배차 오더 건수
+     */
+    public long countUnassignedOrders(LocalDateTime now) {
+        return orderRepository.countByStatusAndPickupAtBefore(OrderStatus.REGISTERED, now);
+    }
+
+    /**
      * 특정 상태의 오더 총 건수를 조회한다.
      *
      * @param status 오더 상태
