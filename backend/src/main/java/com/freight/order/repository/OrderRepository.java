@@ -30,6 +30,14 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
+    List<Order> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime start, LocalDateTime end);
+
+    List<Order> findByAssignedAtBetweenOrderByAssignedAtDesc(LocalDateTime start, LocalDateTime end);
+
+    List<Order> findByCompletedAtBetweenOrderByCompletedAtDesc(LocalDateTime start, LocalDateTime end);
+
+    List<Order> findByStatusAndPickupAtBeforeOrderByPickupAtAsc(OrderStatus status, LocalDateTime pickupAtBefore);
+
     @Query("select o.id from Order o where o.status = :status and o.droppedOffAt <= :droppedOffBefore")
     List<Long> findIdsByStatusAndDroppedOffBefore(
             @Param("status") OrderStatus status, @Param("droppedOffBefore") LocalDateTime droppedOffBefore);
