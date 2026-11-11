@@ -25,6 +25,7 @@ const ROLE_MENUS = {
 // 로그인한 뒤의 공통 화면 틀 (시안: docs/design/ui-guide.md 화면 틀 기준).
 // 머리말: bg-ink, 높이 60px, 주황 막대와 서비스명, 역할별 메뉴(현재 메뉴는 하단 3px 주황 선), 우측 역할·이름·로그아웃.
 // 본문: min-h-screen bg-ground, max-w-280 pt-7 pb-14 px-6.
+// 휴대폰 폭에서는 시안(mobile-driver-orders.png)대로 메뉴를 둘째 줄로 내려 360px에서 가로 스크롤을 막는다.
 export default function AppLayout() {
   const { me, logout } = useAuth();
   const navigate = useNavigate();
@@ -36,13 +37,13 @@ export default function AppLayout() {
 
   return (
     <div className="bg-ground text-copy min-h-screen">
-      <header className="bg-ink h-[60px] border-b border-blue-950/40 shadow-xs">
-        <div className="mx-auto flex h-full max-w-280 items-center justify-between px-4 sm:px-6">
+      <header className="bg-ink border-b border-blue-950/40 shadow-xs">
+        <div className="mx-auto flex max-w-280 flex-wrap items-center justify-between px-4 sm:h-[60px] sm:flex-nowrap sm:px-6">
           {/* 좌측: 주황색 브랜드 막대 + 서비스 이름 + 역할별 메뉴 */}
-          <div className="flex h-full items-center gap-6 sm:gap-8">
+          <div className="flex h-full items-center gap-8 max-sm:contents">
             <Link
               to={ROLE_HOME[me.role]}
-              className="flex items-center gap-2 transition-opacity hover:opacity-90"
+              className="flex items-center gap-2 transition-opacity hover:opacity-90 max-sm:h-13"
               title="홈으로 이동"
             >
               <span className="bg-signal h-5 w-1 rounded-full" aria-hidden="true" />
@@ -51,7 +52,7 @@ export default function AppLayout() {
               </strong>
             </Link>
 
-            <nav className="flex h-full items-center gap-1 overflow-x-auto sm:gap-2">
+            <nav className="flex h-full items-center gap-1 overflow-x-auto max-sm:order-last max-sm:h-11 max-sm:w-full sm:gap-2">
               {ROLE_MENUS[me.role].map((menuItem) => (
                 <NavLink
                   key={menuItem.to}
