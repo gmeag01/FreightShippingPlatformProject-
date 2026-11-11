@@ -3,6 +3,7 @@ import RequireRole from './auth/RequireRole';
 import { ROLE_HOME } from './auth/roles';
 import { useAuth } from './auth/useAuth';
 import AppLayout from './layouts/AppLayout';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminDisputesPage from './pages/AdminDisputesPage';
 import AdminMembersPage from './pages/AdminMembersPage';
 import AdminOrdersPage from './pages/AdminOrdersPage';
@@ -58,7 +59,7 @@ export default function App() {
       </Route>
 
       <Route element={renderRoleArea('ADMIN')}>
-        <Route path="/admin" element={<PlaceholderPage title="관리자 대시보드" />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/orders" element={<AdminOrdersPage />} />
         <Route path="/admin/orders/:id" element={<ShipperOrderDetailPage admin />} />
         <Route path="/admin/disputes" element={<AdminDisputesPage />} />

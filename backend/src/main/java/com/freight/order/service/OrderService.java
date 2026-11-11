@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -136,5 +137,62 @@ public class OrderService {
     public long countDriverCancellations(Long driverId) {
         return orderStatusHistoryRepository.countByActorIdAndFromStatusAndToStatus(
                 driverId, OrderStatus.ASSIGNED, OrderStatus.REGISTERED);
+    }
+
+    /**
+     * 특정 상태의 오더 총 건수를 조회한다.
+     *
+     * @param status 오더 상태
+     * @return 해당 상태의 오더 건수
+     */
+    public long countOrdersByStatus(OrderStatus status) {
+        return orderRepository.countByStatus(status);
+    }
+
+    /**
+     * 특정 기간 동안 등록된 오더 건수를 조회한다.
+     *
+     * @param start 조회 시작 일시
+     * @param end 조회 종료 일시
+     * @return 등록된 오더 건수
+     */
+    public long countOrdersCreatedBetween(LocalDateTime start, LocalDateTime end) {
+        return orderRepository.countByCreatedAtBetween(start, end);
+    }
+
+    /**
+     * 특정 기간 동안 특정 상태로 전이된 이력 건수를 조회한다.
+     *
+     * @param toStatus 변경된 목표 상태
+     * @param start 조회 시작 일시
+     * @param end 조회 종료 일시
+     * @return 전이 건수
+     */
+    public long countStatusTransitions(OrderStatus toStatus, LocalDateTime start, LocalDateTime end) {
+        return orderStatusHistoryRepository.countByToStatusAndCreatedAtBetween(toStatus, start, end);
+    }
+
+    /**
+     * 배차 대기(REGISTERED) 상태인 오더 중 상차 시각이 가장 임박한 목록을 조회한다.
+     *
+     * @param limit 조회할 최대 건수
+     * @return 상차 임박 미배차 오더 목록
+     */
+    public List<Order> findUrgentUnassignedOrders(int limit) {
+        return orderRepository
+                .findByStatusOrderByPickupAtAsc(OrderStatus.REGISTERED, PageRequest.of(0, limit))
+                .getContent();
+    }
+
+    /**
+     * 분쟁(DISPUTED) 상태인 오더 목록을 최신순으로 조회한다.
+     *
+     * @param limit 조회할 최대 건수
+     * @return 분쟁 오더 목록
+     */
+    public List<Order> findRecentDisputedOrders(int limit) {
+        return orderRepository
+                .findByStatusOrderByCreatedAtDesc(OrderStatus.DISPUTED, PageRequest.of(0, limit))
+                .getContent();
     }
 }
