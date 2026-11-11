@@ -49,7 +49,7 @@ class AdminDashboardServiceTest {
                 .willReturn(7L, 5L);
         given(orderService.countStatusTransitions(eq(OrderStatus.COMPLETED), any(), any()))
                 .willReturn(4L, 3L);
-        given(orderService.countOrdersByStatus(OrderStatus.REGISTERED)).willReturn(6L);
+        given(orderService.countUnassignedOrders(any())).willReturn(6L);
         given(orderService.countOrdersByStatus(OrderStatus.DISPUTED)).willReturn(2L);
 
         Location pickup = Location.builder()

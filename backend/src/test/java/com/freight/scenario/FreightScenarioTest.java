@@ -300,6 +300,18 @@ class FreightScenarioTest {
     }
 
     @Test
+    @DisplayName("관리자 대시보드의 미배차 건수는 상차 희망 시각이 지난 등록됨 오더만 센다")
+    void adminDashboard_unassignedCount_countsOnlyOverduePickup() throws Exception {
+        long before = unassignedCountOnDashboard();
+
+        long overdueOrderId = idOf(registerOrder(VehicleType.TON_2_5, 1200, daysLater(2)));
+        idOf(registerOrder(VehicleType.TON_2_5, 1200, daysLater(2)));
+        movePickupToPast(overdueOrderId);
+
+        assertThat(unassignedCountOnDashboard()).isEqualTo(before + 1);
+    }
+
+    @Test
     @DisplayName("시나리오 8: 문제 신고 후 관리자가 환불을 고르면 오더는 취소되고 결제는 환불된다")
     void resolveDispute_refundShipper_cancelsOrderAndRefunds() throws Exception {
         Account driver = driverWithVehicle(VehicleType.TON_2_5);
@@ -659,6 +671,22 @@ class FreightScenarioTest {
     }
 
     /** 실제로 24시간을 기다릴 수 없으므로 하차 시각만 과거로 옮긴다. 스케줄러와 판정 코드는 그대로 지난다. */
+    private long unassignedCountOnDashboard() throws Exception {
+        return api.get("/api/admin/dashboard", admin.token())
+                .data()
+                .path("summary")
+                .path("unassignedCount")
+                .asLong();
+    }
+
+    /** 등록 API는 지난 시각을 받지 않으므로 DB에서 상차 희망 시각만 과거로 옮긴다. */
+    private void movePickupToPast(long orderId) {
+        jdbcTemplate.update(
+                "update orders set pickup_at = ? where id = ?",
+                LocalDateTime.now().minusHours(1),
+                orderId);
+    }
+
     private void moveDropoffBeforeDeadline(long orderId) {
         LocalDateTime expired =
                 LocalDateTime.now().minusHours(AUTO_CONFIRM_HOURS).minusMinutes(1);

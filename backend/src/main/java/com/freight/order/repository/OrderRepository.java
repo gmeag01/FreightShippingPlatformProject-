@@ -26,6 +26,8 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     long countByStatus(OrderStatus status);
 
+    long countByStatusAndPickupAtBefore(OrderStatus status, LocalDateTime pickupAtBefore);
+
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
     @Query("select o.id from Order o where o.status = :status and o.droppedOffAt <= :droppedOffBefore")
