@@ -18,6 +18,13 @@ export default function AdminMembersPage() {
 
   // 로컬 검색어 인풋 상태
   const [keywordInput, setKeywordInput] = useState(searchKeyword);
+  const [prevSearchKeyword, setPrevSearchKeyword] = useState(searchKeyword);
+
+  // URL 검색어 변경 시 로컬 인풋 상태 동기화 (뒤로가기/초기화 대응)
+  if (searchKeyword !== prevSearchKeyword) {
+    setPrevSearchKeyword(searchKeyword);
+    setKeywordInput(searchKeyword);
+  }
 
   const query = params.toString();
   const [attempt, setAttempt] = useState(0);
@@ -423,6 +430,12 @@ export default function AdminMembersPage() {
                 ? '계정이 정지되면 해당 회원은 로그인이 즉시 제한됩니다.'
                 : '정지가 해제되면 회원이 정상적으로 로그인할 수 있습니다.'}
             </p>
+
+            {actionError && (
+              <p className="bg-danger-soft text-danger mt-3 rounded-md p-2.5 text-xs font-semibold">
+                {actionError}
+              </p>
+            )}
 
             <div className="mt-6 flex justify-end gap-2">
               <button

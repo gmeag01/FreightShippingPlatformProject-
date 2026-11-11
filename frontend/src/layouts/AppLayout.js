@@ -1,5 +1,5 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { ROLE_LABEL } from '../auth/roles';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { ROLE_HOME, ROLE_LABEL } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
 
 // 역할별 상단 메뉴(설계 문서 6장). end가 true면 주소가 정확히 같을 때만 선택된 메뉴로 보인다.
@@ -40,14 +40,18 @@ export default function AppLayout() {
         <div className="mx-auto flex h-full max-w-280 items-center justify-between px-4 sm:px-6">
           {/* 좌측: 주황색 브랜드 막대 + 서비스 이름 + 역할별 메뉴 */}
           <div className="flex h-full items-center gap-6 sm:gap-8">
-            <div className="flex items-center gap-2">
+            <Link
+              to={ROLE_HOME[me.role]}
+              className="flex items-center gap-2 transition-opacity hover:opacity-90"
+              title="홈으로 이동"
+            >
               <span className="bg-signal h-5 w-1 rounded-full" aria-hidden="true" />
               <strong className="text-base font-bold tracking-tight text-white sm:text-lg">
                 화물운송플랫폼
               </strong>
-            </div>
+            </Link>
 
-            <nav className="flex h-full items-center gap-1 sm:gap-2">
+            <nav className="flex h-full items-center gap-1 overflow-x-auto sm:gap-2">
               {ROLE_MENUS[me.role].map((menuItem) => (
                 <NavLink
                   key={menuItem.to}
