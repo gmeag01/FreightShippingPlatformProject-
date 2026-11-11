@@ -358,13 +358,16 @@ function MobileAcceptBar({ fare, isSubmitting, onAccept }) {
 // 수락 전 의뢰 상세 화면. 주소는 시·구까지만 보이고, 정확한 주소와 연락처는 수락(배차) 뒤에 열린다.
 export default function DriverOrderDetailPage() {
   const { id } = useParams();
+  const isValidId = /^[1-9]\d*$/.test(id ?? '') && Number.isSafeInteger(Number(id));
   const navigate = useNavigate();
   const [detail, setDetail] = useState(null);
   const [myVehicle, setMyVehicle] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(isValidId);
   const [reloadCount, setReloadCount] = useState(0);
   const [banner, setBanner] = useState(null);
-  const [loadError, setLoadError] = useState(null);
+  const [loadError, setLoadError] = useState(
+    isValidId ? null : '올바르지 않은 의뢰 주소입니다. 목록에서 의뢰를 선택해 주세요.',
+  );
 
   const {
     submittingId,
@@ -387,7 +390,7 @@ export default function DriverOrderDetailPage() {
       setDetail(null);
       setLoadError(error.message);
     },
-    onFailed: (error) => setBanner({ type: 'error', text: error.message }),
+    onFailed: (error) => setBanner({ type: 'error', code: error.code, text: error.message }),
   });
 
   useEffect(() => {
@@ -405,6 +408,7 @@ export default function DriverOrderDetailPage() {
   }, []);
 
   useEffect(() => {
+    if (!isValidId) return undefined;
     let isActive = true;
     fetchOpenOrderDetail(id)
       .then((data) => {
@@ -423,7 +427,7 @@ export default function DriverOrderDetailPage() {
     return () => {
       isActive = false;
     };
-  }, [id, reloadCount]);
+  }, [id, isValidId, reloadCount]);
 
   if (isLoading) {
     return <p className="text-muted py-8 text-center text-sm">의뢰 정보를 불러오는 중입니다…</p>;
@@ -459,7 +463,12 @@ export default function DriverOrderDetailPage() {
           role="status"
           className="bg-danger-soft rounded-lg border border-red-200 px-4 py-3.5 text-sm text-red-800"
         >
-          {banner.text}
+          <span>{banner.text}</span>
+          {banner.code === 'VEHICLE_REQUIRED' && (
+            <Link to="/driver/vehicle" className="ml-2 font-semibold underline">
+              차량 등록하러 가기
+            </Link>
+          )}
         </p>
       )}
 
