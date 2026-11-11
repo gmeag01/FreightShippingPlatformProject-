@@ -183,16 +183,4 @@ public class OrderService {
                 .findByStatusOrderByPickupAtAsc(OrderStatus.REGISTERED, PageRequest.of(0, limit))
                 .getContent();
     }
-
-    /**
-     * 분쟁(DISPUTED) 상태인 오더 목록을 최신순으로 조회한다.
-     *
-     * @param limit 조회할 최대 건수
-     * @return 분쟁 오더 목록
-     */
-    public List<Order> findRecentDisputedOrders(int limit) {
-        return orderRepository
-                .findByStatusOrderByCreatedAtDesc(OrderStatus.DISPUTED, PageRequest.of(0, limit))
-                .getContent();
-    }
 }

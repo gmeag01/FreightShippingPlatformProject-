@@ -1,7 +1,8 @@
 package com.freight.member.service;
 
+import com.freight.delivery.dto.DisputeSummaryResponse;
+import com.freight.delivery.service.DisputeQueryService;
 import com.freight.member.dto.AdminDashboardResponse;
-import com.freight.member.dto.AdminDashboardResponse.DisputeOrderDto;
 import com.freight.member.dto.AdminDashboardResponse.SummaryMetrics;
 import com.freight.member.dto.AdminDashboardResponse.UrgentOrderDto;
 import com.freight.order.entity.OrderStatus;
@@ -23,7 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminDashboardService {
 
+    private static final int DASHBOARD_LIST_SIZE = 5;
+
     private final OrderService orderService;
+    private final DisputeQueryService disputeQueryService;
 
     /**
      * 관리자 대시보드 요약 통계 및 긴급 목록을 조회한다.
@@ -67,13 +71,15 @@ public class AdminDashboardService {
                 disputedCount);
 
         // 5. 상차 임박 미배차 오더 (최대 5건)
-        List<UrgentOrderDto> urgentOrders = orderService.findUrgentUnassignedOrders(5).stream()
-                .map(UrgentOrderDto::from)
+        LocalDateTime now = LocalDateTime.now();
+        List<UrgentOrderDto> urgentOrders = orderService.findUrgentUnassignedOrders(DASHBOARD_LIST_SIZE).stream()
+                .map(order -> UrgentOrderDto.from(order, now))
                 .toList();
 
         // 6. 처리 대기 분쟁 오더 (최대 5건)
-        List<DisputeOrderDto> disputeOrders = orderService.findRecentDisputedOrders(5).stream()
-                .map(DisputeOrderDto::from)
+        // 설계 시안(admin-dashboard.png)대로 신고 사유·시각을 보여 주려고 분쟁 화면과 같은 delivery 조회를 쓴다.
+        List<DisputeSummaryResponse> disputeOrders = disputeQueryService.listDisputes(0).stream()
+                .limit(DASHBOARD_LIST_SIZE)
                 .toList();
 
         return new AdminDashboardResponse(summary, urgentOrders, disputeOrders);

@@ -169,13 +169,13 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <span className="text-caption text-subtle tabular-nums">
-                      {/* 응답에는 신고 시각이 없어 오더 등록 시각을 보여 준다. */}
-                      등록 {formatShortDateTime(order.createdAt)}
+                      {formatShortDateTime(order.reportedAt)}
                     </span>
                   </div>
                   <div className="mt-1.5 flex items-center justify-between">
                     <p className="text-body text-copy truncate font-medium">
                       {order.pickupRegion} → {order.dropoffRegion}
+                      {order.reason ? ` · ${order.reason}` : ''}
                     </p>
                     <Link
                       to="/admin/disputes"
@@ -210,9 +210,16 @@ export default function AdminDashboardPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-caption text-muted font-mono">#{order.orderId}</span>
-                      <span className="bg-signal-soft text-caption text-signal-ink inline-flex min-h-6 items-center rounded-sm px-2.5 font-semibold">
-                        미배차
-                      </span>
+                      {/* 시안 기준: 상차 희망 시각이 지난 오더만 '미배차', 아직이면 '등록됨'. */}
+                      {order.isUnassigned ? (
+                        <span className="bg-signal-soft text-caption text-signal-ink inline-flex min-h-6 items-center rounded-sm px-2.5 font-semibold">
+                          미배차
+                        </span>
+                      ) : (
+                        <span className="bg-status-registered text-caption text-status-registered-ink inline-flex min-h-6 items-center rounded-sm px-2.5 font-semibold">
+                          등록됨
+                        </span>
+                      )}
                     </div>
                     <span className="text-caption text-subtle tabular-nums">
                       {formatShortDateTime(order.pickupAt)}
