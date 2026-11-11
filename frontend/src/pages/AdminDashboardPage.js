@@ -59,7 +59,7 @@ export default function AdminDashboardPage() {
   const data = result?.data;
   const error = result?.error;
   const lastFetchedAt = result?.fetchedAt;
-  const metrics = data?.metrics;
+  const metrics = data?.summary || data?.metrics;
   const urgentOrders = data?.urgentOrders || [];
   const disputeOrders = data?.disputeOrders || [];
 
@@ -168,13 +168,12 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <span className="text-caption text-subtle tabular-nums">
-                      {formatShortDateTime(order.disputedAt)}
+                      {formatShortDateTime(order.disputedAt || order.createdAt)}
                     </span>
                   </div>
                   <div className="mt-1.5 flex items-center justify-between">
                     <p className="text-body text-copy truncate font-medium">
-                      {order.originCity} {order.originDistrict} → {order.destCity}{' '}
-                      {order.destDistrict}
+                      {order.pickupRegion} → {order.dropoffRegion}
                       {order.disputeReason ? ` · ${order.disputeReason}` : ''}
                     </p>
                     <Link
@@ -220,9 +219,10 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="mt-1.5 flex items-center justify-between">
                     <p className="text-body text-copy truncate font-medium">
-                      {order.originCity} {order.originDistrict} → {order.destCity}{' '}
-                      {order.destDistrict}
-                      {order.tonnage ? ` · ${VEHICLE_LABELS[order.tonnage] || order.tonnage}` : ''}
+                      {order.pickupRegion} → {order.dropoffRegion}
+                      {order.requiredVehicleType
+                        ? ` · ${VEHICLE_LABELS[order.requiredVehicleType] || order.requiredVehicleType}`
+                        : ''}
                     </p>
                     <Link
                       to={`/admin/orders/${order.orderId}`}
