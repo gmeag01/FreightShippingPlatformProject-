@@ -91,6 +91,26 @@ export default function AdminDashboardPage() {
     setModalError(null);
   }
 
+  // 모달이 열려 있을 때 ESC 키 입력 감지 및 배경 스크롤 방지
+  useEffect(() => {
+    if (!activeModal) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        closeModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [activeModal]);
+
   const data = result?.data;
   const error = result?.error;
   const lastFetchedAt = result?.fetchedAt;
@@ -320,9 +340,13 @@ export default function AdminDashboardPage() {
         <div
           role="dialog"
           aria-modal="true"
+          onClick={closeModal}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs"
         >
-          <div className="border-line bg-card flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border shadow-2xl">
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="border-line bg-card flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border shadow-2xl"
+          >
             {/* 모달 헤더 */}
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
               <div>

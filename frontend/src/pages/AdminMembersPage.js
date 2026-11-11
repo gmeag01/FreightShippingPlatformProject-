@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { fetchAdminMembers, fetchMemberCounts, updateMemberStatus } from '../api/members';
 import { ROLE_LABEL } from '../auth/roles';
@@ -132,11 +132,31 @@ export default function AdminMembersPage() {
     setActionError('');
   };
 
-  const handleCloseConfirm = () => {
+  const handleCloseConfirm = useCallback(() => {
     if (isSubmitting) return;
     setConfirmTarget(null);
     setActionError('');
-  };
+  }, [isSubmitting]);
+
+  // 컨펌 모달이 열려 있을 때 ESC 키 입력 감지 및 배경 스크롤 방지
+  useEffect(() => {
+    if (!confirmTarget) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && !isSubmitting) {
+        handleCloseConfirm();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [confirmTarget, isSubmitting, handleCloseConfirm]);
 
   // 상태 변경 실행 핸들러
   const handleConfirmStatusChange = async () => {
@@ -414,8 +434,16 @@ export default function AdminMembersPage() {
 
       {/* 5. 계정 정지/해제 컨펌 다이얼로그 (common-dialogs.png 규격) */}
       {confirmTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="border-line bg-card w-full max-w-[420px] rounded-[10px] border p-6 shadow-2xl">
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => !isSubmitting && handleCloseConfirm()}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="border-line bg-card w-full max-w-[420px] rounded-[10px] border p-6 shadow-2xl"
+          >
             <h3 className="text-h2 text-ink font-bold">
               {confirmTarget.nextStatus === 'SUSPENDED'
                 ? '계정을 정지할까요?'

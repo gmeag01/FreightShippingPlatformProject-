@@ -42,7 +42,7 @@ export default function AppLayout() {
           {/* 좌측: 주황색 브랜드 막대 + 서비스 이름 + 역할별 메뉴 */}
           <div className="flex h-full items-center gap-8 max-sm:contents">
             <Link
-              to={ROLE_HOME[me.role]}
+              to={ROLE_HOME[me?.role] ?? '/'}
               className="flex items-center gap-2 transition-opacity hover:opacity-90 max-sm:h-13"
               title="홈으로 이동"
             >
@@ -53,7 +53,7 @@ export default function AppLayout() {
             </Link>
 
             <nav className="flex h-full items-center gap-1 overflow-x-auto max-sm:order-last max-sm:h-11 max-sm:w-full sm:gap-2">
-              {ROLE_MENUS[me.role].map((menuItem) => (
+              {(ROLE_MENUS[me?.role] ?? []).map((menuItem) => (
                 <NavLink
                   key={menuItem.to}
                   to={menuItem.to}
