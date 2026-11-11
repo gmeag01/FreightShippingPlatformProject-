@@ -49,9 +49,10 @@ public class AdminMemberService {
      * @return 관리자용 회원 응답 페이지
      */
     public Page<AdminMemberResponse> getMembers(Role role, MemberStatus status, String keyword, Pageable pageable) {
+        String sanitizedKeyword = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
         Pageable safePageable = sanitizePageable(pageable);
         return memberRepository
-                .findMembersByFilter(role, status, keyword, safePageable)
+                .findMembersByFilter(role, status, sanitizedKeyword, safePageable)
                 .map(this::toAdminMemberResponse);
     }
 
@@ -148,6 +149,6 @@ public class AdminMemberService {
             member.activate();
         }
 
-        return AdminMemberResponse.from(member);
+        return toAdminMemberResponse(member);
     }
 }
