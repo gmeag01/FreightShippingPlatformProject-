@@ -18,6 +18,8 @@ import {
 } from '../../order/presentation';
 import { CargoScheduleFields, FormField, LocationFields } from './OrderFormFields';
 
+const CHECK_INPUT_MESSAGE = '입력 항목을 확인해 주세요.';
+
 // 공통 폼으로 신규 등록과 배차 전 수정을 처리하며 성공 응답 전에는 상세로 이동하지 않는다.
 export default function OrderForm({ initial, isEditing, onReload }) {
   const navigate = useNavigate();
@@ -118,7 +120,7 @@ export default function OrderForm({ initial, isEditing, onReload }) {
     const nextErrors = validateOrderForm(details, isEditing);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
-      setMessage('입력 항목을 확인해 주세요.');
+      setMessage(CHECK_INPUT_MESSAGE);
       event.currentTarget.elements.namedItem(Object.keys(nextErrors)[0])?.focus();
       return;
     }
@@ -167,9 +169,13 @@ export default function OrderForm({ initial, isEditing, onReload }) {
     }
   }
 
+  const visibleErrors = Object.entries(errors).filter(
+    ([, error]) => typeof error === 'string' && error.trim(),
+  );
+
   return (
     <>
-      {message && (
+      {message && (message !== CHECK_INPUT_MESSAGE || visibleErrors.length > 0) && (
         <div
           ref={errorBox}
           tabIndex={-1}
@@ -177,10 +183,10 @@ export default function OrderForm({ initial, isEditing, onReload }) {
           className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
         >
           <p>{message}</p>
-          {Object.keys(errors).length > 0 && (
+          {visibleErrors.length > 0 && (
             <ul className="mt-2 list-disc space-y-1 pl-5">
-              {Object.entries(errors).map(([name, error]) => (
-                <li key={name}>{String(error)}</li>
+              {visibleErrors.map(([name, error]) => (
+                <li key={name}>{error}</li>
               ))}
             </ul>
           )}
@@ -219,9 +225,15 @@ export default function OrderForm({ initial, isEditing, onReload }) {
             title="상차지"
             initial={initial.pickup}
             errors={errors}
-            onCoordinatesChange={() => {
+            onCoordinatesChange={(confirmed) => {
               setDirty(true);
-              setErrors((previous) => ({ ...previous, ['pickup.address']: undefined }));
+              if (confirmed) {
+                setErrors((previous) => {
+                  const next = { ...previous };
+                  delete next['pickup.address'];
+                  return next;
+                });
+              }
               invalidateQuote();
             }}
           />
@@ -230,9 +242,15 @@ export default function OrderForm({ initial, isEditing, onReload }) {
             title="하차지"
             initial={initial.dropoff}
             errors={errors}
-            onCoordinatesChange={() => {
+            onCoordinatesChange={(confirmed) => {
               setDirty(true);
-              setErrors((previous) => ({ ...previous, ['dropoff.address']: undefined }));
+              if (confirmed) {
+                setErrors((previous) => {
+                  const next = { ...previous };
+                  delete next['dropoff.address'];
+                  return next;
+                });
+              }
               invalidateQuote();
             }}
           />

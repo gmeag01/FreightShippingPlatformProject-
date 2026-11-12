@@ -112,7 +112,7 @@ export function validateOrderForm(details, isEditing, now = Date.now()) {
         Math.abs(longitude) > 180)
     ) {
       errors[`${name}.address`] =
-        '주소의 위치를 확인할 수 있도록 주소를 입력한 뒤 다른 칸으로 이동해 주세요.';
+        '주소는 입력됐지만 위치 확인이 필요합니다. 주소 칸 아래의 안내를 확인해 주세요.';
     }
   }
   if (!details.cargo.itemName) errors['cargo.itemName'] = '품명을 입력해 주세요.';

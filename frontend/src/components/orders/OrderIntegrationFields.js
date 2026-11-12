@@ -122,7 +122,7 @@ function readEstimateCommandFromForm(form) {
   const loadingMethod = fields.get('loadingMethod');
 
   const weightKg = Number(weightRaw);
-  const hasAllRequired =
+  const hasCoordinates =
     pickupLatRaw !== null &&
     pickupLatRaw !== '' &&
     pickupLngRaw !== null &&
@@ -130,14 +130,16 @@ function readEstimateCommandFromForm(form) {
     dropoffLatRaw !== null &&
     dropoffLatRaw !== '' &&
     dropoffLngRaw !== null &&
-    dropoffLngRaw !== '' &&
+    dropoffLngRaw !== '';
+  const hasAllRequired =
+    hasCoordinates &&
     Number.isFinite(weightKg) &&
     weightKg > 0 &&
     Boolean(pickupAt) &&
     Boolean(loadingMethod);
 
   if (!hasAllRequired) {
-    return { ready: false, weightKg, command: null, snapshotKey: '' };
+    return { ready: false, hasCoordinates, weightKg, command: null, snapshotKey: '' };
   }
 
   const command = {
@@ -179,12 +181,17 @@ export function FareEstimatePanel({ formRef, onEstimate }) {
     const form = formRef.current;
     if (!form || inFlight.current) return;
 
-    const { ready, weightKg, command, snapshotKey } = readEstimateCommandFromForm(form);
+    const { ready, hasCoordinates, weightKg, command, snapshotKey } =
+      readEstimateCommandFromForm(form);
     setOverweight(Number.isFinite(weightKg) && weightKg > MAX_STANDARD_WEIGHT_KG);
 
     if (!ready) {
       if (!silentWhenIncomplete) {
-        setError('상하차 주소의 위치를 확인하고 중량, 상차 시각과 차량 조건을 입력해 주세요.');
+        setError(
+          hasCoordinates
+            ? '중량, 상차 시각과 상하차 방법을 확인해 주세요.'
+            : '상차지와 하차지의 위치를 확인한 뒤 추천 운임을 계산할 수 있습니다. 주소 칸 아래의 안내를 확인해 주세요.',
+        );
       }
       return;
     }
