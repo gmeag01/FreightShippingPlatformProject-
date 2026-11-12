@@ -23,7 +23,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
             + "(:role IS NULL OR m.role = :role) AND "
             + "(:status IS NULL OR m.status = :status) AND "
             + "(:keyword IS NULL OR LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%')) "
-            + " OR LOWER(m.email) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+            + " OR LOWER(m.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + " OR m.phone LIKE CONCAT('%', :keyword, '%'))")
     Page<Member> findMembersByFilter(
             @Param("role") Role role,
             @Param("status") MemberStatus status,
