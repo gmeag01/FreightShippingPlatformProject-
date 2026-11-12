@@ -192,6 +192,28 @@ public class OrderService {
     }
 
     /**
+     * 특정 기간 동안 배차된 오더 건수를 조회한다.
+     *
+     * @param start 조회 시작 일시
+     * @param end 조회 종료 일시
+     * @return 배차된 오더 건수
+     */
+    public long countOrdersAssignedBetween(LocalDateTime start, LocalDateTime end) {
+        return orderRepository.countByAssignedAtBetween(start, end);
+    }
+
+    /**
+     * 특정 기간 동안 완료된 오더 건수를 조회한다.
+     *
+     * @param start 조회 시작 일시
+     * @param end 조회 종료 일시
+     * @return 완료된 오더 건수
+     */
+    public long countOrdersCompletedBetween(LocalDateTime start, LocalDateTime end) {
+        return orderRepository.countByCompletedAtBetween(start, end);
+    }
+
+    /**
      * 특정 기간 동안 특정 상태로 전이된 이력 건수를 조회한다.
      *
      * @param toStatus 변경된 목표 상태
