@@ -1,5 +1,6 @@
 package com.freight.delivery.service;
 
+import com.freight.delivery.dto.DisputeCountsResponse;
 import com.freight.delivery.dto.DisputeDetailResponse;
 import com.freight.delivery.dto.DisputeSummaryResponse;
 import com.freight.global.exception.BusinessException;
@@ -41,11 +42,33 @@ public class DisputeQueryService {
      * @return 신고 시각과 사유가 포함된 분쟁 목록 페이지
      */
     public Page<DisputeSummaryResponse> listDisputes(int page) {
+        return listDisputes(false, page);
+    }
+
+    /**
+     * 분쟁 목록을 처리 대기(resolved=false) 또는 처리 완료(resolved=true) 조건으로 조회한다.
+     *
+     * @param resolved true이면 처리 완료된 분쟁 목록, false이면 처리 대기 중인 분쟁 목록
+     * @param page     0부터 시작하는 페이지 번호
+     * @return 신고 시각과 사유, 상태가 포함된 분쟁 목록 페이지
+     */
+    public Page<DisputeSummaryResponse> listDisputes(boolean resolved, int page) {
         PageRequest pageRequest =
                 PageRequest.of(Math.max(page, 0), DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "updatedAt"));
         return orderService
-                .findOrdersByStatus(OrderStatus.DISPUTED, pageRequest)
+                .findDisputedOrders(resolved, pageRequest)
                 .map(order -> DisputeSummaryResponse.from(order, findReport(orderService.getHistory(order.getId()))));
+    }
+
+    /**
+     * 처리 대기 분쟁 건수와 처리 완료 분쟁 건수를 집계한다.
+     *
+     * @return 분쟁 건수 통계 DTO
+     */
+    public DisputeCountsResponse getDisputeCounts() {
+        long pending = orderService.countDisputedOrders(false);
+        long resolved = orderService.countDisputedOrders(true);
+        return new DisputeCountsResponse(pending, resolved);
     }
 
     /**

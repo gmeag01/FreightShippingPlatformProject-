@@ -1,6 +1,7 @@
 package com.freight.delivery.controller;
 
 import com.freight.delivery.dto.DeliveryStatusResponse;
+import com.freight.delivery.dto.DisputeCountsResponse;
 import com.freight.delivery.dto.DisputeDetailResponse;
 import com.freight.delivery.dto.DisputeSummaryResponse;
 import com.freight.delivery.dto.ResolveDisputeRequest;
@@ -35,13 +36,23 @@ public class AdminDisputeController {
     private final DisputeQueryService disputeQueryService;
 
     /**
-     * 처리 대기 중인 분쟁 목록을 조회한다.
+     * 처리 대기 중이거나 처리 완료된 분쟁 목록을 조회한다.
      */
-    @Operation(summary = "분쟁 목록 조회", description = "처리 대기 중인 분쟁 목록을 조회합니다.")
+    @Operation(summary = "분쟁 목록 조회", description = "처리 대기 중이거나 처리 완료된 분쟁 목록을 페이징 조회합니다.")
     @GetMapping
     public ApiResponse<Page<DisputeSummaryResponse>> listDisputes(
+            @RequestParam(name = "resolved", defaultValue = "false") boolean resolved,
             @RequestParam(name = "page", defaultValue = "0") int page) {
-        return ApiResponse.ok(disputeQueryService.listDisputes(page));
+        return ApiResponse.ok(disputeQueryService.listDisputes(resolved, page));
+    }
+
+    /**
+     * 분쟁 건수 통계(처리 대기 건수, 처리 완료 건수)를 조회한다.
+     */
+    @Operation(summary = "분쟁 건수 통계 조회", description = "처리 대기 건수와 처리 완료 건수를 조회합니다.")
+    @GetMapping("/counts")
+    public ApiResponse<DisputeCountsResponse> getDisputeCounts() {
+        return ApiResponse.ok(disputeQueryService.getDisputeCounts());
     }
 
     /**

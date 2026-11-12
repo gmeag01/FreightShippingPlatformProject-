@@ -41,4 +41,16 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     @Query("select o.id from Order o where o.status = :status and o.droppedOffAt <= :droppedOffBefore")
     List<Long> findIdsByStatusAndDroppedOffBefore(
             @Param("status") OrderStatus status, @Param("droppedOffBefore") LocalDateTime droppedOffBefore);
+
+    @Query("SELECT DISTINCT o FROM Order o JOIN OrderStatusHistory h ON h.order = o "
+            + "WHERE h.toStatus = com.freight.order.entity.OrderStatus.DISPUTED "
+            + "AND (:resolved = false AND o.status = com.freight.order.entity.OrderStatus.DISPUTED "
+            + "     OR :resolved = true AND o.status <> com.freight.order.entity.OrderStatus.DISPUTED)")
+    Page<Order> findDisputedOrders(@Param("resolved") boolean resolved, Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT o) FROM Order o JOIN OrderStatusHistory h ON h.order = o "
+            + "WHERE h.toStatus = com.freight.order.entity.OrderStatus.DISPUTED "
+            + "AND (:resolved = false AND o.status = com.freight.order.entity.OrderStatus.DISPUTED "
+            + "     OR :resolved = true AND o.status <> com.freight.order.entity.OrderStatus.DISPUTED)")
+    long countDisputedOrders(@Param("resolved") boolean resolved);
 }
