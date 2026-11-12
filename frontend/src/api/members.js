@@ -24,3 +24,8 @@ export function fetchMemberCounts({ signal } = {}) {
 export function updateMemberStatus(memberId, status) {
   return apiClient.patch(`/admin/members/${memberId}/status`, { status });
 }
+
+// 로그인한 회원 본인의 정보(이름, 연락처, 비밀번호)를 수정한다.
+export function updateMyProfile(payload) {
+  return apiClient.patch('/members/me', payload);
+}
