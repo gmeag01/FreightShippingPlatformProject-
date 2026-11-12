@@ -270,8 +270,8 @@ export default function AdminMembersPage() {
             type="text"
             value={keywordInput}
             onChange={(e) => setKeywordInput(e.target.value)}
-            placeholder="이름 또는 이메일"
-            aria-label="이름 또는 이메일 검색"
+            placeholder="이름, 이메일 또는 연락처"
+            aria-label="이름, 이메일 또는 연락처 검색"
             className="border-line-strong text-ink placeholder:text-subtle min-h-11 w-64 rounded-md border bg-white px-3 py-2 text-sm"
           />
           <button
@@ -341,11 +341,14 @@ export default function AdminMembersPage() {
 
                 return (
                   <tr key={member.id} className="hover:bg-slate-50/70">
-                    {/* 이름 & 이메일 */}
+                    {/* 이름 & 이메일 / 연락처 */}
                     <td className="px-5 py-4">
                       <div className="text-copy font-bold">{member.name}</div>
-                      <div className="text-caption text-subtle mt-0.5 font-mono">
-                        {member.email}
+                      <div className="text-caption text-subtle mt-0.5 flex flex-col gap-0.5 font-mono">
+                        <span>{member.email}</span>
+                        {member.phone && (
+                          <span className="text-muted tabular-nums">{member.phone}</span>
+                        )}
                       </div>
                     </td>
 
