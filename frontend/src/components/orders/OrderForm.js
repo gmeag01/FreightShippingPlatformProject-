@@ -7,6 +7,7 @@ import {
   parseKoreanTime,
   readOrderForm,
   validateOrderForm,
+  validateOrderSchedule,
 } from '../../order/form';
 import {
   BODY_LABELS,
@@ -68,6 +69,31 @@ export default function OrderForm({ initial, isEditing, onReload }) {
     )
       invalidateQuote();
   }
+  // 날짜 입력을 마치면 상차와 같거나 앞선 도착 시각을 지운다.
+  function checkArrivalOnBlur(event) {
+    if (event.target.name !== 'pickupAt' && event.target.name !== 'arriveBy') return;
+    const { elements } = event.currentTarget;
+    const pickup = elements.namedItem('pickupAt').value;
+    const arrival = elements.namedItem('arriveBy');
+    if (!pickup || !arrival.value) return;
+
+    const { arriveBy: error } = validateOrderSchedule(
+      { pickupAt: pickup, arriveBy: arrival.value },
+      isEditing,
+    );
+    if (error) {
+      arrival.value = '';
+      invalidateQuote();
+    }
+    setErrors((previous) => {
+      if (error) return { ...previous, arriveBy: error };
+      if (!previous.arriveBy) return previous;
+      const next = { ...previous };
+      delete next.arriveBy;
+      return next;
+    });
+  }
+
   const errorBox = useRef(null);
   const reviewTitle = useRef(null);
   const backTo = isEditing ? `/shipper/orders/${initial.id}` : '/shipper/orders';
@@ -201,7 +227,13 @@ export default function OrderForm({ initial, isEditing, onReload }) {
           )}
         </div>
       )}
-      <form ref={formRef} onSubmit={reviewInput} onChange={changeInput} hidden={Boolean(review)}>
+      <form
+        ref={formRef}
+        onSubmit={reviewInput}
+        onChange={changeInput}
+        onBlur={checkArrivalOnBlur}
+        hidden={Boolean(review)}
+      >
         <fieldset disabled={submitting || conflict} className="min-w-0 space-y-5">
           {import.meta.env.DEV && !isEditing && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
