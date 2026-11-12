@@ -97,6 +97,27 @@ public class OrderService {
     }
 
     /**
+     * 분쟁 처리 대기 중이거나 처리 완료된 오더 목록을 조회한다.
+     *
+     * @param resolved true이면 처리 완료된 분쟁, false이면 처리 대기 중인 분쟁
+     * @param pageable 페이지 및 정렬 정보
+     * @return 분쟁 오더 페이지
+     */
+    public Page<Order> findDisputedOrders(boolean resolved, Pageable pageable) {
+        return orderRepository.findDisputedOrders(resolved, pageable);
+    }
+
+    /**
+     * 분쟁 처리 대기 중이거나 처리 완료된 오더 건수를 조회한다.
+     *
+     * @param resolved true이면 처리 완료된 분쟁 건수, false이면 처리 대기 중인 분쟁 건수
+     * @return 분쟁 오더 건수
+     */
+    public long countDisputedOrders(boolean resolved) {
+        return orderRepository.countDisputedOrders(resolved);
+    }
+
+    /**
      * 차주에게 배정된 오더 중 주어진 상태의 오더를 조회한다.
      *
      * @param driverId 차주 회원 ID

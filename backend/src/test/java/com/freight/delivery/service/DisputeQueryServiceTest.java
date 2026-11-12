@@ -113,6 +113,25 @@ class DisputeQueryServiceTest {
     }
 
     @Test
+    void listDisputes_resolved_returnsResolvedDisputeOrdersAndCounts() {
+        Long orderId = createDisputedOrder();
+        deliveryService.resolveDispute(
+                orderId, adminId, new ResolveDisputeRequest(DisputeResolution.PAY_DRIVER, "파손 없음"));
+
+        org.springframework.data.domain.Page<DisputeSummaryResponse> resolvedDisputes =
+                disputeQueryService.listDisputes(true, 0);
+
+        assertThat(resolvedDisputes.getContent()).hasSize(1);
+        DisputeSummaryResponse resolved = resolvedDisputes.getContent().get(0);
+        assertThat(resolved.orderId()).isEqualTo(orderId);
+        assertThat(resolved.status()).isEqualTo(OrderStatus.COMPLETED);
+
+        com.freight.delivery.dto.DisputeCountsResponse counts = disputeQueryService.getDisputeCounts();
+        assertThat(counts.pending()).isZero();
+        assertThat(counts.resolved()).isEqualTo(1L);
+    }
+
+    @Test
     void getDispute_returnsMembersVehicleCargoPaymentAndHistory() {
         Long orderId = createDisputedOrder();
 
