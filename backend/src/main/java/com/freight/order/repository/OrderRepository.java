@@ -30,6 +30,10 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
+    long countByAssignedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    long countByCompletedAtBetween(LocalDateTime start, LocalDateTime end);
+
     List<Order> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime start, LocalDateTime end);
 
     List<Order> findByAssignedAtBetweenOrderByAssignedAtDesc(LocalDateTime start, LocalDateTime end);

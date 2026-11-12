@@ -49,14 +49,13 @@ public class AdminDashboardService {
         long todayRegistered = orderService.countOrdersCreatedBetween(todayStart, todayEnd);
         long yesterdayRegistered = orderService.countOrdersCreatedBetween(yesterdayStart, yesterdayEnd);
 
-        // 2. 오늘/어제 배차 건수 (ASSIGNED 전이)
-        long todayAssigned = orderService.countStatusTransitions(OrderStatus.ASSIGNED, todayStart, todayEnd);
-        long yesterdayAssigned =
-                orderService.countStatusTransitions(OrderStatus.ASSIGNED, yesterdayStart, yesterdayEnd);
+        // 2. 오늘/어제 배차 건수 (assigned_at 기준: 목록 조회와 1:1 일치)
+        long todayAssigned = orderService.countOrdersAssignedBetween(todayStart, todayEnd);
+        long yesterdayAssigned = orderService.countOrdersAssignedBetween(yesterdayStart, yesterdayEnd);
 
-        // 3. 오늘/어제 완료 건수 (COMPLETED 전이)
-        long todayCompleted = orderService.countStatusTransitions(OrderStatus.COMPLETED, todayStart, todayEnd);
-        long yesterdayCompleted = orderStatusCompletedYesterday(yesterdayStart, yesterdayEnd);
+        // 3. 오늘/어제 완료 건수 (completed_at 기준: 목록 조회와 1:1 일치)
+        long todayCompleted = orderService.countOrdersCompletedBetween(todayStart, todayEnd);
+        long yesterdayCompleted = orderService.countOrdersCompletedBetween(yesterdayStart, yesterdayEnd);
 
         // 4. 현재 대기 상태 (미배차, 분쟁)
         long unassignedCount = orderService.countUnassignedOrders(now);
@@ -84,10 +83,6 @@ public class AdminDashboardService {
                 .toList();
 
         return new AdminDashboardResponse(summary, urgentOrders, disputeOrders);
-    }
-
-    private long orderStatusCompletedYesterday(LocalDateTime start, LocalDateTime end) {
-        return orderService.countStatusTransitions(OrderStatus.COMPLETED, start, end);
     }
 
     /**

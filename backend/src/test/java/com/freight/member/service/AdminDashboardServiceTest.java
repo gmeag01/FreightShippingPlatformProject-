@@ -2,7 +2,6 @@ package com.freight.member.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 import com.freight.delivery.dto.DisputeSummaryResponse;
@@ -46,10 +45,8 @@ class AdminDashboardServiceTest {
     void getDashboard_success() {
         // given
         given(orderService.countOrdersCreatedBetween(any(), any())).willReturn(10L, 8L);
-        given(orderService.countStatusTransitions(eq(OrderStatus.ASSIGNED), any(), any()))
-                .willReturn(7L, 5L);
-        given(orderService.countStatusTransitions(eq(OrderStatus.COMPLETED), any(), any()))
-                .willReturn(4L, 3L);
+        given(orderService.countOrdersAssignedBetween(any(), any())).willReturn(7L, 5L);
+        given(orderService.countOrdersCompletedBetween(any(), any())).willReturn(4L, 3L);
         given(orderService.countUnassignedOrders(any())).willReturn(6L);
         given(orderService.countOrdersByStatus(OrderStatus.DISPUTED)).willReturn(2L);
 
@@ -171,5 +168,46 @@ class AdminDashboardServiceTest {
         assertThat(result.get(0).pickupRegion()).isEqualTo("서울 중구");
         assertThat(result.get(0).dropoffRegion()).isEqualTo("부산 연제구");
         assertThat(result.get(0).fare()).isEqualTo(500000L);
+    }
+
+    @Test
+    @DisplayName("수락-취소-재수락되어도 오늘 배차 카드는 상태 이력 횟수가 아닌 assigned_at 기준 오더 수로 집계되어 목록과 일치한다")
+    void todayAssigned_matches_modalList_evenIfReassigned() {
+        // given: 오더 1건이 오늘 수락 -> 취소 -> 재수락되어 최종 배차된 상태
+        Order reassignedOrder = Order.builder()
+                .id(16L)
+                .status(OrderStatus.ASSIGNED)
+                .pickup(Location.builder()
+                        .region("서울 중구")
+                        .address("서울 중구 세종대로 1")
+                        .build())
+                .dropoff(Location.builder()
+                        .region("부산 연제구")
+                        .address("부산 연제구 중앙대로 1")
+                        .build())
+                .cargo(Cargo.builder().itemName("화물").build())
+                .fare(300000L)
+                .assignedAt(LocalDateTime.now())
+                .build();
+
+        // assigned_at 기준 오더 건수 1건 반환 (상태 전이 이력 2건이 아닌 고유 오더 수)
+        given(orderService.countOrdersCreatedBetween(any(), any())).willReturn(1L);
+        given(orderService.countOrdersAssignedBetween(any(), any())).willReturn(1L);
+        given(orderService.countOrdersCompletedBetween(any(), any())).willReturn(0L);
+        given(orderService.countUnassignedOrders(any())).willReturn(0L);
+        given(orderService.countOrdersByStatus(OrderStatus.DISPUTED)).willReturn(0L);
+        given(orderService.findUrgentUnassignedOrders(5)).willReturn(List.of());
+        given(disputeQueryService.listDisputes(0)).willReturn(new PageImpl<>(List.of()));
+        given(orderService.findOrdersAssignedBetween(any(), any())).willReturn(List.of(reassignedOrder));
+
+        // when: 대시보드 요약 조회 및 모달 목록 조회
+        AdminDashboardResponse dashboard = adminDashboardService.getDashboard();
+        List<AdminDashboardOrderDto> modalOrders = adminDashboardService.getDashboardOrders("TODAY_ASSIGNED");
+
+        // then: 카드 숫자와 목록 개수가 정확히 1건으로 일치
+        assertThat(dashboard.summary().todayAssigned()).isEqualTo(1L);
+        assertThat(modalOrders).hasSize(1);
+        assertThat(modalOrders.get(0).orderId()).isEqualTo(16L);
+        assertThat(dashboard.summary().todayAssigned()).isEqualTo((long) modalOrders.size());
     }
 }
