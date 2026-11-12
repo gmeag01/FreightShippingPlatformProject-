@@ -58,7 +58,7 @@ export function FormField({ label, name, error, children, ...props }) {
 export function LocationFields({ name, title, initial = {}, errors, onCoordinatesChange }) {
   const pending = useRef(null);
   const [locationMessage, setLocationMessage] = useState('');
-  const lookupFailure = '주소의 위치를 확인하지 못했습니다. 주소를 확인하고 다시 입력해 주세요.';
+  const lookupFailure = '입력한 주소의 위치를 조회하지 못했습니다.';
 
   async function locateAddress(form, value) {
     const address = value.trim();
@@ -88,7 +88,7 @@ export function LocationFields({ name, title, initial = {}, errors, onCoordinate
       }
       latitude.value = result.latitude;
       longitude.value = result.longitude;
-      onCoordinatesChange();
+      onCoordinatesChange(true);
       setLocationMessage('위치를 확인했습니다.');
     } catch {
       if (pending.current === request) setLocationMessage(lookupFailure);
@@ -101,7 +101,7 @@ export function LocationFields({ name, title, initial = {}, errors, onCoordinate
     pending.current = null;
     form.elements.namedItem(`${name}.latitude`).value = '';
     form.elements.namedItem(`${name}.longitude`).value = '';
-    onCoordinatesChange();
+    onCoordinatesChange(false);
     locateAddress(form, address);
   }
 
@@ -128,7 +128,11 @@ export function LocationFields({ name, title, initial = {}, errors, onCoordinate
             error={errors[`${name}.address`]}
             required
             maxLength={255}
-            onBlur={(event) => locateAddress(event.currentTarget.form, event.currentTarget.value)}
+            onBlur={(event) => {
+              if (locationMessage !== lookupFailure) {
+                locateAddress(event.currentTarget.form, event.currentTarget.value);
+              }
+            }}
             onChange={() => {
               pending.current = null;
               setLocationMessage('');
@@ -138,6 +142,18 @@ export function LocationFields({ name, title, initial = {}, errors, onCoordinate
             <p role="status" className="text-muted mt-1 text-xs">
               {locationMessage}
             </p>
+          )}
+          {locationMessage === lookupFailure && (
+            <button
+              type="button"
+              className="text-primary-dark mt-1 min-h-11 text-sm font-medium underline"
+              onClick={(event) => {
+                const { form } = event.currentTarget;
+                locateAddress(form, form.elements.namedItem(`${name}.address`).value);
+              }}
+            >
+              위치 조회 다시 시도
+            </button>
           )}
         </div>
         {field('detailAddress', '상세주소', { maxLength: 255 })}
