@@ -3,19 +3,23 @@ package com.freight.member.controller;
 import com.freight.global.common.ApiResponse;
 import com.freight.global.security.AuthMember;
 import com.freight.member.dto.MemberResponse;
+import com.freight.member.dto.UpdateProfileRequest;
 import com.freight.member.entity.Member;
 import com.freight.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 로그인한 회원 본인의 정보 조회 API 컨트롤러. */
-@Tag(name = "회원 API", description = "회원 정보 조회 API")
+/** 로그인한 회원 본인의 정보 조회 및 수정 API 컨트롤러. */
+@Tag(name = "회원 API", description = "회원 정보 조회 및 프로필 수정 API")
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
@@ -32,5 +36,17 @@ public class MemberController {
     public ApiResponse<MemberResponse> getMe(@AuthenticationPrincipal AuthMember me) {
         Member member = memberService.getById(me.id());
         return ApiResponse.ok(MemberResponse.from(member));
+    }
+
+    /** 로그인한 회원 본인의 프로필(이름, 연락처, 비밀번호)을 수정한다. */
+    @Operation(
+            summary = "내 정보 수정",
+            description = "현재 로그인한 사용자의 이름, 연락처, 비밀번호를 수정합니다.",
+            security = @SecurityRequirement(name = "BearerAuth"))
+    @PatchMapping("/me")
+    public ApiResponse<MemberResponse> updateMe(
+            @AuthenticationPrincipal AuthMember me, @Valid @RequestBody UpdateProfileRequest request) {
+        MemberResponse response = memberService.updateProfile(me.id(), request);
+        return ApiResponse.ok(response);
     }
 }

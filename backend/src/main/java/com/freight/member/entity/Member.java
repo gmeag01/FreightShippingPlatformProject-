@@ -59,6 +59,27 @@ public class Member extends BaseEntity {
     }
 
     /**
+     * 회원 프로필(이름, 연락처) 정보를 수정한다.
+     */
+    public void updateProfile(String name, String phone) {
+        if (name != null && !name.isBlank()) {
+            this.name = name.trim();
+        }
+        if (phone != null && !phone.isBlank()) {
+            this.phone = phone.trim();
+        }
+    }
+
+    /**
+     * 비밀번호를 암호화된 새 비밀번호로 변경한다.
+     */
+    public void changePassword(String encodedPassword) {
+        if (encodedPassword != null && !encodedPassword.isBlank()) {
+            this.password = encodedPassword;
+        }
+    }
+
+    /**
      * 계정을 정지 상태로 전이한다.
      */
     public void suspend() {

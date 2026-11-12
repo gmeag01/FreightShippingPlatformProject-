@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { ROLE_HOME, ROLE_LABEL } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
+import ProfileModal from '../components/profile/ProfileModal';
 
 // 역할별 상단 메뉴(설계 문서 6장). end가 true면 주소가 정확히 같을 때만 선택된 메뉴로 보인다.
 const ROLE_MENUS = {
@@ -29,6 +31,7 @@ const ROLE_MENUS = {
 export default function AppLayout() {
   const { me, logout } = useAuth();
   const navigate = useNavigate();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -77,7 +80,14 @@ export default function AppLayout() {
             <span className="inline-flex items-center rounded-sm bg-white/10 px-2 py-0.5 text-xs font-semibold text-slate-200">
               {ROLE_LABEL[me.role]}
             </span>
-            <span className="hidden text-sm font-medium text-white sm:inline">{me.name}</span>
+            <button
+              type="button"
+              onClick={() => setIsProfileOpen(true)}
+              className="hidden text-sm font-medium text-white transition-opacity hover:underline hover:opacity-80 focus:outline-none sm:inline"
+              title="내 정보 수정"
+            >
+              {me.name}
+            </button>
             <button
               type="button"
               className="inline-flex min-h-8 items-center justify-center rounded-md border border-white/20 bg-transparent px-3 text-xs font-semibold text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
@@ -88,6 +98,11 @@ export default function AppLayout() {
           </div>
         </div>
       </header>
+
+      {/* 내 정보 수정 모달 */}
+      {isProfileOpen && (
+        <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      )}
 
       {/* 본문: ui-guide.md 화면 틀 규격 (mx-auto flex max-w-280 flex-col gap-5 px-6 pt-7 pb-14 break-keep) */}
       <main className="mx-auto flex max-w-280 flex-col gap-5 px-4 pt-7 pb-14 break-keep sm:px-6">

@@ -33,9 +33,20 @@ export function AuthProvider({ children }) {
     setMe(null);
   }, []);
 
+  // 회원 정보가 수정되었을 때 최신 정보를 다시 불러와 동기화한다.
+  const refreshMe = useCallback(async () => {
+    try {
+      const updated = await authApi.fetchMe();
+      setMe(updated);
+      return updated;
+    } catch {
+      return null;
+    }
+  }, []);
+
   const authValue = useMemo(
-    () => ({ me, isLoading, login, logout }),
-    [me, isLoading, login, logout],
+    () => ({ me, isLoading, login, logout, refreshMe }),
+    [me, isLoading, login, logout, refreshMe],
   );
 
   return <AuthContext.Provider value={authValue}>{children}</AuthContext.Provider>;

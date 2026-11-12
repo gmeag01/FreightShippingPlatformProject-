@@ -9,6 +9,7 @@ import com.freight.member.dto.LoginRequest;
 import com.freight.member.dto.MemberResponse;
 import com.freight.member.dto.SignupRequest;
 import com.freight.member.dto.TokenResponse;
+import com.freight.member.dto.UpdateProfileRequest;
 import com.freight.member.entity.Member;
 import com.freight.member.entity.Role;
 import org.junit.jupiter.api.DisplayName;
@@ -107,5 +108,70 @@ class MemberServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("회원 프로필(이름, 연락처) 수정이 정상적으로 반영된다")
+    void updateProfile_success_updatesNameAndPhone() {
+        MemberResponse registered = authService.signup(
+                new SignupRequest("profile@x.com", "password123!", "이전이름", "010-1111-2222", Role.SHIPPER));
+
+        UpdateProfileRequest updateRequest = new UpdateProfileRequest("새이름", "010-9999-8888", null, null);
+
+        MemberResponse updated = memberService.updateProfile(registered.id(), updateRequest);
+
+        assertThat(updated.name()).isEqualTo("새이름");
+        assertThat(updated.phone()).isEqualTo("010-9999-8888");
+
+        Member member = memberService.getById(registered.id());
+        assertThat(member.getName()).isEqualTo("새이름");
+        assertThat(member.getPhone()).isEqualTo("010-9999-8888");
+    }
+
+    @Test
+    @DisplayName("현재 비밀번호가 일치하면 새 비밀번호로 정상 변경된다")
+    void updateProfile_withPasswordChange_success() {
+        MemberResponse registered = authService.signup(
+                new SignupRequest("pwdtest@x.com", "oldPassword123!", "김화주", "010-1234-5678", Role.SHIPPER));
+
+        UpdateProfileRequest updateRequest =
+                new UpdateProfileRequest("김화주", "010-1234-5678", "oldPassword123!", "newPassword999!");
+
+        memberService.updateProfile(registered.id(), updateRequest);
+
+        Member member = memberService.getById(registered.id());
+        assertThat(passwordEncoder.matches("newPassword999!", member.getPassword()))
+                .isTrue();
+        assertThat(passwordEncoder.matches("oldPassword123!", member.getPassword()))
+                .isFalse();
+    }
+
+    @Test
+    @DisplayName("현재 비밀번호가 올바르지 않으면 INVALID_CURRENT_PASSWORD 예외가 발생한다")
+    void updateProfile_withWrongCurrentPassword_fails() {
+        MemberResponse registered = authService.signup(
+                new SignupRequest("wrongpwd@x.com", "password123!", "박차주", "010-5555-6666", Role.DRIVER));
+
+        UpdateProfileRequest updateRequest =
+                new UpdateProfileRequest("박차주", "010-5555-6666", "wrongCurrentPwd!", "newPassword999!");
+
+        assertThatThrownBy(() -> memberService.updateProfile(registered.id(), updateRequest))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_CURRENT_PASSWORD);
+    }
+
+    @Test
+    @DisplayName("새 비밀번호가 8자 미만이면 INVALID_INPUT 예외가 발생한다")
+    void updateProfile_withShortNewPassword_fails() {
+        MemberResponse registered = authService.signup(
+                new SignupRequest("shortpwd@x.com", "password123!", "최화주", "010-7777-8888", Role.SHIPPER));
+
+        UpdateProfileRequest updateRequest = new UpdateProfileRequest("최화주", "010-7777-8888", "password123!", "short");
+
+        assertThatThrownBy(() -> memberService.updateProfile(registered.id(), updateRequest))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_INPUT);
     }
 }
