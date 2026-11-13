@@ -1,7 +1,5 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import RequireRole from './auth/RequireRole';
-import { ROLE_HOME } from './auth/roles';
-import { useAuth } from './auth/useAuth';
 import AppLayout from './layouts/AppLayout';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminDisputesPage from './pages/AdminDisputesPage';
@@ -13,9 +11,9 @@ import DriverJobsPage from './pages/DriverJobsPage';
 import DriverOrderDetailPage from './pages/DriverOrderDetailPage';
 import DriverOrdersPage from './pages/DriverOrdersPage';
 import DriverVehiclePage from './pages/DriverVehiclePage';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
-import PlaceholderPage from './pages/PlaceholderPage';
 import SignupPage from './pages/SignupPage';
 import ShipperOrderFormPage from './pages/ShipperOrderFormPage';
 import ShipperOrdersPage from './pages/ShipperOrdersPage';
@@ -30,18 +28,11 @@ function renderRoleArea(role) {
   );
 }
 
-// 첫 주소(/)로 들어오면 로그인했을 때는 역할별 첫 화면, 아니면 로그인 화면으로 보낸다.
-function RootRedirect() {
-  const { me, isLoading } = useAuth();
-  if (isLoading) return null;
-  return <Navigate to={me ? ROLE_HOME[me.role] : '/login'} replace />;
-}
-
-// 화면 주소 목록(설계 문서 6장). 로그인·회원가입 외에는 담당 도메인이 채울 자리 표시 페이지다.
+// 화면 주소 목록(설계 문서 6장). 루트(/)에서는 서비스 소개 메인 화면을 보여 준다.
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<RootRedirect />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
 
