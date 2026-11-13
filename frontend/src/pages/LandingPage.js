@@ -129,7 +129,7 @@ function LandingHeader({ me, onLogout }) {
           <img
             src="/images/logo-freighton.png"
             alt="FreightOn"
-            className="h-9 w-auto object-contain sm:h-10"
+            className="h-10 w-auto object-contain sm:h-11"
           />
         </Link>
 
@@ -494,13 +494,13 @@ function LandingFooter({ me }) {
         <div className="flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm">
           <Link
             to="/"
-            className="inline-flex items-center rounded-md bg-white px-2.5 py-1 transition-opacity hover:opacity-90"
+            className="flex items-center transition-opacity hover:opacity-90"
             title="홈으로 이동"
           >
             <img
-              src="/images/logo-freighton.png"
+              src="/images/logo-freighton-light.png"
               alt="FreightOn"
-              className="h-7 w-auto object-contain"
+              className="h-9 w-auto object-contain sm:h-10"
             />
           </Link>
           <span className="text-slate-400">기준 운임 계산 · 차종별 배차 · 선결제 정산 관리</span>

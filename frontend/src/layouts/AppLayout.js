@@ -46,13 +46,13 @@ export default function AppLayout() {
           <div className="flex h-full items-center gap-8 max-sm:contents">
             <Link
               to="/"
-              className="inline-flex items-center rounded-md bg-white px-2.5 py-1 transition-opacity hover:opacity-90 max-sm:my-1.5"
+              className="flex items-center transition-opacity hover:opacity-90 max-sm:my-1.5"
               title="홈으로 이동"
             >
               <img
-                src="/images/logo-freighton.png"
+                src="/images/logo-freighton-light.png"
                 alt="FreightOn"
-                className="h-7 w-auto object-contain"
+                className="h-9 w-auto object-contain sm:h-10"
               />
             </Link>
 

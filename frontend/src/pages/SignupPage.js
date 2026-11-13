@@ -76,13 +76,13 @@ export default function SignupPage() {
         <div className="mx-auto flex h-[60px] max-w-280 items-center justify-between px-4 sm:px-6">
           <Link
             to="/"
-            className="inline-flex items-center rounded-md bg-white px-2.5 py-1 transition-opacity hover:opacity-90"
+            className="flex items-center transition-opacity hover:opacity-90"
             title="홈으로 이동"
           >
             <img
-              src="/images/logo-freighton.png"
+              src="/images/logo-freighton-light.png"
               alt="FreightOn"
-              className="h-7 w-auto object-contain"
+              className="h-9 w-auto object-contain sm:h-10"
             />
           </Link>
           <Link
