@@ -2,12 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROLE_HOME, ROLE_LABEL } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
-import { formatNumber } from '../order/presentation';
 
 // 상단 헤더에서 쓰는 섹션 이동 목록.
 const SECTION_LINKS = [
   { id: 'problem', label: '운송 기준' },
-  { id: 'vehicles', label: '차종별 안내' },
+  { id: 'vehicles', label: '지원 차량' },
 ];
 
 // 기존 화물 중개에서 자주 겪는 문제 두 가지.
@@ -34,125 +33,56 @@ const PAIN_POINTS = [
   },
 ];
 
-// 톤수별 화물 차량 제원 및 설계 문서 4장 기준 단가 목록.
+// 톤수별 화물 차량 사진·중량·팔레트 기준 목록.
 const VEHICLE_SPECS = [
   {
     code: 'TON_1',
     number: '1',
     unit: '톤',
-    name: '소형 카고 · 탑차',
-    category: '소형 화물',
     image: '/images/trucks/cargo_1t.png',
     description: '일반 적재함이 설치된 소형 카고 차량입니다.',
     maxWeight: '1,000',
     pallets: '2',
-    baseFare: 30000,
-    perKmFare: 1000,
   },
   {
     code: 'TON_2_5',
     number: '2.5',
     unit: '톤',
-    name: '준중형 카고 · 윙바디',
-    category: '중소형 화물',
     image: '/images/trucks/cargo_2_5t.png',
-    description: '도심 및 중소형 화물 운송에 적합한 차량입니다.',
+    description: '일반 적재함이 설치된 준중형 차량입니다.',
     maxWeight: '2,500',
     pallets: '3 ~ 6',
-    baseFare: 50000,
-    perKmFare: 1400,
   },
   {
     code: 'TON_5',
     number: '5',
     unit: '톤',
-    name: '중형 카고 · 윙바디',
-    category: '중대형 화물',
     image: '/images/trucks/cargo_5t.png',
-    description: '공장 자재와 파렛트 간선 운송에 주로 쓰이는 차량입니다.',
+    description: '중형 화물 및 팔레트 간선 운송 차량입니다.',
     maxWeight: '5,000',
     pallets: '8 ~ 10',
-    baseFare: 80000,
-    perKmFare: 1900,
   },
   {
     code: 'TON_11',
     number: '11',
     unit: '톤',
-    name: '대형 카고 · 윙바디',
-    category: '대형 화물',
     image: '/images/trucks/cargo_11t.png',
-    description: '장거리 대량 파렛트 적재에 적합한 대형 차량입니다.',
+    description: '장거리 대량 파렛트 적재가 가능한 대형 차량입니다.',
     maxWeight: '11,000',
     pallets: '16 ~ 18',
-    baseFare: 130000,
-    perKmFare: 2600,
   },
   {
     code: 'TON_25',
     number: '25',
     unit: '톤',
-    name: '초대형 카고 · 트레일러',
-    category: '초대형 화물',
     image: '/images/trucks/cargo_25t.png',
-    description: '대형 물류와 수출입 물량을 운송하는 초대형 차량입니다.',
+    description: '대형 물류와 수출입 화물을 운송하는 초대형 차량입니다.',
     maxWeight: '25,000',
     pallets: '18 ~ 22',
-    baseFare: 200000,
-    perKmFare: 3500,
   },
 ];
 
-// 추천 운임 시뮬레이터 구간 프리셋.
-const ROUTE_PRESETS = [
-  { id: 'seoul-busan', pickup: '서울 강서구', dropoff: '부산 강서구', distanceKm: 325 },
-  { id: 'incheon-daejeon', pickup: '인천 서구', dropoff: '대전 유성구', distanceKm: 140 },
-  { id: 'pyeongtaek-gwangju', pickup: '경기 평택시', dropoff: '광주 광산구', distanceKm: 260 },
-  { id: 'seoul-icheon', pickup: '서울 금천구', dropoff: '경기 이천시', distanceKm: 55 },
-];
-
-// 설계 문서 4장 기준 할증 조건 4종.
-const SURCHARGE_OPTIONS = [
-  { code: 'NIGHT', label: '야간', rateText: '+20%', rate: 0.2 },
-  { code: 'WEEKEND', label: '주말', rateText: '+10%', rate: 0.1 },
-  { code: 'MANUAL_LOADING', label: '수작업', rateText: '+15%', rate: 0.15 },
-  { code: 'URGENT', label: '긴급', rateText: '+30%', rate: 0.3 },
-];
-
-// 차량 선택 아래에 함께 안내하는 플랫폼 핵심 운영 기준 3가지.
-const PLATFORM_GUARDS = [
-  {
-    number: '01',
-    title: '5단계 실시간 진행 공유',
-    desc: '등록·배차·운송·하차·정산 상태와 변경 시각을 화주와 차주가 같이 봅니다.',
-  },
-  {
-    number: '02',
-    title: '중복 수락 없는 선착순 배차',
-    desc: '배차 확정 후에만 상세주소가 열리며, 동시 수락 시 한 명만 배차됩니다.',
-  },
-  {
-    number: '03',
-    title: '선결제 보관과 24시간 자동 정산',
-    desc: '수령 확인 즉시 지급하며 확인이 늦어져도 24시간 뒤 자동으로 정산됩니다.',
-  },
-];
-
-// 설계 문서 4장: 1,000원 단위 반올림.
-const FARE_ROUNDING_UNIT = 1000;
-
-// 기본·거리·할증 금액과 1,000원 단위 반올림 추천 운임을 계산한다.
-function calculateSimulatedFare(route, vehicleSpec, selectedSurcharges) {
-  const baseFare = vehicleSpec.baseFare;
-  const distanceFare = route.distanceKm * vehicleSpec.perKmFare;
-  const surchargeRateSum = SURCHARGE_OPTIONS.filter((item) =>
-    selectedSurcharges.includes(item.code),
-  ).reduce((sum, item) => sum + item.rate, 0);
-  const surchargeAmount = Math.round((baseFare + distanceFare) * surchargeRateSum);
-  const rawTotal = baseFare + distanceFare + surchargeAmount;
-  const recommendedFare = Math.round(rawTotal / FARE_ROUNDING_UNIT) * FARE_ROUNDING_UNIT;
-  return { baseFare, distanceFare, surchargeAmount, recommendedFare };
-}
+const CAROUSEL_SCROLL_STEP = 360;
 
 // 스크롤로 화면에 들어오면 한 번만 노출 상태를 true로 바꾼다.
 function useScrollReveal() {
@@ -259,7 +189,7 @@ function HeaderAuthActions({ me, onLogout }) {
   );
 }
 
-// 첫 화면 히어로 배너: CJ대한통운 트럭 배경 이미지 위에 간결한 카피라이팅과 CTA만 배치한다.
+// 첫 화면 히어로 배너: 트럭 배경 이미지 위에 간결한 카피라이팅과 CTA만 배치한다.
 function HeroBannerSection({ me }) {
   const primaryHref = me ? ROLE_HOME[me.role] : '/signup';
   const primaryLabel = me ? '내 화면으로 이동' : '시작하기';
@@ -296,7 +226,7 @@ function HeroBannerSection({ me }) {
             href="#vehicles"
             className="inline-flex min-h-11 items-center justify-center rounded-md border border-white/50 bg-white/15 px-6 text-sm font-semibold text-white backdrop-blur-xs transition-colors hover:bg-white/25 sm:text-base"
           >
-            차종별 운임 보기
+            지원 차량 보기
           </a>
         </div>
       </div>
@@ -385,212 +315,94 @@ function ProblemSection() {
   );
 }
 
-// 선택된 트럭 톤수의 차량 사진과 화물 적재량만 간결하게 보여 주는 카드.
-function VehicleSpecCard({ vehicle }) {
+// 톤수별 차량 사진, 적재 중량, 팔레트 기준 정보만 표시하는 개별 카드.
+function VehicleCarouselCard({ vehicle }) {
   return (
-    <div className="border-line flex flex-col justify-between gap-6 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
+    <article className="border-line flex w-[82%] shrink-0 snap-start flex-col justify-between gap-5 rounded-2xl border bg-white p-6 shadow-xs sm:w-[46%] lg:w-[31.5%]">
       <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2">
-          <span className="bg-primary inline-flex w-fit items-center rounded-full px-3.5 py-1 text-sm font-bold text-white">
-            <span className="font-num">{vehicle.number}</span>
-            {vehicle.unit}
-          </span>
-          <span className="text-subtle text-xs font-medium">{vehicle.name}</span>
-        </div>
+        <span className="bg-primary inline-flex w-fit items-center rounded-full px-3.5 py-1 text-sm font-bold text-white">
+          <span className="font-num">{vehicle.number}</span>
+          {vehicle.unit}
+        </span>
         <p className="text-muted text-sm">{vehicle.description}</p>
       </div>
 
       <div className="flex items-center justify-center py-2">
         <img
           src={vehicle.image}
-          alt={`${vehicle.number}${vehicle.unit} ${vehicle.name}`}
-          className="h-44 w-full object-contain sm:h-52"
+          alt={`${vehicle.number}${vehicle.unit} 화물 차량`}
+          className="h-40 w-full object-contain sm:h-44"
         />
       </div>
 
-      <div className="bg-ground flex flex-wrap items-center justify-between gap-2 rounded-xl px-5 py-3.5">
-        <span className="text-ink text-sm font-bold">화물 적재량 (팔레트 기준)</span>
-        <div className="flex items-baseline gap-2">
-          <span className="text-primary text-lg font-bold">
+      <div className="bg-ground flex flex-col gap-2 rounded-xl px-4 py-3.5 text-sm">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-ink font-bold">화물 적재량(팔레트 기준)</span>
+          <span className="text-primary font-bold">
             <span className="font-num">{vehicle.pallets}</span>개
           </span>
-          <span className="text-muted text-xs">
-            (최대 <span className="font-num">{vehicle.maxWeight}</span>kg)
+        </div>
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <span className="text-subtle">최대 적재 중량</span>
+          <span className="text-ink font-semibold">
+            <span className="font-num">{vehicle.maxWeight}</span>kg
           </span>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
-// 선택한 차량 톤수에 맞춰 구간·할증 조건을 고르고 예상 운임을 계산하는 패널.
-function VehicleFareCalculator({ vehicle }) {
-  const [routeId, setRouteId] = useState(ROUTE_PRESETS[0].id);
-  const [selectedSurcharges, setSelectedSurcharges] = useState([]);
-
-  const selectedRoute = ROUTE_PRESETS.find((item) => item.id === routeId) ?? ROUTE_PRESETS[0];
-  const estimate = calculateSimulatedFare(selectedRoute, vehicle, selectedSurcharges);
-
-  const toggleSurcharge = (code) => {
-    setSelectedSurcharges((prev) =>
-      prev.includes(code) ? prev.filter((item) => item !== code) : [...prev, code],
-    );
-  };
-
-  return (
-    <div className="border-line flex flex-col justify-between gap-5 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-ink text-base font-bold">
-            <span className="font-num">{vehicle.number}</span>
-            {vehicle.unit} 기준 예상 운임 계산
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          {ROUTE_PRESETS.map((route) => {
-            const isSelected = route.id === routeId;
-            return (
-              <button
-                key={route.id}
-                type="button"
-                onClick={() => setRouteId(route.id)}
-                className={`min-h-11 rounded-md border px-3 py-2 text-left text-sm transition-colors ${
-                  isSelected
-                    ? 'border-ink bg-ink text-white'
-                    : 'border-line-strong text-copy bg-white hover:bg-slate-50'
-                }`}
-              >
-                <span className="block font-semibold">
-                  {route.pickup} → {route.dropoff}
-                </span>
-                <span className={`text-caption ${isSelected ? 'text-slate-300' : 'text-subtle'}`}>
-                  <span className="font-num">{route.distanceKm}</span>km
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {SURCHARGE_OPTIONS.map((option) => {
-            const isSelected = selectedSurcharges.includes(option.code);
-            return (
-              <button
-                key={option.code}
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() => toggleSurcharge(option.code)}
-                className={`min-h-10 rounded-md border px-3 text-xs font-medium transition-colors sm:text-sm ${
-                  isSelected
-                    ? 'border-primary bg-primary-soft text-primary font-semibold'
-                    : 'border-line-strong text-copy bg-white hover:bg-slate-50'
-                }`}
-              >
-                {option.label} <span className="font-num">{option.rateText}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="border-line bg-ground/70 flex flex-wrap items-end justify-between gap-4 rounded-lg border p-5">
-        <div className="flex flex-col gap-1">
-          <span className="text-caption text-subtle">예상 추천 운임</span>
-          <strong className="text-fare-lg text-ink font-bold">
-            <span className="font-num">{formatNumber(estimate.recommendedFare)}</span>원
-          </strong>
-        </div>
-        <dl className="text-muted flex gap-4 text-xs sm:text-sm">
-          <div>
-            <dt className="inline">기본 </dt>
-            <dd className="text-ink inline font-semibold">
-              <span className="font-num">{formatNumber(estimate.baseFare)}</span>원
-            </dd>
-          </div>
-          <div>
-            <dt className="inline">거리 </dt>
-            <dd className="text-ink inline font-semibold">
-              <span className="font-num">{formatNumber(estimate.distanceFare)}</span>원
-            </dd>
-          </div>
-          <div>
-            <dt className="inline">할증 </dt>
-            <dd className="text-ink inline font-semibold">
-              <span className="font-num">{formatNumber(estimate.surchargeAmount)}</span>원
-            </dd>
-          </div>
-        </dl>
-      </div>
-    </div>
-  );
-}
-
-// 천국화물운송 레퍼런스 기반 톤수별 트럭 제원·단가 쇼케이스 및 운송 기준 섹션.
+// 좌우 화살표로 톤수별 차량 카드를 넘겨 보는 가로 캐러셀 섹션.
 function VehicleShowcaseSection() {
-  const [selectedCode, setSelectedCode] = useState(VEHICLE_SPECS[2].code);
+  const trackRef = useRef(null);
   const { elementRef, isVisible } = useScrollReveal();
-  const activeVehicle =
-    VEHICLE_SPECS.find((item) => item.code === selectedCode) ?? VEHICLE_SPECS[2];
+
+  const scrollByDirection = (direction) => {
+    if (!trackRef.current) return;
+    trackRef.current.scrollBy({
+      left: direction * CAROUSEL_SCROLL_STEP,
+      behavior: 'smooth',
+    });
+  };
 
   return (
     <section id="vehicles" ref={elementRef} className="bg-ground py-20 sm:py-24">
       <div
-        className={`mx-auto flex max-w-280 flex-col gap-10 px-4 sm:px-6 ${revealClass(isVisible)}`}
+        className={`mx-auto flex max-w-280 flex-col gap-8 px-4 sm:px-6 ${revealClass(isVisible)}`}
       >
-        <div className="flex flex-col gap-3">
-          <h2 className="text-ink text-2xl font-bold sm:text-4xl">지원 차종 및 제원 안내</h2>
-          <p className="text-muted max-w-2xl text-sm sm:text-base">
-            1톤 소형 화물부터 25톤 대형 화물까지 짐의 크기와 무게에 맞는 트럭 톤수를 선택해 제원과
-            기준 운임을 확인하세요.
-          </p>
+        <div className="border-ink/80 flex items-baseline gap-3 border-b-2 pb-4">
+          <span className="text-primary font-num text-xl font-bold sm:text-2xl">01</span>
+          <h2 className="text-ink text-xl font-bold sm:text-2xl">지원 차량 안내</h2>
         </div>
 
-        <div className="grid grid-cols-5 gap-2" role="tablist" aria-label="차량 톤수 선택">
-          {VEHICLE_SPECS.map((vehicle) => {
-            const isSelected = vehicle.code === selectedCode;
-            return (
-              <button
-                key={vehicle.code}
-                type="button"
-                role="tab"
-                aria-selected={isSelected}
-                onClick={() => setSelectedCode(vehicle.code)}
-                className={`flex min-h-14 flex-col items-center justify-center rounded-xl border px-2 py-2.5 transition-all ${
-                  isSelected
-                    ? 'border-ink bg-ink text-white shadow-sm'
-                    : 'border-line text-ink bg-white hover:border-blue-300'
-                }`}
-              >
-                <span className="text-base font-bold sm:text-lg">
-                  <span className="font-num">{vehicle.number}</span>
-                  {vehicle.unit}
-                </span>
-                <span
-                  className={`hidden text-xs sm:block ${isSelected ? 'text-slate-300' : 'text-subtle'}`}
-                >
-                  {vehicle.category}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <div className="relative">
+          <button
+            type="button"
+            aria-label="이전 차량 보기"
+            onClick={() => scrollByDirection(-1)}
+            className="border-line-strong text-ink absolute top-1/2 -left-2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-white shadow-md transition-colors hover:bg-slate-50 sm:-left-5 sm:h-11 sm:w-11"
+          >
+            &lt;
+          </button>
 
-        <div key={selectedCode} className="animate-fade-up grid gap-6 lg:grid-cols-2">
-          <VehicleSpecCard vehicle={activeVehicle} />
-          <VehicleFareCalculator vehicle={activeVehicle} />
-        </div>
+          <div
+            ref={trackRef}
+            className="no-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth py-2"
+          >
+            {VEHICLE_SPECS.map((vehicle) => (
+              <VehicleCarouselCard key={vehicle.code} vehicle={vehicle} />
+            ))}
+          </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {PLATFORM_GUARDS.map((guard) => (
-            <div key={guard.number} className="border-line rounded-xl border bg-white p-5">
-              <div className="flex items-center gap-2.5">
-                <span className="text-primary font-num text-sm font-bold">{guard.number}</span>
-                <strong className="text-ink text-base font-bold">{guard.title}</strong>
-              </div>
-              <p className="text-muted mt-2 text-sm leading-relaxed">{guard.desc}</p>
-            </div>
-          ))}
+          <button
+            type="button"
+            aria-label="다음 차량 보기"
+            onClick={() => scrollByDirection(1)}
+            className="border-line-strong text-ink absolute top-1/2 -right-2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-white shadow-md transition-colors hover:bg-slate-50 sm:-right-5 sm:h-11 sm:w-11"
+          >
+            &gt;
+          </button>
         </div>
       </div>
     </section>
