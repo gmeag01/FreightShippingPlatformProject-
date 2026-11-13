@@ -42,10 +42,10 @@ const VEHICLE_SPECS = [
     unit: '톤',
     name: '소형 카고 · 탑차',
     category: '소형 화물',
+    image: '/images/trucks/cargo_1t.png',
+    description: '일반 적재함이 설치된 소형 카고 차량입니다.',
     maxWeight: '1,000',
-    cargoSize: '2,800 × 1,600mm',
     pallets: '2',
-    recommendedFor: '박스 소포, 소량 파렛트, 도심 근거리 납품',
     baseFare: 30000,
     perKmFare: 1000,
   },
@@ -55,10 +55,10 @@ const VEHICLE_SPECS = [
     unit: '톤',
     name: '준중형 카고 · 윙바디',
     category: '중소형 화물',
+    image: '/images/trucks/cargo_2_5t.png',
+    description: '도심 및 중소형 화물 운송에 적합한 차량입니다.',
     maxWeight: '2,500',
-    cargoSize: '4,300 × 1,900mm',
-    pallets: '4 ~ 6',
-    recommendedFor: '식자재, 유통 대리점 배송, 중소형 설비',
+    pallets: '3 ~ 6',
     baseFare: 50000,
     perKmFare: 1400,
   },
@@ -68,10 +68,10 @@ const VEHICLE_SPECS = [
     unit: '톤',
     name: '중형 카고 · 윙바디',
     category: '중대형 화물',
+    image: '/images/trucks/cargo_5t.png',
+    description: '공장 자재와 파렛트 간선 운송에 주로 쓰이는 차량입니다.',
     maxWeight: '5,000',
-    cargoSize: '6,200 × 2,300mm',
     pallets: '8 ~ 10',
-    recommendedFor: '공장 자재, 물류센터 간선, 대량 파렛트 화물',
     baseFare: 80000,
     perKmFare: 1900,
   },
@@ -81,10 +81,10 @@ const VEHICLE_SPECS = [
     unit: '톤',
     name: '대형 카고 · 윙바디',
     category: '대형 화물',
+    image: '/images/trucks/cargo_11t.png',
+    description: '장거리 대량 파렛트 적재에 적합한 대형 차량입니다.',
     maxWeight: '11,000',
-    cargoSize: '9,600 × 2,350mm',
     pallets: '16 ~ 18',
-    recommendedFor: '장거리 간선 운송, 대형 제조 납품, 대용량 적재',
     baseFare: 130000,
     perKmFare: 2600,
   },
@@ -94,10 +94,10 @@ const VEHICLE_SPECS = [
     unit: '톤',
     name: '초대형 카고 · 트레일러',
     category: '초대형 화물',
+    image: '/images/trucks/cargo_25t.png',
+    description: '대형 물류와 수출입 물량을 운송하는 초대형 차량입니다.',
     maxWeight: '25,000',
-    cargoSize: '10,200 × 2,400mm',
     pallets: '18 ~ 22',
-    recommendedFor: '항만 수출입 물량, 중장비, 대형 플랜트 자재',
     baseFare: 200000,
     perKmFare: 3500,
   },
@@ -385,51 +385,40 @@ function ProblemSection() {
   );
 }
 
-// 선택된 트럭 톤수의 적재 중량·규격·기본 단가 제원 카드.
+// 선택된 트럭 톤수의 차량 사진과 화물 적재량만 간결하게 보여 주는 카드.
 function VehicleSpecCard({ vehicle }) {
   return (
     <div className="border-line flex flex-col justify-between gap-6 rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2">
-          <span className="bg-primary-soft text-primary rounded-sm px-2.5 py-1 text-xs font-semibold">
-            {vehicle.category}
+          <span className="bg-primary inline-flex w-fit items-center rounded-full px-3.5 py-1 text-sm font-bold text-white">
+            <span className="font-num">{vehicle.number}</span>
+            {vehicle.unit}
           </span>
-          <span className="text-subtle text-xs font-medium">
-            파렛트 <span className="font-num text-ink font-bold">{vehicle.pallets}</span> PLT
-          </span>
+          <span className="text-subtle text-xs font-medium">{vehicle.name}</span>
         </div>
-
-        <h3 className="text-ink text-2xl font-bold sm:text-3xl">
-          <span className="font-num">{vehicle.number}</span>
-          {vehicle.unit} {vehicle.name}
-        </h3>
-        <p className="text-muted text-sm leading-relaxed">{vehicle.recommendedFor}</p>
+        <p className="text-muted text-sm">{vehicle.description}</p>
       </div>
 
-      <dl className="border-line grid grid-cols-2 gap-4 border-t pt-5">
-        <div className="flex flex-col gap-1">
-          <dt className="text-subtle text-xs">최대 적재 중량</dt>
-          <dd className="text-ink text-base font-bold sm:text-lg">
-            <span className="font-num">{vehicle.maxWeight}</span>kg
-          </dd>
+      <div className="flex items-center justify-center py-2">
+        <img
+          src={vehicle.image}
+          alt={`${vehicle.number}${vehicle.unit} ${vehicle.name}`}
+          className="h-44 w-full object-contain sm:h-52"
+        />
+      </div>
+
+      <div className="bg-ground flex flex-wrap items-center justify-between gap-2 rounded-xl px-5 py-3.5">
+        <span className="text-ink text-sm font-bold">화물 적재량 (팔레트 기준)</span>
+        <div className="flex items-baseline gap-2">
+          <span className="text-primary text-lg font-bold">
+            <span className="font-num">{vehicle.pallets}</span>개
+          </span>
+          <span className="text-muted text-xs">
+            (최대 <span className="font-num">{vehicle.maxWeight}</span>kg)
+          </span>
         </div>
-        <div className="flex flex-col gap-1">
-          <dt className="text-subtle text-xs">적재함 규격 (참고)</dt>
-          <dd className="text-ink font-num text-sm font-bold sm:text-base">{vehicle.cargoSize}</dd>
-        </div>
-        <div className="flex flex-col gap-1">
-          <dt className="text-subtle text-xs">기본 운임</dt>
-          <dd className="text-ink text-base font-bold sm:text-lg">
-            <span className="font-num">{formatNumber(vehicle.baseFare)}</span>원
-          </dd>
-        </div>
-        <div className="flex flex-col gap-1">
-          <dt className="text-subtle text-xs">거리 단가 (km당)</dt>
-          <dd className="text-ink text-base font-bold sm:text-lg">
-            <span className="font-num">{formatNumber(vehicle.perKmFare)}</span>원
-          </dd>
-        </div>
-      </dl>
+      </div>
     </div>
   );
 }
