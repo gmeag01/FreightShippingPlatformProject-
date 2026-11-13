@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { ROLE_HOME, ROLE_LABEL } from '../auth/roles';
+import { ROLE_LABEL } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
 import ProfileModal from '../components/profile/ProfileModal';
 
@@ -42,17 +42,18 @@ export default function AppLayout() {
     <div className="bg-ground text-copy min-h-screen">
       <header className="bg-ink border-b border-blue-950/40 shadow-xs">
         <div className="mx-auto flex max-w-280 flex-wrap items-center justify-between px-4 sm:h-[60px] sm:flex-nowrap sm:px-6">
-          {/* 좌측: 주황색 브랜드 막대 + 서비스 이름 + 역할별 메뉴 */}
+          {/* 좌측: FreightOn 로고 + 역할별 메뉴 */}
           <div className="flex h-full items-center gap-8 max-sm:contents">
             <Link
-              to={ROLE_HOME[me?.role] ?? '/'}
-              className="flex items-center gap-2 transition-opacity hover:opacity-90 max-sm:h-13"
+              to="/"
+              className="flex items-center transition-opacity hover:opacity-90 max-sm:my-1.5"
               title="홈으로 이동"
             >
-              <span className="bg-signal h-5 w-1 rounded-full" aria-hidden="true" />
-              <strong className="text-base font-bold tracking-tight text-white sm:text-lg">
-                화물운송플랫폼
-              </strong>
+              <img
+                src="/images/logo-freighton-light.png"
+                alt="FreightOn"
+                className="h-8 w-auto object-contain sm:h-9"
+              />
             </Link>
 
             <nav className="flex h-full items-center gap-1 overflow-x-auto max-sm:order-last max-sm:h-11 max-sm:w-full sm:gap-2">

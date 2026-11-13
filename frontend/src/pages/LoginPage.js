@@ -5,23 +5,21 @@ import { useAuth } from '../auth/useAuth';
 
 const INITIAL_LOGIN_FORM = { email: '', password: '' };
 
-// 시연 및 평가를 위한 로컬 시드 계정 목록(data.sql 기준).
-const DEMO_ACCOUNTS = [
-  { role: 'SHIPPER', label: '화주', email: 'shipper1@freight.test' },
-  { role: 'DRIVER', label: '차주', email: 'driver1@freight.test' },
-  { role: 'ADMIN', label: '관리자', email: 'admin@freight.test' },
-];
-
 // 공통 인증 화면 상단 머리말. 로고를 누르면 서비스 메인 페이지(/)로 이동한다.
 function AuthHeader({ rightLink }) {
   return (
     <header className="bg-ink border-b border-blue-950/40">
       <div className="mx-auto flex h-[60px] max-w-280 items-center justify-between px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
-          <span className="bg-signal h-5 w-1 rounded-full" aria-hidden="true" />
-          <strong className="text-base font-bold tracking-tight text-white sm:text-lg">
-            화물운송플랫폼
-          </strong>
+        <Link
+          to="/"
+          className="flex items-center transition-opacity hover:opacity-90"
+          title="홈으로 이동"
+        >
+          <img
+            src="/images/logo-freighton-light.png"
+            alt="FreightOn"
+            className="h-8 w-auto object-contain sm:h-9"
+          />
         </Link>
         <Link
           to={rightLink.to}
@@ -145,27 +143,6 @@ export default function LoginPage() {
               </Link>
             </p>
           </form>
-
-          <section className="border-line bg-card flex flex-col gap-3 rounded-lg border p-4 sm:p-5">
-            <div className="flex items-baseline justify-between gap-2">
-              <h2 className="text-ink text-sm font-bold">체험 계정으로 바로 로그인</h2>
-              <span className="text-caption text-subtle">클릭 시 즉시 입장</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {DEMO_ACCOUNTS.map((account) => (
-                <button
-                  key={account.role}
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => performLogin(account.email, 'pass1234')}
-                  title={account.email}
-                  className="border-line-strong text-ink inline-flex min-h-11 items-center justify-center rounded-md border bg-white px-3 text-sm font-semibold hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {account.label}
-                </button>
-              ))}
-            </div>
-          </section>
         </div>
       </main>
     </div>
