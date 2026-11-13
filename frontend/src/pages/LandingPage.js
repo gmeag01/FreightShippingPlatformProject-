@@ -3,12 +3,6 @@ import { Link } from 'react-router-dom';
 import { ROLE_HOME, ROLE_LABEL } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
 
-// 상단 헤더에서 쓰는 섹션 이동 목록.
-const SECTION_LINKS = [
-  { id: 'problem', label: '운송 기준' },
-  { id: 'vehicles', label: '지원 차량' },
-];
-
 // 기존 화물 중개에서 자주 겪는 문제 두 가지.
 const PAIN_POINTS = [
   {
@@ -116,36 +110,28 @@ function revealClass(isVisible) {
     : 'translate-y-8 opacity-0 transition-all duration-700 ease-out';
 }
 
-// 상단 고정 헤더: 밝은 배경 위에 로고, 섹션 이동 링크, 로그인·회원가입 버튼을 배치한다.
+// 상단 고정 헤더: 로고를 가운데 배치하고 우측에 로그인·회원가입 버튼을 둔다.
 function LandingHeader({ me, onLogout }) {
   return (
     <header className="border-line sticky top-0 z-30 border-b bg-white/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-280 items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-280 items-center justify-between gap-4 px-4 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:px-6">
+        <div className="hidden sm:block" aria-hidden="true" />
+
         <Link
           to="/"
-          className="flex items-center transition-opacity hover:opacity-85"
+          className="flex items-center justify-self-center transition-opacity hover:opacity-85"
           title="홈으로 이동"
         >
           <img
             src="/images/logo-freighton.png"
             alt="FreightOn"
-            className="h-10 w-auto object-contain sm:h-11"
+            className="h-9 w-auto object-contain sm:h-10"
           />
         </Link>
 
-        <nav className="hidden items-center gap-7 md:flex" aria-label="페이지 주요 섹션">
-          {SECTION_LINKS.map((linkItem) => (
-            <a
-              key={linkItem.id}
-              href={`#${linkItem.id}`}
-              className="text-muted hover:text-ink text-sm font-medium transition-colors"
-            >
-              {linkItem.label}
-            </a>
-          ))}
-        </nav>
-
-        <HeaderAuthActions me={me} onLogout={onLogout} />
+        <div className="justify-self-end">
+          <HeaderAuthActions me={me} onLogout={onLogout} />
+        </div>
       </div>
     </header>
   );
@@ -500,7 +486,7 @@ function LandingFooter({ me }) {
             <img
               src="/images/logo-freighton-light.png"
               alt="FreightOn"
-              className="h-9 w-auto object-contain sm:h-10"
+              className="h-8 w-auto object-contain sm:h-9"
             />
           </Link>
           <span className="text-slate-400">기준 운임 계산 · 차종별 배차 · 선결제 정산 관리</span>

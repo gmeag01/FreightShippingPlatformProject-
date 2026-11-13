@@ -52,7 +52,7 @@ export default function AppLayout() {
               <img
                 src="/images/logo-freighton-light.png"
                 alt="FreightOn"
-                className="h-9 w-auto object-contain sm:h-10"
+                className="h-8 w-auto object-contain sm:h-9"
               />
             </Link>
 
