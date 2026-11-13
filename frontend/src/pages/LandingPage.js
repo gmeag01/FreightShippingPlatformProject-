@@ -4,82 +4,136 @@ import { ROLE_HOME, ROLE_LABEL } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
 import { formatNumber } from '../order/presentation';
 
-// 상단 헤더와 우측 퀵 메뉴에서 쓰는 섹션 이동 목록.
+// 상단 헤더에서 쓰는 섹션 이동 목록.
 const SECTION_LINKS = [
-  { id: 'problem', label: '문제', shortLabel: '문제' },
-  { id: 'features', label: '기능', shortLabel: '기능' },
-  { id: 'roles', label: '역할', shortLabel: '역할' },
+  { id: 'problem', label: '문제 해결' },
+  { id: 'features', label: '주요 기능' },
+  { id: 'roles', label: '역할별 안내' },
 ];
 
+// 히어로 하단 핵심 지표 3종.
 const HERO_METRICS = [
-  { label: '지원 차종', number: '1', unit: '톤 ~ ', numberEnd: '25', unitEnd: '톤' },
-  { label: '운임 보관', number: '100', unit: '% 에스크로', numberEnd: '', unitEnd: '' },
-  { label: '자동 정산', number: '24', unit: '시간 뒤 지급', numberEnd: '', unitEnd: '' },
+  {
+    label: '지원 차종',
+    parts: [
+      { text: '1', isNum: true },
+      { text: '톤 ~ ', isNum: false },
+      { text: '25', isNum: true },
+      { text: '톤', isNum: false },
+    ],
+    desc: '소형 카고부터 대형 화물차까지 차종별 기준 단가표 제공',
+  },
+  {
+    label: '진행 관리',
+    parts: [
+      { text: '5', isNum: true },
+      { text: '단계 실시간 공유', isNum: false },
+    ],
+    desc: '등록·배차·운송·하차·정산 상태와 변경 시각을 모두 기록',
+  },
+  {
+    label: '정산 기준',
+    parts: [
+      { text: '24', isNum: true },
+      { text: '시간 뒤 자동 지급', isNum: false },
+    ],
+    desc: '수령 확인 즉시 지급하며 확인이 늦어져도 자동으로 정산',
+  },
 ];
 
-// 기존 화물 중개에서 자주 겪는 문제 두 가지.
+// 기존 화물 중개에서 자주 겪는 문제 두 가지와 해결 포인트.
 const PAIN_POINTS = [
   {
     number: '01',
     title: '부를 때마다 달라지는 운임',
-    summary: '같은 거리인데도 시간대나 중개처마다 요금이 달라 적정 운임을 알기 어렵습니다.',
+    summary:
+      '같은 구간과 짐인데도 시간대나 중개처마다 부르는 요금이 달라 적정 운임을 가늠하기 어렵습니다.',
+    points: [
+      '출발지·도착지 거리와 차종별 기본 단가로 예상 운임을 바로 계산합니다.',
+      '야간·주말·수작업·긴급 할증 비율을 정해진 기준으로 투명하게 합산합니다.',
+    ],
   },
   {
     number: '02',
     title: '전화로 잡는 배차와 밀리는 정산',
-    summary: '연락하는 사이에 다른 차주가 먼저 수락하거나, 하차 뒤에도 입금이 늦어집니다.',
+    summary:
+      '통화로 조건을 묻는 사이 다른 차주가 먼저 잡거나, 하차가 끝난 뒤에도 입금이 늦어지는 일이 생깁니다.',
+    points: [
+      '여러 차주가 동시에 눌러도 가장 먼저 수락한 한 명에게만 배차가 확정됩니다.',
+      '오더 등록 시 결제한 운임을 플랫폼이 보관했다가 하차 확인 후 바로 지급합니다.',
+    ],
   },
 ];
 
-// 기능 소개 좌측 탭 목록.
+// 주요 기능 좌측 탭 목록.
 const FEATURE_TABS = [
-  { id: 'fare', number: '01', title: '추천 운임 계산' },
-  { id: 'lifecycle', number: '02', title: '진행 상태 확인' },
-  { id: 'matching', number: '03', title: '차종별 배차와 주소 보호' },
-  { id: 'settlement', number: '04', title: '에스크로 정산과 분쟁 처리' },
+  {
+    id: 'fare',
+    number: '01',
+    title: '추천 운임 계산',
+    desc: '구간 거리와 차종, 할증 조건에 맞춰 기준 운임을 계산합니다.',
+  },
+  {
+    id: 'lifecycle',
+    number: '02',
+    title: '진행 상태 확인',
+    desc: '오더 등록부터 정산 완료까지 5단계 진행 과정을 보여줍니다.',
+  },
+  {
+    id: 'matching',
+    number: '03',
+    title: '차종별 배차와 주소 보호',
+    desc: '내 차량 톤수에 맞는 일감만 보여주고 중복 수락을 막습니다.',
+  },
+  {
+    id: 'settlement',
+    number: '04',
+    title: '운임 선결제와 분쟁 처리',
+    desc: '결제한 운임을 안전하게 보관하고 하차 확인 뒤 지급합니다.',
+  },
 ];
 
-// 5단계 오더 및 에스크로 상태 프리뷰 목록.
+// 5단계 오더 및 정산 상태 프리뷰 목록.
 const ORDER_LIFECYCLE_STEPS = [
   {
     step: 1,
     label: '등록·보관',
     badgeLabel: '등록됨',
     badgeClass: 'bg-status-registered text-status-registered-ink',
-    escrowLabel: '운임 보관중',
-    summary: '화주가 결제한 운임을 플랫폼이 먼저 보관합니다.',
+    paymentLabel: '선결제 보관중',
+    summary: '화주가 오더를 올리며 결제한 운임을 플랫폼이 먼저 안전하게 보관합니다.',
   },
   {
     step: 2,
     label: '배차완료',
     badgeLabel: '배차완료',
     badgeClass: 'bg-status-assigned text-status-assigned-ink',
-    escrowLabel: '운임 보관중',
-    summary: '차주가 수락하면 배차가 확정되고 상세주소가 열립니다.',
+    paymentLabel: '선결제 보관중',
+    summary: '조건에 맞는 차주가 수락하면 배차가 확정되고 상·하차 상세주소가 열립니다.',
   },
   {
     step: 3,
     label: '운송중',
     badgeLabel: '운송중',
     badgeClass: 'bg-status-transit text-status-transit-ink',
-    escrowLabel: '운임 보관중',
-    summary: '상차 뒤 목적지로 이동하며 변경 시각이 기록됩니다.',
+    paymentLabel: '선결제 보관중',
+    summary: '상차 뒤 목적지까지 이동하며 상태 변경 시각과 담당자가 이력에 남습니다.',
   },
   {
     step: 4,
     label: '수령대기',
     badgeLabel: '수령확인대기',
     badgeClass: 'bg-status-awaiting text-status-awaiting-ink',
-    escrowLabel: '정산 대기',
-    summary: '하차 후 화주 확인을 기다리며 이상 시 분쟁을 접수합니다.',
+    paymentLabel: '정산 대기',
+    summary: '하차 완료 후 화주 확인을 기다리며, 물품 이상 시 분쟁을 접수할 수 있습니다.',
   },
   {
     step: 5,
     label: '정산완료',
     badgeLabel: '운송완료',
     badgeClass: 'bg-status-completed text-status-completed-ink',
-    escrowLabel: '차주 지급완료',
-    summary: '수령 확인 즉시 차주에게 보관하던 운임을 지급합니다.',
+    paymentLabel: '차주 지급완료',
+    summary: '수령 확인 즉시(미확인 시 24시간 경과 후) 보관하던 운임을 차주에게 지급합니다.',
   },
 ];
 
@@ -111,25 +165,54 @@ const SURCHARGE_OPTIONS = [
 // 설계 문서 4장: 1,000원 단위 반올림.
 const FARE_ROUNDING_UNIT = 1000;
 
-const MATCHING_POINTS = [
-  '내 차량 톤수에 맞는 오더만 골라 보여줍니다.',
-  '동시에 눌러도 먼저 수락한 한 명에게만 배차됩니다.',
-  '배차가 확정된 뒤에만 상·하차 상세주소를 엽니다.',
+const MATCHING_ITEMS = [
+  {
+    title: '내 차량 톤수 기준 필터링',
+    detail:
+      '등록한 차량 크기와 적재 중량에 맞는 오더만 걸러서 보여주기 때문에 일감을 빠르게 고를 수 있습니다.',
+  },
+  {
+    title: '중복 수락 없는 선착순 배차',
+    detail: '여러 차주가 동시에 수락 버튼을 눌러도 가장 먼저 요청한 한 명에게만 배차가 확정됩니다.',
+  },
+  {
+    title: '배차 확정 후 상세주소 공개',
+    detail:
+      '배차 전에는 시·구 단위까지만 노출하고, 수락이 확정된 차주에게만 상세주소와 연락처를 엽니다.',
+  },
 ];
 
-const SETTLEMENT_POINTS = [
-  '오더를 올릴 때 운임을 먼저 결제해 보관합니다.',
-  '하차 후 24시간 동안 확인이 없으면 자동으로 정산됩니다.',
-  '문제가 생기면 정산을 멈추고 관리자가 확인 뒤 처리합니다.',
+const SETTLEMENT_ITEMS = [
+  {
+    title: '오더 등록 시 운임 선결제 보관',
+    detail:
+      '화주가 오더를 올릴 때 운임을 미리 결제해 플랫폼이 보관하므로 운송 뒤 미지급 걱정이 없습니다.',
+  },
+  {
+    title: '하차 24시간 뒤 자동 정산',
+    detail:
+      '화주가 수령을 확인하면 바로 지급되며, 확인 버튼을 누르지 않아도 24시간 뒤 자동으로 정산됩니다.',
+  },
+  {
+    title: '분쟁 접수 시 지급 보류 및 중재',
+    detail:
+      '물품 파손이나 정산 이견이 생기면 지급을 멈추고 관리자가 상태 이력과 연락처를 확인해 처리합니다.',
+  },
 ];
 
-// 역할별 안내 카드 목록.
+// 역할별 화면 안내 카드 목록.
 const ROLE_CARDS = [
   {
     number: '01',
     role: '화주',
     title: '추천 운임 확인 후 오더 등록',
-    items: ['구간·차종별 운임 즉시 조회', '운송 상태 확인과 분쟁 신고'],
+    summary:
+      '거리와 차종만으로 적정 운임을 바로 확인하고, 운송 현황과 정산까지 한 화면에서 봅니다.',
+    items: [
+      '구간·차종·할증별 추천 운임 계산',
+      '5단계 운송 진행 상태와 이력 조회',
+      '이상 발생 시 분쟁 신고 및 처리 확인',
+    ],
     to: '/signup?role=SHIPPER',
     ctaLabel: '화주로 시작하기',
   },
@@ -137,7 +220,13 @@ const ROLE_CARDS = [
     number: '02',
     role: '차주',
     title: '내 차에 맞는 일감 수락',
-    items: ['보유 톤수 기준 오더 목록', '수령 확인 뒤 지연 없는 정산'],
+    summary:
+      '보유 차량 톤수에 맞는 오더만 골라 수락하고, 하차 완료 뒤 정해진 기한 안에 지급받습니다.',
+    items: [
+      '차량 정보에 맞춘 오더 목록 확인',
+      '배차 확정 후 상·하차 상세주소 열람',
+      '수령 확인 즉시 및 24시간 자동 정산',
+    ],
     to: '/signup?role=DRIVER',
     ctaLabel: '차주로 시작하기',
   },
@@ -145,7 +234,13 @@ const ROLE_CARDS = [
     number: '03',
     role: '관리자',
     title: '단가표 설정과 분쟁 처리',
-    items: ['차종별 기본요금·할증 관리', '대기 분쟁과 처리 이력 확인'],
+    summary:
+      '당일 등록·배차 현황부터 차종별 요율 관리, 대기 분쟁 판결과 회원 관리까지 통합 운영합니다.',
+    items: [
+      '오늘 등록·배차·완료 대시보드 확인',
+      '차종별 기본요금과 할증률 실시간 조정',
+      '대기 분쟁 처리 및 과거 판결 이력 조회',
+    ],
     to: '/login',
     ctaLabel: '관리자 로그인',
   },
@@ -194,6 +289,19 @@ function revealClass(isVisible) {
   return isVisible
     ? 'translate-y-0 opacity-100 transition-all duration-700 ease-out'
     : 'translate-y-8 opacity-0 transition-all duration-700 ease-out';
+}
+
+// 숫자 조각과 한글 조각을 구분해 숫자에만 로보토 모노 폰트 클래스를 입힌다.
+function MetricValue({ parts }) {
+  return (
+    <>
+      {parts.map((part, index) => (
+        <span key={index} className={part.isNum ? 'font-num' : undefined}>
+          {part.text}
+        </span>
+      ))}
+    </>
+  );
 }
 
 // 상단 고정 헤더: 로고, 섹션 이동 링크, 로그인·회원가입 버튼을 배치한다.
@@ -269,36 +377,14 @@ function HeaderAuthActions({ me, onLogout }) {
   );
 }
 
-// 데스크톱 우측에 고정되어 섹션으로 바로 이동하는 퀵 메뉴.
-function FloatingQuickNav() {
-  return (
-    <aside
-      aria-label="빠른 섹션 이동"
-      className="fixed top-1/2 right-5 z-30 hidden -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white/95 shadow-lg backdrop-blur-sm xl:flex"
-    >
-      {SECTION_LINKS.map((item, index) => (
-        <a
-          key={item.id}
-          href={`#${item.id}`}
-          className={`text-ink hover:bg-primary-soft hover:text-primary flex h-12 w-14 flex-col items-center justify-center text-xs font-semibold transition-colors ${
-            index > 0 ? 'border-t border-slate-100' : ''
-          }`}
-        >
-          <span>{item.shortLabel}</span>
-        </a>
-      ))}
-    </aside>
-  );
-}
-
-// 첫 화면 히어로 배너: 알약 배지 없이 간결한 헤드라인, 버튼, 핵심 지표를 배치한다.
+// 첫 화면 히어로 배너: 헤드라인, 보조 설명, 시작 버튼, 상세 지표를 배치한다.
 function HeroBannerSection({ me }) {
   const primaryHref = me ? ROLE_HOME[me.role] : '/signup';
   const primaryLabel = me ? '내 화면으로 이동' : '시작하기';
 
   return (
     <section className="bg-ink relative overflow-hidden py-20 text-white sm:py-28">
-      <div className="mx-auto flex max-w-280 flex-col gap-9 px-4 sm:px-6">
+      <div className="mx-auto flex max-w-280 flex-col gap-10 px-4 sm:px-6">
         <div className="flex flex-col gap-5">
           <h1 className="max-w-3xl text-3xl leading-snug font-bold tracking-tight sm:text-5xl sm:leading-tight">
             거리와 차종만 고르면
@@ -307,8 +393,8 @@ function HeroBannerSection({ me }) {
           </h1>
 
           <p className="max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg">
-            전화 흥정 없이 기준 단가로 오더를 올리고, 운송이 끝나면 보관해 둔 운임을 바로
-            정산합니다.
+            전화 흥정 없이 기준 단가로 오더를 올리고, 운송이 끝나면 미리 결제해 둔 운임을 정해진
+            기준대로 바로 정산합니다. 화주와 차주 모두 진행 상황을 같은 화면에서 확인할 수 있습니다.
           </p>
         </div>
 
@@ -329,14 +415,12 @@ function HeroBannerSection({ me }) {
 
         <dl className="grid grid-cols-1 gap-6 border-t border-white/15 pt-8 sm:grid-cols-3">
           {HERO_METRICS.map((metric) => (
-            <div key={metric.label} className="flex flex-col gap-1">
+            <div key={metric.label} className="flex flex-col gap-1.5">
               <dt className="text-xs font-medium text-slate-400">{metric.label}</dt>
               <dd className="text-xl font-bold tracking-tight text-white sm:text-2xl">
-                <span className="font-num">{metric.number}</span>
-                {metric.unit}
-                {metric.numberEnd && <span className="font-num">{metric.numberEnd}</span>}
-                {metric.unitEnd}
+                <MetricValue parts={metric.parts} />
               </dd>
+              <p className="text-xs leading-relaxed text-slate-300 sm:text-sm">{metric.desc}</p>
             </div>
           ))}
         </dl>
@@ -367,7 +451,7 @@ function ScribbleCircleSvg({ isVisible }) {
   );
 }
 
-// 문제 정의 섹션: 기존 화물 중개의 불편함 2가지와 해결 방향을 담백하게 보여 준다.
+// 문제 정의 섹션: 현장에서 겪는 불편함 2가지와 해결 기준을 구체적으로 보여 준다.
 function ProblemSection() {
   const { elementRef, isVisible } = useScrollReveal();
 
@@ -376,20 +460,26 @@ function ProblemSection() {
       <div
         className={`mx-auto flex max-w-280 flex-col gap-12 px-4 sm:px-6 ${revealClass(isVisible)}`}
       >
-        <h2 className="text-ink text-center text-2xl font-bold sm:text-4xl">
-          운송할 때마다 겪던{' '}
-          <span className="relative inline-block px-2">
-            <span className="relative z-10">불편함</span>
-            <ScribbleCircleSvg isVisible={isVisible} />
-          </span>{' '}
-          을 줄였습니다
-        </h2>
+        <div className="flex flex-col items-center gap-3 text-center">
+          <h2 className="text-ink text-2xl font-bold sm:text-4xl">
+            운송할 때마다 겪던{' '}
+            <span className="relative inline-block px-2">
+              <span className="relative z-10">불편함</span>
+              <ScribbleCircleSvg isVisible={isVisible} />
+            </span>{' '}
+            을 줄였습니다
+          </h2>
+          <p className="text-muted max-w-2xl text-sm sm:text-base">
+            현장에서 화주와 차주가 반복해서 겪는 번거로운 절차를 기준 단가와 자동 정산으로
+            바꾸었습니다.
+          </p>
+        </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           {PAIN_POINTS.map((item) => (
             <article
               key={item.number}
-              className="border-line bg-ground/50 flex flex-col gap-3 rounded-xl border p-6 sm:p-8"
+              className="border-line bg-ground/50 flex flex-col gap-4 rounded-xl border p-6 sm:p-8"
             >
               <div className="flex items-center gap-3">
                 <span className="bg-ink font-num flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold text-white">
@@ -398,14 +488,33 @@ function ProblemSection() {
                 <h3 className="text-ink text-lg font-bold sm:text-xl">{item.title}</h3>
               </div>
               <p className="text-muted text-sm leading-relaxed sm:text-base">{item.summary}</p>
+              <ul className="border-line flex flex-col gap-2 border-t pt-4">
+                {item.points.map((point) => (
+                  <li
+                    key={point}
+                    className="text-copy flex items-start gap-2 text-sm leading-relaxed"
+                  >
+                    <span
+                      className="bg-signal mt-2 h-1.5 w-1.5 shrink-0 rounded-full"
+                      aria-hidden="true"
+                    />
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
             </article>
           ))}
         </div>
 
         <div className="bg-ink flex flex-col items-center justify-between gap-4 rounded-xl px-6 py-7 text-center text-white sm:flex-row sm:px-10 sm:text-left">
-          <p className="text-base font-bold sm:text-xl">
-            운임 계산부터 정산까지 한 화면에서 차례대로 처리할 수 있습니다.
-          </p>
+          <div className="flex flex-col gap-1">
+            <p className="text-base font-bold sm:text-xl">
+              운임 계산부터 정산까지 한 화면에서 차례대로 처리할 수 있습니다.
+            </p>
+            <p className="text-xs text-slate-300 sm:text-sm">
+              오더 등록과 배차 수락, 상태 변경 이력이 빠짐없이 남아 분쟁 없이 정산됩니다.
+            </p>
+          </div>
           <a
             href="#features"
             className="bg-primary hover:bg-primary-dark inline-flex min-h-11 shrink-0 items-center justify-center rounded-md px-5 text-sm font-semibold text-white"
@@ -438,7 +547,7 @@ function FareSimulatorPanel() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <span className="text-caption text-subtle font-medium">구간</span>
+        <span className="text-caption text-subtle font-medium">운송 구간</span>
         <div className="grid grid-cols-2 gap-2">
           {ROUTE_PRESETS.map((route) => {
             const isSelected = route.id === routeId;
@@ -466,7 +575,7 @@ function FareSimulatorPanel() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-caption text-subtle font-medium">차종</span>
+        <span className="text-caption text-subtle font-medium">차량 톤수</span>
         <div className="grid grid-cols-5 gap-1.5">
           {VEHICLE_RATES.map((vehicle) => {
             const isSelected = vehicle.code === vehicleCode;
@@ -489,25 +598,28 @@ function FareSimulatorPanel() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {SURCHARGE_OPTIONS.map((option) => {
-          const isSelected = selectedSurcharges.includes(option.code);
-          return (
-            <button
-              key={option.code}
-              type="button"
-              aria-pressed={isSelected}
-              onClick={() => toggleSurcharge(option.code)}
-              className={`min-h-10 rounded-md border px-3 text-xs font-medium transition-colors sm:text-sm ${
-                isSelected
-                  ? 'border-primary bg-primary-soft text-primary font-semibold'
-                  : 'border-line-strong text-copy bg-white hover:bg-slate-50'
-              }`}
-            >
-              {option.label} <span className="font-num">{option.rateText}</span>
-            </button>
-          );
-        })}
+      <div className="flex flex-col gap-2">
+        <span className="text-caption text-subtle font-medium">추가 할증 조건</span>
+        <div className="flex flex-wrap gap-2">
+          {SURCHARGE_OPTIONS.map((option) => {
+            const isSelected = selectedSurcharges.includes(option.code);
+            return (
+              <button
+                key={option.code}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => toggleSurcharge(option.code)}
+                className={`min-h-10 rounded-md border px-3 text-xs font-medium transition-colors sm:text-sm ${
+                  isSelected
+                    ? 'border-primary bg-primary-soft text-primary font-semibold'
+                    : 'border-line-strong text-copy bg-white hover:bg-slate-50'
+                }`}
+              >
+                {option.label} <span className="font-num">{option.rateText}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="border-line bg-ground/70 flex flex-wrap items-end justify-between gap-4 rounded-lg border p-5">
@@ -542,7 +654,7 @@ function FareSimulatorPanel() {
   );
 }
 
-// 5단계 오더 및 에스크로 상태 프리뷰 패널(2번 탭).
+// 5단계 오더 및 정산 상태 프리뷰 패널(2번 탭).
 function LifecyclePreviewPanel() {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const currentStep = ORDER_LIFECYCLE_STEPS[activeStepIndex];
@@ -556,7 +668,7 @@ function LifecyclePreviewPanel() {
           {currentStep.badgeLabel}
         </span>
         <span className="bg-primary-soft text-ink text-caption inline-flex min-h-6 items-center rounded-sm px-2.5 font-semibold whitespace-nowrap">
-          {currentStep.escrowLabel}
+          {currentStep.paymentLabel}
         </span>
       </div>
 
@@ -606,49 +718,45 @@ function LifecyclePreviewPanel() {
 // 차종별 배차 및 주소 보호 프리뷰 패널(3번 탭).
 function MatchingPreviewPanel() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div className="border-line flex items-center justify-between border-b pb-4">
-        <span className="text-ink text-base font-bold">배차 기준</span>
+        <span className="text-ink text-base font-bold">차종별 배차와 정보 보호 기준</span>
         <span className="bg-status-assigned text-status-assigned-ink text-caption rounded-sm px-2.5 py-1 font-semibold">
           중복 수락 방지
         </span>
       </div>
 
-      <ul className="flex flex-col gap-3">
-        {MATCHING_POINTS.map((point) => (
-          <li
-            key={point}
-            className="border-line bg-ground/60 text-ink rounded-lg border p-4 text-sm font-medium sm:text-base"
-          >
-            {point}
-          </li>
+      <div className="flex flex-col gap-3">
+        {MATCHING_ITEMS.map((item) => (
+          <div key={item.title} className="border-line bg-ground/60 rounded-lg border p-4">
+            <div className="text-ink text-sm font-bold sm:text-base">{item.title}</div>
+            <p className="text-muted mt-1 text-sm leading-relaxed">{item.detail}</p>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
 
-// 에스크로 정산 및 분쟁 처리 프리뷰 패널(4번 탭).
+// 운임 선결제 정산 및 분쟁 처리 프리뷰 패널(4번 탭).
 function SettlementPreviewPanel() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div className="border-line flex items-center justify-between border-b pb-4">
-        <span className="text-ink text-base font-bold">정산 기준</span>
+        <span className="text-ink text-base font-bold">선결제 보관과 자동 정산 기준</span>
         <span className="bg-status-completed text-status-completed-ink text-caption rounded-sm px-2.5 py-1 font-semibold">
           <span className="font-num">24</span>시간 자동 확인
         </span>
       </div>
 
-      <ul className="flex flex-col gap-3">
-        {SETTLEMENT_POINTS.map((point) => (
-          <li
-            key={point}
-            className="border-line bg-ground/60 text-ink rounded-lg border p-4 text-sm font-medium sm:text-base"
-          >
-            {point}
-          </li>
+      <div className="flex flex-col gap-3">
+        {SETTLEMENT_ITEMS.map((item) => (
+          <div key={item.title} className="border-line bg-ground/60 rounded-lg border p-4">
+            <div className="text-ink text-sm font-bold sm:text-base">{item.title}</div>
+            <p className="text-muted mt-1 text-sm leading-relaxed">{item.detail}</p>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
@@ -671,9 +779,15 @@ function FeatureShowcaseSection() {
       <div
         className={`mx-auto flex max-w-280 flex-col gap-10 px-4 sm:px-6 ${revealClass(isVisible)}`}
       >
-        <h2 className="text-ink text-2xl font-bold sm:text-4xl">주요 기능</h2>
+        <div className="flex flex-col gap-3">
+          <h2 className="text-ink text-2xl font-bold sm:text-4xl">주요 기능</h2>
+          <p className="text-muted max-w-2xl text-sm sm:text-base">
+            왼쪽 항목을 눌러 운임 계산부터 배차 기준, 상태 추적, 정산 처리 방식까지 직접 확인해
+            보세요.
+          </p>
+        </div>
 
-        <div className="grid items-start gap-8 lg:grid-cols-[20rem_minmax(0,1fr)]">
+        <div className="grid items-start gap-8 lg:grid-cols-[22rem_minmax(0,1fr)]">
           <div className="flex flex-col gap-2" role="tablist" aria-label="주요 기능 선택">
             {FEATURE_TABS.map((tab) => {
               const isSelected = tab.id === activeTab;
@@ -684,22 +798,27 @@ function FeatureShowcaseSection() {
                   role="tab"
                   aria-selected={isSelected}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 rounded-xl border px-4 py-4 text-left transition-all ${
+                  className={`flex flex-col gap-1.5 rounded-xl border p-4 text-left transition-all ${
                     isSelected
                       ? 'border-ink bg-white shadow-sm'
                       : 'border-transparent bg-transparent hover:bg-white/60'
                   }`}
                 >
-                  <span
-                    className={`font-num text-sm font-bold ${
-                      isSelected ? 'text-primary' : 'text-subtle'
-                    }`}
-                  >
-                    {tab.number}
-                  </span>
-                  <span className={`text-base font-bold ${isSelected ? 'text-ink' : 'text-muted'}`}>
-                    {tab.title}
-                  </span>
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`font-num text-sm font-bold ${
+                        isSelected ? 'text-primary' : 'text-subtle'
+                      }`}
+                    >
+                      {tab.number}
+                    </span>
+                    <span
+                      className={`text-base font-bold ${isSelected ? 'text-ink' : 'text-muted'}`}
+                    >
+                      {tab.title}
+                    </span>
+                  </div>
+                  <p className="text-muted text-xs leading-relaxed sm:text-sm">{tab.desc}</p>
                 </button>
               );
             })}
@@ -717,7 +836,7 @@ function FeatureShowcaseSection() {
   );
 }
 
-// 역할별 화면 안내 섹션: 화주·차주·관리자 역할을 간결한 3열 카드로 보여 준다.
+// 역할별 화면 안내 섹션: 화주·차주·관리자 역할을 3열 카드로 보여 준다.
 function RolesSection() {
   const { elementRef, isVisible } = useScrollReveal();
 
@@ -726,7 +845,12 @@ function RolesSection() {
       <div
         className={`mx-auto flex max-w-280 flex-col gap-10 px-4 sm:px-6 ${revealClass(isVisible)}`}
       >
-        <h2 className="text-ink text-2xl font-bold sm:text-4xl">역할별 화면 안내</h2>
+        <div className="flex flex-col gap-3">
+          <h2 className="text-ink text-2xl font-bold sm:text-4xl">역할별 화면 안내</h2>
+          <p className="text-muted max-w-2xl text-sm sm:text-base">
+            화주, 차주, 관리자 계정마다 업무에 꼭 필요한 메뉴만 모아서 구성했습니다.
+          </p>
+        </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           {ROLE_CARDS.map((card) => (
@@ -744,10 +868,14 @@ function RolesSection() {
                   </span>
                 </div>
                 <h3 className="text-ink text-lg font-bold">{card.title}</h3>
+                <p className="text-muted text-sm leading-relaxed">{card.summary}</p>
                 <ul className="border-line flex flex-col gap-2 border-t pt-4">
                   {card.items.map((item) => (
                     <li key={item} className="text-copy flex items-center gap-2 text-sm">
-                      <span className="bg-primary h-1.5 w-1.5 rounded-full" aria-hidden="true" />
+                      <span
+                        className="bg-primary h-1.5 w-1.5 shrink-0 rounded-full"
+                        aria-hidden="true"
+                      />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -768,23 +896,45 @@ function RolesSection() {
   );
 }
 
-// 하단 푸터: 체험 기능 없이 서비스명과 기본 인증 링크만 배치한다.
-function LandingFooter() {
+// 하단 푸터: 간단한 가입 안내와 서비스명, 로그인·회원가입 링크를 배치한다.
+function LandingFooter({ me }) {
   return (
-    <footer className="bg-ink py-10 text-slate-300">
-      <div className="mx-auto flex max-w-280 flex-wrap items-center justify-between gap-4 px-4 text-sm sm:px-6">
-        <div className="flex items-center gap-2.5">
-          <span className="bg-signal h-4 w-1 rounded-full" aria-hidden="true" />
-          <strong className="font-bold text-white">화물운송플랫폼</strong>
+    <footer className="bg-ink py-14 text-slate-300">
+      <div className="mx-auto flex max-w-280 flex-col gap-8 px-4 sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/15 pb-8">
+          <div className="flex flex-col gap-1.5">
+            <h2 className="text-xl font-bold text-white sm:text-2xl">
+              지금 계정을 만들고 운임 조회와 배차를 시작해 보세요
+            </h2>
+            <p className="text-sm text-slate-300">
+              화주와 차주 계정은 가입 후 바로 오더 등록과 배차 화면을 이용할 수 있습니다.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <Link
+              to={me ? ROLE_HOME[me.role] : '/signup'}
+              className="bg-primary hover:bg-primary-dark inline-flex min-h-11 items-center justify-center rounded-md px-5 text-sm font-semibold text-white"
+            >
+              {me ? '내 화면으로 이동' : '회원가입'}
+            </Link>
+            {!me && (
+              <Link
+                to="/login"
+                className="inline-flex min-h-11 items-center justify-center rounded-md border border-white/25 px-5 text-sm font-semibold text-white hover:bg-white/10"
+              >
+                로그인
+              </Link>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-5 text-xs sm:text-sm">
-          <Link to="/login" className="text-slate-300 hover:text-white">
-            로그인
-          </Link>
-          <Link to="/signup" className="text-slate-300 hover:text-white">
-            회원가입
-          </Link>
+        <div className="flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm">
+          <div className="flex items-center gap-2.5">
+            <span className="bg-signal h-4 w-1 rounded-full" aria-hidden="true" />
+            <strong className="font-bold text-white">화물운송플랫폼</strong>
+          </div>
+          <span className="text-slate-400">기준 운임 계산 · 차종별 배차 · 선결제 정산 관리</span>
         </div>
       </div>
     </footer>
@@ -800,14 +950,13 @@ export default function LandingPage() {
   return (
     <div className="bg-ground text-copy min-h-screen break-keep">
       <LandingHeader me={me} onLogout={logout} />
-      <FloatingQuickNav />
       <main>
         <HeroBannerSection me={me} />
         <ProblemSection />
         <FeatureShowcaseSection />
         <RolesSection />
       </main>
-      <LandingFooter />
+      <LandingFooter me={me} />
     </div>
   );
 }
