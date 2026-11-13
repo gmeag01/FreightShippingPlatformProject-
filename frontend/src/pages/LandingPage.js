@@ -121,11 +121,16 @@ function LandingHeader({ me, onLogout }) {
   return (
     <header className="border-line sticky top-0 z-30 border-b bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-280 items-center justify-between gap-4 px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
-          <span className="bg-signal h-5 w-1 rounded-full" aria-hidden="true" />
-          <strong className="text-ink text-base font-bold tracking-tight sm:text-lg">
-            화물운송플랫폼
-          </strong>
+        <Link
+          to="/"
+          className="flex items-center transition-opacity hover:opacity-85"
+          title="홈으로 이동"
+        >
+          <img
+            src="/images/logo-freighton.png"
+            alt="FreightOn"
+            className="h-9 w-auto object-contain sm:h-10"
+          />
         </Link>
 
         <nav className="hidden items-center gap-7 md:flex" aria-label="페이지 주요 섹션">
@@ -487,10 +492,17 @@ function LandingFooter({ me }) {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm">
-          <div className="flex items-center gap-2.5">
-            <span className="bg-signal h-4 w-1 rounded-full" aria-hidden="true" />
-            <strong className="font-bold text-white">화물운송플랫폼</strong>
-          </div>
+          <Link
+            to="/"
+            className="inline-flex items-center rounded-md bg-white px-2.5 py-1 transition-opacity hover:opacity-90"
+            title="홈으로 이동"
+          >
+            <img
+              src="/images/logo-freighton.png"
+              alt="FreightOn"
+              className="h-7 w-auto object-contain"
+            />
+          </Link>
           <span className="text-slate-400">기준 운임 계산 · 차종별 배차 · 선결제 정산 관리</span>
         </div>
       </div>

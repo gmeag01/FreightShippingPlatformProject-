@@ -74,11 +74,16 @@ export default function SignupPage() {
     <div className="bg-ground text-copy min-h-screen break-keep">
       <header className="bg-ink border-b border-blue-950/40">
         <div className="mx-auto flex h-[60px] max-w-280 items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
-            <span className="bg-signal h-5 w-1 rounded-full" aria-hidden="true" />
-            <strong className="text-base font-bold tracking-tight text-white sm:text-lg">
-              화물운송플랫폼
-            </strong>
+          <Link
+            to="/"
+            className="inline-flex items-center rounded-md bg-white px-2.5 py-1 transition-opacity hover:opacity-90"
+            title="홈으로 이동"
+          >
+            <img
+              src="/images/logo-freighton.png"
+              alt="FreightOn"
+              className="h-7 w-auto object-contain"
+            />
           </Link>
           <Link
             to="/login"
