@@ -47,3 +47,32 @@
   --color-status-cancelled: #e2e8f0;
   --color-status-cancelled-ink: #334155;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.scribble-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.65, 0, 0.35, 1) 0.25s;
+}
+
+.scribble-path-active {
+  stroke-dashoffset: 0;
+}
