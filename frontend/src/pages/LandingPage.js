@@ -331,6 +331,7 @@ function VehicleCarouselCard({ vehicle }) {
         <img
           src={vehicle.image}
           alt={`${vehicle.number}${vehicle.unit} 화물 차량`}
+          draggable={false}
           className="h-40 w-full object-contain sm:h-44"
         />
       </div>
@@ -353,10 +354,47 @@ function VehicleCarouselCard({ vehicle }) {
   );
 }
 
-// 좌우 화살표로 톤수별 차량 카드를 넘겨 보는 가로 캐러셀 섹션.
+// 마우스 좌클릭 드래그로 가로 스크롤을 제어하는 훅.
+function useDragScroll(trackRef) {
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef({ active: false, startX: 0, startScrollLeft: 0 });
+
+  const stopDragging = () => {
+    if (!dragRef.current.active) return;
+    dragRef.current.active = false;
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    window.addEventListener('mouseup', stopDragging);
+    return () => window.removeEventListener('mouseup', stopDragging);
+  }, []);
+
+  const handleMouseDown = (event) => {
+    if (event.button !== 0 || !trackRef.current) return;
+    dragRef.current = {
+      active: true,
+      startX: event.pageX,
+      startScrollLeft: trackRef.current.scrollLeft,
+    };
+    setIsDragging(true);
+  };
+
+  const handleMouseMove = (event) => {
+    if (!dragRef.current.active || !trackRef.current) return;
+    event.preventDefault();
+    const deltaX = event.pageX - dragRef.current.startX;
+    trackRef.current.scrollLeft = dragRef.current.startScrollLeft - deltaX;
+  };
+
+  return { isDragging, handleMouseDown, handleMouseMove, stopDragging };
+}
+
+// 좌우 화살표와 마우스 드래그로 톤수별 차량 카드를 넘겨 보는 가로 캐러셀 섹션.
 function VehicleShowcaseSection() {
   const trackRef = useRef(null);
   const { elementRef, isVisible } = useScrollReveal();
+  const { isDragging, handleMouseDown, handleMouseMove, stopDragging } = useDragScroll(trackRef);
 
   const scrollByDirection = (direction) => {
     if (!trackRef.current) return;
@@ -388,7 +426,13 @@ function VehicleShowcaseSection() {
 
           <div
             ref={trackRef}
-            className="no-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth py-2"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={stopDragging}
+            onMouseLeave={stopDragging}
+            className={`no-scrollbar flex gap-5 overflow-x-auto py-2 select-none ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab snap-x snap-mandatory'
+            }`}
           >
             {VEHICLE_SPECS.map((vehicle) => (
               <VehicleCarouselCard key={vehicle.code} vehicle={vehicle} />
