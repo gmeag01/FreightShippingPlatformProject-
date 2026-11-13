@@ -1,10 +1,47 @@
 @import 'tailwindcss';
 
+/* 에스코어 드림(S-Core Dream) 한글 웹폰트 */
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff')
+    format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-5Medium.woff')
+    format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff')
+    format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-7ExtraBold.woff')
+    format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* 화면 공통 값. 쓰는 방법은 docs/design/ui-guide.md를 따른다. */
 @theme {
   --font-sans:
-    'IBM Plex Sans KR', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+    'S-CoreDream', 'S-Core Dream', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  --font-mono: 'Roboto Mono', 'S-CoreDream', ui-monospace, Consolas, monospace;
 
   --text-body: 15px;
   --text-caption: 13px;
@@ -50,6 +87,15 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+body {
+  font-variant-numeric: normal;
+}
+
+.font-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: normal;
 }
 
 @keyframes fade-up {
