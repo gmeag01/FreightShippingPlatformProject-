@@ -8,7 +8,6 @@ import { formatNumber } from '../order/presentation';
 const SECTION_LINKS = [
   { id: 'problem', label: '문제 해결' },
   { id: 'features', label: '주요 기능' },
-  { id: 'roles', label: '역할별 안내' },
 ];
 
 // 히어로 하단 핵심 지표 3종.
@@ -200,52 +199,6 @@ const SETTLEMENT_ITEMS = [
   },
 ];
 
-// 역할별 화면 안내 카드 목록.
-const ROLE_CARDS = [
-  {
-    number: '01',
-    role: '화주',
-    title: '추천 운임 확인 후 오더 등록',
-    summary:
-      '거리와 차종만으로 적정 운임을 바로 확인하고, 운송 현황과 정산까지 한 화면에서 봅니다.',
-    items: [
-      '구간·차종·할증별 추천 운임 계산',
-      '5단계 운송 진행 상태와 이력 조회',
-      '이상 발생 시 분쟁 신고 및 처리 확인',
-    ],
-    to: '/signup?role=SHIPPER',
-    ctaLabel: '화주로 시작하기',
-  },
-  {
-    number: '02',
-    role: '차주',
-    title: '내 차에 맞는 일감 수락',
-    summary:
-      '보유 차량 톤수에 맞는 오더만 골라 수락하고, 하차 완료 뒤 정해진 기한 안에 지급받습니다.',
-    items: [
-      '차량 정보에 맞춘 오더 목록 확인',
-      '배차 확정 후 상·하차 상세주소 열람',
-      '수령 확인 즉시 및 24시간 자동 정산',
-    ],
-    to: '/signup?role=DRIVER',
-    ctaLabel: '차주로 시작하기',
-  },
-  {
-    number: '03',
-    role: '관리자',
-    title: '단가표 설정과 분쟁 처리',
-    summary:
-      '당일 등록·배차 현황부터 차종별 요율 관리, 대기 분쟁 판결과 회원 관리까지 통합 운영합니다.',
-    items: [
-      '오늘 등록·배차·완료 대시보드 확인',
-      '차종별 기본요금과 할증률 실시간 조정',
-      '대기 분쟁 처리 및 과거 판결 이력 조회',
-    ],
-    to: '/login',
-    ctaLabel: '관리자 로그인',
-  },
-];
-
 // 기본·거리·할증 금액과 1,000원 단위 반올림 추천 운임을 계산한다.
 function calculateSimulatedFare(route, vehicleRate, selectedSurcharges) {
   const baseFare = vehicleRate.baseFare;
@@ -304,14 +257,14 @@ function MetricValue({ parts }) {
   );
 }
 
-// 상단 고정 헤더: 로고, 섹션 이동 링크, 로그인·회원가입 버튼을 배치한다.
+// 상단 고정 헤더: 밝은 배경 위에 로고, 섹션 이동 링크, 로그인·회원가입 버튼을 배치한다.
 function LandingHeader({ me, onLogout }) {
   return (
-    <header className="bg-ink/95 sticky top-0 z-30 border-b border-white/10 backdrop-blur-sm">
+    <header className="border-line sticky top-0 z-30 border-b bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-280 items-center justify-between gap-4 px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-90">
+        <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
           <span className="bg-signal h-5 w-1 rounded-full" aria-hidden="true" />
-          <strong className="text-base font-bold tracking-tight text-white sm:text-lg">
+          <strong className="text-ink text-base font-bold tracking-tight sm:text-lg">
             화물운송플랫폼
           </strong>
         </Link>
@@ -321,7 +274,7 @@ function LandingHeader({ me, onLogout }) {
             <a
               key={linkItem.id}
               href={`#${linkItem.id}`}
-              className="text-sm font-medium text-slate-300 transition-colors hover:text-white"
+              className="text-muted hover:text-ink text-sm font-medium transition-colors"
             >
               {linkItem.label}
             </a>
@@ -339,7 +292,7 @@ function HeaderAuthActions({ me, onLogout }) {
   if (me) {
     return (
       <div className="flex items-center gap-2 sm:gap-3">
-        <span className="hidden items-center rounded-sm bg-white/10 px-2.5 py-1 text-xs font-semibold text-slate-200 sm:inline-flex">
+        <span className="bg-ground text-ink hidden items-center rounded-sm px-2.5 py-1 text-xs font-semibold sm:inline-flex">
           {ROLE_LABEL[me.role]} · {me.name}
         </span>
         <Link
@@ -351,7 +304,7 @@ function HeaderAuthActions({ me, onLogout }) {
         <button
           type="button"
           onClick={onLogout}
-          className="inline-flex min-h-10 items-center justify-center rounded-md border border-white/25 px-3 text-sm font-semibold whitespace-nowrap text-slate-200 hover:bg-white/10"
+          className="border-line-strong text-ink inline-flex min-h-10 items-center justify-center rounded-md border bg-white px-3 text-sm font-semibold whitespace-nowrap hover:bg-slate-50"
         >
           로그아웃
         </button>
@@ -363,7 +316,7 @@ function HeaderAuthActions({ me, onLogout }) {
     <div className="flex items-center gap-2">
       <Link
         to="/login"
-        className="inline-flex min-h-10 items-center justify-center rounded-md border border-white/25 px-3.5 text-sm font-semibold whitespace-nowrap text-white hover:bg-white/10"
+        className="border-line-strong text-ink inline-flex min-h-10 items-center justify-center rounded-md border bg-white px-3.5 text-sm font-semibold whitespace-nowrap hover:bg-slate-50"
       >
         로그인
       </Link>
@@ -377,22 +330,22 @@ function HeaderAuthActions({ me, onLogout }) {
   );
 }
 
-// 첫 화면 히어로 배너: 헤드라인, 보조 설명, 시작 버튼, 상세 지표를 배치한다.
+// 첫 화면 히어로 배너: 밝은 하늘색 그라데이션 배경에 헤드라인, 보조 설명, 시작 버튼, 상세 지표를 배치한다.
 function HeroBannerSection({ me }) {
   const primaryHref = me ? ROLE_HOME[me.role] : '/signup';
   const primaryLabel = me ? '내 화면으로 이동' : '시작하기';
 
   return (
-    <section className="bg-ink relative overflow-hidden py-20 text-white sm:py-28">
+    <section className="border-line via-ground relative overflow-hidden border-b bg-gradient-to-b from-blue-50 to-white py-20 sm:py-28">
       <div className="mx-auto flex max-w-280 flex-col gap-10 px-4 sm:px-6">
         <div className="flex flex-col gap-5">
-          <h1 className="max-w-3xl text-3xl leading-snug font-bold tracking-tight sm:text-5xl sm:leading-tight">
+          <h1 className="text-ink max-w-3xl text-3xl leading-snug font-bold tracking-tight sm:text-5xl sm:leading-tight">
             거리와 차종만 고르면
             <br />
             운임부터 배차까지 바로 끝납니다
           </h1>
 
-          <p className="max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg">
+          <p className="text-muted max-w-2xl text-base leading-relaxed sm:text-lg">
             전화 흥정 없이 기준 단가로 오더를 올리고, 운송이 끝나면 미리 결제해 둔 운임을 정해진
             기준대로 바로 정산합니다. 화주와 차주 모두 진행 상황을 같은 화면에서 확인할 수 있습니다.
           </p>
@@ -407,20 +360,20 @@ function HeroBannerSection({ me }) {
           </Link>
           <a
             href="#features"
-            className="inline-flex min-h-12 items-center justify-center rounded-md border border-white/25 px-6 text-base font-semibold text-white transition-colors hover:bg-white/10"
+            className="border-line-strong text-ink inline-flex min-h-12 items-center justify-center rounded-md border bg-white px-6 text-base font-semibold transition-colors hover:bg-slate-50"
           >
             기능 살펴보기
           </a>
         </div>
 
-        <dl className="grid grid-cols-1 gap-6 border-t border-white/15 pt-8 sm:grid-cols-3">
+        <dl className="border-line grid grid-cols-1 gap-6 border-t pt-8 sm:grid-cols-3">
           {HERO_METRICS.map((metric) => (
             <div key={metric.label} className="flex flex-col gap-1.5">
-              <dt className="text-xs font-medium text-slate-400">{metric.label}</dt>
-              <dd className="text-xl font-bold tracking-tight text-white sm:text-2xl">
+              <dt className="text-subtle text-xs font-medium">{metric.label}</dt>
+              <dd className="text-ink text-xl font-bold tracking-tight sm:text-2xl">
                 <MetricValue parts={metric.parts} />
               </dd>
-              <p className="text-xs leading-relaxed text-slate-300 sm:text-sm">{metric.desc}</p>
+              <p className="text-muted text-xs leading-relaxed sm:text-sm">{metric.desc}</p>
             </div>
           ))}
         </dl>
@@ -836,66 +789,6 @@ function FeatureShowcaseSection() {
   );
 }
 
-// 역할별 화면 안내 섹션: 화주·차주·관리자 역할을 3열 카드로 보여 준다.
-function RolesSection() {
-  const { elementRef, isVisible } = useScrollReveal();
-
-  return (
-    <section id="roles" ref={elementRef} className="bg-white py-20 sm:py-28">
-      <div
-        className={`mx-auto flex max-w-280 flex-col gap-10 px-4 sm:px-6 ${revealClass(isVisible)}`}
-      >
-        <div className="flex flex-col gap-3">
-          <h2 className="text-ink text-2xl font-bold sm:text-4xl">역할별 화면 안내</h2>
-          <p className="text-muted max-w-2xl text-sm sm:text-base">
-            화주, 차주, 관리자 계정마다 업무에 꼭 필요한 메뉴만 모아서 구성했습니다.
-          </p>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          {ROLE_CARDS.map((card) => (
-            <article
-              key={card.number}
-              className="border-line flex flex-col justify-between gap-6 rounded-2xl border bg-white p-6 transition-shadow hover:shadow-md sm:p-7"
-            >
-              <div className="flex flex-col gap-4">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-primary font-num text-3xl font-bold tracking-tight">
-                    {card.number}
-                  </span>
-                  <span className="bg-ground text-ink rounded-sm px-2.5 py-1 text-xs font-semibold">
-                    {card.role}
-                  </span>
-                </div>
-                <h3 className="text-ink text-lg font-bold">{card.title}</h3>
-                <p className="text-muted text-sm leading-relaxed">{card.summary}</p>
-                <ul className="border-line flex flex-col gap-2 border-t pt-4">
-                  {card.items.map((item) => (
-                    <li key={item} className="text-copy flex items-center gap-2 text-sm">
-                      <span
-                        className="bg-primary h-1.5 w-1.5 shrink-0 rounded-full"
-                        aria-hidden="true"
-                      />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <Link
-                to={card.to}
-                className="border-line-strong text-ink inline-flex min-h-11 items-center justify-center rounded-md border bg-white px-4 text-sm font-semibold transition-colors hover:bg-slate-50"
-              >
-                {card.ctaLabel}
-              </Link>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // 하단 푸터: 간단한 가입 안내와 서비스명, 로그인·회원가입 링크를 배치한다.
 function LandingFooter({ me }) {
   return (
@@ -954,7 +847,6 @@ export default function LandingPage() {
         <HeroBannerSection me={me} />
         <ProblemSection />
         <FeatureShowcaseSection />
-        <RolesSection />
       </main>
       <LandingFooter me={me} />
     </div>
