@@ -45,7 +45,7 @@ const VEHICLE_SPECS = [
     image: '/images/trucks/cargo_2_5t.png',
     description: '일반 적재함이 설치된 준중형 차량입니다.',
     maxWeight: '2,500',
-    pallets: '3 ~ 6',
+    pallets: '3~6',
   },
   {
     code: 'TON_5',
@@ -54,7 +54,7 @@ const VEHICLE_SPECS = [
     image: '/images/trucks/cargo_5t.png',
     description: '중형 화물 및 팔레트 간선 운송 차량입니다.',
     maxWeight: '5,000',
-    pallets: '8 ~ 10',
+    pallets: '8~10',
   },
   {
     code: 'TON_11',
@@ -63,7 +63,7 @@ const VEHICLE_SPECS = [
     image: '/images/trucks/cargo_11t.png',
     description: '장거리 대량 파렛트 적재가 가능한 대형 차량입니다.',
     maxWeight: '11,000',
-    pallets: '16 ~ 18',
+    pallets: '16~18',
   },
   {
     code: 'TON_25',
@@ -72,7 +72,7 @@ const VEHICLE_SPECS = [
     image: '/images/trucks/cargo_25t.png',
     description: '대형 물류와 수출입 화물을 운송하는 초대형 차량입니다.',
     maxWeight: '25,000',
-    pallets: '18 ~ 22',
+    pallets: '18~22',
   },
 ];
 
@@ -186,18 +186,18 @@ function HeroBannerSection({ me }) {
   const primaryLabel = me ? '내 화면으로 이동' : '시작하기';
 
   return (
-    <section className="relative min-h-[520px] overflow-hidden bg-slate-200 sm:min-h-[600px]">
+    <section className="relative min-h-[calc(100svh-65px)] overflow-hidden bg-[#2b3748]">
       <img
         src="/images/hero-trucks.png"
         alt="다양한 톤수의 화물 운송 차량"
-        className="absolute inset-0 h-full w-full object-cover object-bottom"
+        className="absolute inset-x-0 top-14 h-full w-full object-cover object-bottom sm:top-20"
       />
       <div
-        className="absolute inset-0 bg-gradient-to-b from-slate-900/45 via-slate-900/20 to-transparent"
+        className="absolute inset-0 bg-gradient-to-b from-[#2b3748] from-12% via-[#2b3748]/45 via-32% to-transparent"
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex max-w-280 flex-col items-center gap-5 px-4 pt-16 text-center sm:px-6 sm:pt-24">
+      <div className="relative z-10 mx-auto flex max-w-280 flex-col items-center gap-4 px-4 pt-16 text-center sm:px-6 sm:pt-24">
         <h1 className="text-3xl leading-snug font-bold tracking-tight text-white drop-shadow-sm sm:text-5xl sm:leading-tight">
           어떤 화물이든, 정해진 기준으로 바로
         </h1>
@@ -327,16 +327,18 @@ function VehicleCarouselCard({ vehicle }) {
         />
       </div>
 
-      <div className="bg-ground flex flex-col gap-2 rounded-xl px-4 py-3.5 text-sm">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-ink font-bold">화물 적재량(팔레트 기준)</span>
-          <span className="text-primary font-bold">
+      <div className="bg-ground flex flex-col gap-2 rounded-xl px-4 py-3.5">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-ink text-sm font-bold whitespace-nowrap">
+            화물 적재량 <span className="text-muted text-xs font-medium">(팔레트 기준)</span>
+          </span>
+          <span className="text-primary shrink-0 text-base font-bold whitespace-nowrap sm:text-lg">
             <span className="font-num">{vehicle.pallets}</span>개
           </span>
         </div>
-        <div className="flex items-center justify-between gap-2 text-xs">
-          <span className="text-subtle">최대 적재 중량</span>
-          <span className="text-ink font-semibold">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-subtle text-xs whitespace-nowrap">최대 적재 중량</span>
+          <span className="text-ink shrink-0 text-sm font-bold whitespace-nowrap sm:text-base">
             <span className="font-num">{vehicle.maxWeight}</span>kg
           </span>
         </div>
