@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MemberService {
 
+    private static final int MIN_PASSWORD_LENGTH = 8;
+
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -64,7 +66,7 @@ public class MemberService {
         if (!passwordEncoder.matches(request.currentPassword(), member.getPassword())) {
             throw new BusinessException(ErrorCode.INVALID_CURRENT_PASSWORD);
         }
-        if (request.newPassword().trim().length() < 8) {
+        if (request.newPassword().trim().length() < MIN_PASSWORD_LENGTH) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);
         }
         member.changePassword(passwordEncoder.encode(request.newPassword().trim()));

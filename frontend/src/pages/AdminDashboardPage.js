@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchAdminDashboard, fetchDashboardOrders } from '../api/dashboard';
+import { useModalEffect } from '../hooks/useModalEffect';
 import { VEHICLE_LABELS, formatNumber, statusLabel } from '../order/presentation';
 
 // 날짜와 시각을 MM.dd HH:mm 형식으로 변환한다.
@@ -91,25 +92,7 @@ export default function AdminDashboardPage() {
     setModalError(null);
   }
 
-  // 모달이 열려 있을 때 ESC 키 입력 감지 및 배경 스크롤 방지
-  useEffect(() => {
-    if (!activeModal) return;
-
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        closeModal();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [activeModal]);
+  useModalEffect(Boolean(activeModal), closeModal);
 
   const data = result?.data;
   const error = result?.error;

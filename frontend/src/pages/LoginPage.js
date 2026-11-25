@@ -2,35 +2,9 @@ import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ROLE_HOME } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
+import AuthHeader from '../components/auth/AuthHeader';
 
 const INITIAL_LOGIN_FORM = { email: '', password: '' };
-
-// 공통 인증 화면 상단 머리말. 로고를 누르면 서비스 메인 페이지(/)로 이동한다.
-function AuthHeader({ rightLink }) {
-  return (
-    <header className="bg-ink border-b border-blue-950/40">
-      <div className="mx-auto flex h-[60px] max-w-280 items-center justify-between px-4 sm:px-6">
-        <Link
-          to="/"
-          className="flex items-center transition-opacity hover:opacity-90"
-          title="홈으로 이동"
-        >
-          <img
-            src="/images/logo-freighton-light.png"
-            alt="FreightOn"
-            className="h-8 w-auto object-contain sm:h-9"
-          />
-        </Link>
-        <Link
-          to={rightLink.to}
-          className="inline-flex min-h-11 items-center justify-center rounded-md border border-white/25 px-3.5 text-sm font-semibold whitespace-nowrap text-white hover:bg-white/10"
-        >
-          {rightLink.label}
-        </Link>
-      </div>
-    </header>
-  );
-}
 
 // 로그인 화면. 로그인에 성공하면 역할별 첫 화면으로 보낸다. 이미 로그인했으면 이 화면을 건너뛴다.
 export default function LoginPage() {

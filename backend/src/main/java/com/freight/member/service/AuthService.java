@@ -11,6 +11,7 @@ import com.freight.member.entity.Member;
 import com.freight.member.entity.MemberStatus;
 import com.freight.member.entity.Role;
 import com.freight.member.repository.MemberRepository;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,7 @@ public class AuthService {
             throw new BusinessException(ErrorCode.INVALID_INPUT);
         }
 
-        String normalizedEmail = request.email().toLowerCase();
+        String normalizedEmail = normalizeEmail(request.email());
         if (memberRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
@@ -65,7 +66,7 @@ public class AuthService {
      * @throws BusinessException 이메일이나 비밀번호가 틀린 경우(INVALID_CREDENTIALS), 정지된 계정인 경우(ACCOUNT_SUSPENDED)
      */
     public TokenResponse login(LoginRequest request) {
-        String normalizedEmail = request.email().toLowerCase();
+        String normalizedEmail = normalizeEmail(request.email());
         Member member = memberRepository
                 .findByEmail(normalizedEmail)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS));
@@ -80,5 +81,9 @@ public class AuthService {
 
         String token = jwtTokenProvider.createToken(member.getId(), member.getRole());
         return new TokenResponse(token, member.getRole());
+    }
+
+    private String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { fetchAdminMembers, fetchMemberCounts, updateMemberStatus } from '../api/members';
 import { ROLE_LABEL } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
+import { useModalEffect } from '../hooks/useModalEffect';
 import { BODY_LABELS, VEHICLE_LABELS } from '../order/presentation';
 
 // 관리자 전용 회원 관리 화면 (시안: docs/design/screens/admin-members.png)
@@ -138,25 +139,7 @@ export default function AdminMembersPage() {
     setActionError('');
   }, [isSubmitting]);
 
-  // 컨펌 모달이 열려 있을 때 ESC 키 입력 감지 및 배경 스크롤 방지
-  useEffect(() => {
-    if (!confirmTarget) return;
-
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && !isSubmitting) {
-        handleCloseConfirm();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [confirmTarget, isSubmitting, handleCloseConfirm]);
+  useModalEffect(Boolean(confirmTarget), handleCloseConfirm, isSubmitting);
 
   // 상태 변경 실행 핸들러
   const handleConfirmStatusChange = async () => {
