@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AdminMemberService {
 
+    private static final int DEFAULT_PAGE_SIZE = 10;
     private static final Set<String> ALLOWED_SORT_PROPERTIES =
             Set.of("id", "email", "name", "phone", "role", "status", "createdAt");
 
@@ -44,7 +45,7 @@ public class AdminMemberService {
      *
      * @param role     필터링할 역할(null이면 전체)
      * @param status   필터링할 회원 상태(null이면 전체)
-     * @param keyword  검색어(이름 또는 이메일 포함 검색, null이면 전체)
+     * @param keyword  검색어(이름, 이메일 또는 연락처 포함 검색, null이면 전체)
      * @param pageable 페이징 정보
      * @return 관리자용 회원 응답 페이지
      */
@@ -82,7 +83,7 @@ public class AdminMemberService {
      */
     private Pageable sanitizePageable(Pageable pageable) {
         if (pageable == null) {
-            return PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
+            return PageRequest.of(0, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "id"));
         }
         if (pageable.getSort().isUnsorted()) {
             return pageable;
@@ -108,9 +109,7 @@ public class AdminMemberService {
      * @throws BusinessException MEMBER_NOT_FOUND (회원을 찾을 수 없는 경우)
      */
     public AdminMemberDetailResponse getMemberDetail(Long memberId) {
-        Member member = memberRepository
-                .findById(memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberOrThrow(memberId);
 
         Vehicle vehicle = null;
         long cancellationCount = 0;
@@ -135,9 +134,7 @@ public class AdminMemberService {
      */
     @Transactional
     public AdminMemberResponse updateMemberStatus(Long targetMemberId, MemberStatus newStatus, Long currentAdminId) {
-        Member member = memberRepository
-                .findById(targetMemberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = findMemberOrThrow(targetMemberId);
 
         if (targetMemberId.equals(currentAdminId) && newStatus == MemberStatus.SUSPENDED) {
             throw new BusinessException(ErrorCode.ADMIN_CANNOT_SUSPEND_SELF);
@@ -150,5 +147,9 @@ public class AdminMemberService {
         }
 
         return toAdminMemberResponse(member);
+    }
+
+    private Member findMemberOrThrow(Long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

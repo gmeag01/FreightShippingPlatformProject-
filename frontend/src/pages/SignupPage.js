@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import * as authApi from '../api/auth';
+import { ROLE_HOME } from '../auth/roles';
+import { useAuth } from '../auth/useAuth';
+import AuthHeader from '../components/auth/AuthHeader';
 
 // 화면에서 고를 수 있는 가입 유형. 관리자(ADMIN) 계정은 시드 데이터로만 만들기 때문에 넣지 않는다.
 const SIGNUP_ROLE_OPTIONS = [
@@ -25,6 +28,7 @@ function resolveInitialRole(searchParams) {
 
 // 회원가입 화면. 가입에 성공하면 로그인 화면으로 보내고, 실패하면 전체 오류와 칸별 오류를 보여 준다.
 export default function SignupPage() {
+  const { me, isLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [signupForm, setSignupForm] = useState(() => ({
@@ -37,6 +41,9 @@ export default function SignupPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (isLoading) return null;
+  if (me) return <Navigate to={ROLE_HOME[me.role]} replace />;
 
   // 입력 칸의 name 속성으로 어느 값을 바꿀지 정한다.
   const handleInputChange = (event) => {
@@ -72,27 +79,7 @@ export default function SignupPage() {
 
   return (
     <div className="bg-ground text-copy min-h-screen break-keep">
-      <header className="bg-ink border-b border-blue-950/40">
-        <div className="mx-auto flex h-[60px] max-w-280 items-center justify-between px-4 sm:px-6">
-          <Link
-            to="/"
-            className="flex items-center transition-opacity hover:opacity-90"
-            title="홈으로 이동"
-          >
-            <img
-              src="/images/logo-freighton-light.png"
-              alt="FreightOn"
-              className="h-8 w-auto object-contain sm:h-9"
-            />
-          </Link>
-          <Link
-            to="/login"
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-white/25 px-3.5 text-sm font-semibold whitespace-nowrap text-white hover:bg-white/10"
-          >
-            로그인
-          </Link>
-        </div>
-      </header>
+      <AuthHeader rightLink={{ to: '/login', label: '로그인' }} />
 
       <main className="mx-auto flex max-w-280 justify-center px-4 pt-10 pb-14 sm:px-6">
         <form

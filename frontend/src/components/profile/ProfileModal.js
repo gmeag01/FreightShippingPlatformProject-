@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updateMyProfile } from '../../api/members';
 import { ROLE_LABEL } from '../../auth/roles';
 import { useAuth } from '../../auth/useAuth';
+import { useModalEffect } from '../../hooks/useModalEffect';
 
 // 전화번호 입력 시 하이픈(-)을 자동으로 삽입한다 (예: 01012345678 -> 010-1234-5678)
 function formatPhoneNumber(value) {
@@ -29,25 +30,7 @@ export default function ProfileModal({ isOpen, onClose }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // ESC 키로 닫기 및 배경 스크롤 방지
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && !isSubmitting) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isOpen, isSubmitting, onClose]);
+  useModalEffect(isOpen, onClose, isSubmitting);
 
   const handlePhoneChange = (e) => {
     setPhone(formatPhoneNumber(e.target.value));

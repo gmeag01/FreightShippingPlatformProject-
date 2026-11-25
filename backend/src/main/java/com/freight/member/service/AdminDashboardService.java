@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,21 @@ public class AdminDashboardService {
      */
     public AdminDashboardResponse getDashboard() {
         LocalDateTime now = LocalDateTime.now();
+        SummaryMetrics summary = buildSummaryMetrics(now);
+
+        List<UrgentOrderDto> urgentOrders = orderService.findUrgentUnassignedOrders(DASHBOARD_LIST_SIZE).stream()
+                .map(order -> UrgentOrderDto.from(order, now))
+                .toList();
+
+        // 설계 시안(admin-dashboard.png)대로 신고 사유·시각을 보여 주려고 분쟁 화면과 같은 delivery 조회를 쓴다.
+        List<DisputeSummaryResponse> disputeOrders = disputeQueryService.listDisputes(0).stream()
+                .limit(DASHBOARD_LIST_SIZE)
+                .toList();
+
+        return new AdminDashboardResponse(summary, urgentOrders, disputeOrders);
+    }
+
+    private SummaryMetrics buildSummaryMetrics(LocalDateTime now) {
         LocalDate today = now.toLocalDate();
         LocalDateTime todayStart = today.atStartOfDay();
         LocalDateTime todayEnd = today.atTime(LocalTime.MAX);
@@ -45,23 +61,17 @@ public class AdminDashboardService {
         LocalDateTime yesterdayStart = yesterday.atStartOfDay();
         LocalDateTime yesterdayEnd = yesterday.atTime(LocalTime.MAX);
 
-        // 1. 오늘/어제 등록 건수
+        // 배차·완료 건수는 목록 조회와 1:1 일치하도록 assigned_at, completed_at 기준으로 집계한다.
         long todayRegistered = orderService.countOrdersCreatedBetween(todayStart, todayEnd);
         long yesterdayRegistered = orderService.countOrdersCreatedBetween(yesterdayStart, yesterdayEnd);
-
-        // 2. 오늘/어제 배차 건수 (assigned_at 기준: 목록 조회와 1:1 일치)
         long todayAssigned = orderService.countOrdersAssignedBetween(todayStart, todayEnd);
         long yesterdayAssigned = orderService.countOrdersAssignedBetween(yesterdayStart, yesterdayEnd);
-
-        // 3. 오늘/어제 완료 건수 (completed_at 기준: 목록 조회와 1:1 일치)
         long todayCompleted = orderService.countOrdersCompletedBetween(todayStart, todayEnd);
         long yesterdayCompleted = orderService.countOrdersCompletedBetween(yesterdayStart, yesterdayEnd);
-
-        // 4. 현재 대기 상태 (미배차, 분쟁)
         long unassignedCount = orderService.countUnassignedOrders(now);
         long disputedCount = orderService.countOrdersByStatus(OrderStatus.DISPUTED);
 
-        SummaryMetrics summary = new SummaryMetrics(
+        return new SummaryMetrics(
                 todayRegistered,
                 yesterdayRegistered,
                 todayAssigned,
@@ -70,19 +80,6 @@ public class AdminDashboardService {
                 yesterdayCompleted,
                 unassignedCount,
                 disputedCount);
-
-        // 5. 상차 임박 미배차 오더 (최대 5건)
-        List<UrgentOrderDto> urgentOrders = orderService.findUrgentUnassignedOrders(DASHBOARD_LIST_SIZE).stream()
-                .map(order -> UrgentOrderDto.from(order, now))
-                .toList();
-
-        // 6. 처리 대기 분쟁 오더 (최대 5건)
-        // 설계 시안(admin-dashboard.png)대로 신고 사유·시각을 보여 주려고 분쟁 화면과 같은 delivery 조회를 쓴다.
-        List<DisputeSummaryResponse> disputeOrders = disputeQueryService.listDisputes(0).stream()
-                .limit(DASHBOARD_LIST_SIZE)
-                .toList();
-
-        return new AdminDashboardResponse(summary, urgentOrders, disputeOrders);
     }
 
     /**
@@ -92,16 +89,16 @@ public class AdminDashboardService {
      * @return 상세 오더 목록
      */
     public List<AdminDashboardOrderDto> getDashboardOrders(String type) {
+        if (type == null) {
+            return List.of();
+        }
+
         LocalDateTime now = LocalDateTime.now();
         LocalDate today = now.toLocalDate();
         LocalDateTime todayStart = today.atStartOfDay();
         LocalDateTime todayEnd = today.atTime(LocalTime.MAX);
 
-        if (type == null) {
-            return List.of();
-        }
-
-        return switch (type.toUpperCase()) {
+        return switch (type.toUpperCase(Locale.ROOT)) {
             case "TODAY_REGISTERED" ->
                 orderService.findOrdersCreatedBetween(todayStart, todayEnd).stream()
                         .map(order -> AdminDashboardOrderDto.of(order, order.getCreatedAt()))
