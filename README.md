@@ -13,7 +13,7 @@
 | `backend/` | Spring Boot 3.5 / Java 21 / Gradle |
 | `frontend/` | React 19 + Vite + Tailwind CSS (컴포넌트 파일은 `.js`) |
 
-## 백엔드 로컬 실행 (STS)
+<!-- ## 백엔드 로컬 실행 (STS)
 
 1. JDK 21 설치, STS의 Window → Preferences → Java → Installed JREs에 JDK 21 추가
 2. Preferences → General → Workspace → Text file encoding을 **UTF-8**로 변경
@@ -37,7 +37,7 @@ cd backend && ./gradlew spotlessApply test
 
 ```bash
 cd frontend && npm run format && npm run lint && npm run build
-```
+``` -->
 
 ## 테스트용 시드 계정
 
@@ -58,7 +58,7 @@ cd frontend && npm run format && npm run lint && npm run build
 - **Swagger UI**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 - **OpenAPI JSON**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
-## 차주 동시 수락 제어 방식 비교 (matching 도메인)
+<!-- ## 차주 동시 수락 제어 방식 비교 (matching 도메인)
 
 동일한 배차 대기(`REGISTERED`) 오더에 여러 차주가 동시에 수락을 요청할 때 **정확히 1명만 배차(`ASSIGNED`)**되도록 보장하기 위해 세 가지 방식을 비교 검토하고 **JPA 낙관적 락(`@Version`)**을 채택했습니다.
 
@@ -74,5 +74,5 @@ cd frontend && npm run format && npm run lint && npm run build
 - **검증 결과 (H2 테스트 환경 및 로컬 MariaDB 11.4/12.3 동일 확인)**:
   - **성공(`200 OK`, `ASSIGNED`)**: 정확히 **1건**
   - **실패(`409 Conflict`, `ORDER_ALREADY_ASSIGNED`)**: 정확히 **9건**
-  - 최종 오더 상태 `ASSIGNED`, `version = 1`, `order_status_history`의 `REGISTERED → ASSIGNED` 이력 **1건** 기록 확인
+  - 최종 오더 상태 `ASSIGNED`, `version = 1`, `order_status_history`의 `REGISTERED → ASSIGNED` 이력 **1건** 기록 확인 -->
 
