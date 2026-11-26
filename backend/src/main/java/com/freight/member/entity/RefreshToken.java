@@ -16,7 +16,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** 로그인을 이어 가는 리프레시 토큰. 원문은 쿠키에만 두고 DB에는 해시만 저장해, DB가 새어도 토큰으로 쓸 수 없게 한다. */
+/** 로그인을 유지하는 데 쓰는 리프레시 토큰. 원문은 쿠키에만 있고 DB에는 해시만 저장하므로, DB가 유출돼도 토큰으로 쓸 수 없다. */
 @Getter
 @Entity
 @Table(name = "refresh_tokens")
@@ -42,7 +42,7 @@ public class RefreshToken extends BaseEntity {
         this.expiresAt = expiresAt;
     }
 
-    /** 토큰 원문을 해시해 저장할 리프레시 토큰을 만든다. */
+    /** 토큰 원문을 해시로 바꿔 저장할 리프레시 토큰을 만든다. */
     public static RefreshToken create(Long memberId, String rawToken, LocalDateTime expiresAt) {
         return new RefreshToken(memberId, hash(rawToken), expiresAt);
     }

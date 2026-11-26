@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 회원가입, 로그인, 토큰 갱신, 로그아웃 API 컨트롤러. 토큰은 응답 본문이 아니라 HttpOnly 쿠키로 내려준다. */
+/** 회원가입, 로그인, 토큰 갱신, 로그아웃 API. 토큰은 HttpOnly 쿠키에 담아 내려준다. */
 @Tag(name = "인증 API", description = "회원가입, 로그인, 토큰 갱신, 로그아웃 API")
 @RestController
 @RequestMapping("/api/auth")
@@ -43,7 +43,7 @@ public class AuthController {
         return withTokenCookies(authService.login(request));
     }
 
-    /** 리프레시 토큰 쿠키로 새 액세스·리프레시 토큰 쿠키를 내려준다. */
+    /** 리프레시 토큰 쿠키를 확인하고 새 토큰 쿠키 두 개를 내려준다. */
     @Operation(summary = "토큰 갱신", description = "리프레시 토큰 쿠키로 새 토큰 쿠키를 받습니다. 쓴 리프레시 토큰은 폐기됩니다.")
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<MemberResponse>> refresh(

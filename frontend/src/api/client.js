@@ -5,10 +5,10 @@ const NETWORK_ERROR_MESSAGE = '서버와 통신하지 못했습니다.';
 const AUTH_PATH_PREFIX = '/auth/';
 
 // 모든 API 호출이 쓰는 axios 인스턴스. 주소는 /api로 시작하고, 개발 중에는 Vite가 8080 서버로 넘긴다.
-// 토큰은 서버가 HttpOnly 쿠키로 주고받으므로 화면 코드는 토큰을 다루지 않는다.
+// 토큰은 HttpOnly 쿠키로 오가므로 화면 코드에서는 토큰을 다루지 않는다.
 const apiClient = axios.create({ baseURL: '/api' });
 
-// 동시에 여러 요청이 401을 받아도 갱신 요청은 한 번만 보내도록 진행 중인 갱신을 함께 쓴다.
+// 여러 요청이 동시에 401을 받아도 갱신 요청은 한 번만 보낸다. 진행 중인 갱신이 있으면 그 결과를 같이 기다린다.
 let refreshPromise = null;
 let handleSessionExpired = () => {};
 

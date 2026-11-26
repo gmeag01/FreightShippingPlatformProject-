@@ -35,7 +35,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    // 256비트 난수. 추측해서 맞힐 수 없는 길이다.
+    // 32바이트(256비트) 난수라 추측으로 맞힐 수 없다.
     private static final int REFRESH_TOKEN_BYTES = 32;
 
     @Value("${app.jwt.refresh-validity-ms}")
@@ -98,7 +98,7 @@ public class AuthService {
     }
 
     /**
-     * 리프레시 토큰을 확인하고 새 액세스·리프레시 토큰을 발급한다. 쓴 리프레시 토큰은 바로 폐기해, 탈취된 토큰을 한 번만 쓸 수 있게 한다.
+     * 리프레시 토큰을 확인하고 새 액세스·리프레시 토큰을 발급한다. 사용한 리프레시 토큰은 바로 폐기하므로, 탈취된 토큰은 한 번밖에 쓸 수 없다.
      *
      * @param rawRefreshToken 쿠키로 받은 리프레시 토큰 원문(쿠키가 없으면 null)
      * @return 새 액세스 토큰, 새 리프레시 토큰, 회원 정보
@@ -111,7 +111,7 @@ public class AuthService {
                 .findById(refreshToken.getMemberId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN));
 
-        // 설계 문서 6장: 정지는 로그인을 막는다. 토큰 갱신도 다시 로그인하는 것과 같으므로 막는다.
+        // 설계 문서 6장: 정지된 계정은 로그인할 수 없다. 토큰 갱신은 로그인을 연장하는 것이라 같이 막는다.
         if (member.getStatus() == MemberStatus.SUSPENDED) {
             throw new BusinessException(ErrorCode.ACCOUNT_SUSPENDED);
         }

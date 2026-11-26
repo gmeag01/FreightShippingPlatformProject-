@@ -57,7 +57,7 @@ final class ScenarioApi {
         return new Account(signup.data().path("id").asLong(), email, login(email));
     }
 
-    /** 로그인 API로 토큰을 받는다. 토큰은 본문이 아니라 HttpOnly 쿠키로 오므로 쿠키에서 꺼낸다. */
+    /** 로그인 API를 호출하고 응답의 access_token 쿠키에서 토큰을 꺼낸다. */
     String login(String email) throws Exception {
         MockHttpServletResponse response = mvc.perform(request(HttpMethod.POST, "/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

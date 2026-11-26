@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
-/** 액세스·리프레시 토큰을 담는 HttpOnly 쿠키를 만든다. 화면의 JS가 토큰을 읽지 못하게 해 XSS로 토큰이 새는 것을 막는다. */
+/** 액세스·리프레시 토큰을 담을 HttpOnly 쿠키를 만든다. 화면의 JS가 토큰을 읽을 수 없어서 XSS가 생겨도 토큰이 새지 않는다. */
 @Component
 public class AuthCookies {
 
@@ -13,9 +13,9 @@ public class AuthCookies {
     public static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
     private static final String ACCESS_TOKEN_PATH = "/api";
-    // 리프레시 토큰은 갱신·로그아웃 요청에만 실리도록 경로를 좁힌다.
+    // 리프레시 토큰은 갱신과 로그아웃 요청에만 실리도록 경로를 /api/auth로 좁힌다.
     private static final String REFRESH_TOKEN_PATH = "/api/auth";
-    // 다른 사이트에서 보낸 요청에는 쿠키가 실리지 않는다. CSRF 토큰 대신 이것으로 CSRF를 막는다(SecurityConfig).
+    // SameSite=Strict면 다른 사이트에서 보낸 요청에 쿠키가 실리지 않는다. 그래서 CSRF 토큰을 따로 쓰지 않는다(SecurityConfig 참고).
     private static final String SAME_SITE = "Strict";
 
     private final Duration accessTokenValidity;

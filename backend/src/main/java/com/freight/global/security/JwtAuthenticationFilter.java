@@ -13,7 +13,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
 
-/** 요청의 Bearer 토큰이나 액세스 토큰 쿠키를 해석해 로그인 회원을 SecurityContext에 넣는 필터. */
+/** 요청의 Bearer 헤더나 access_token 쿠키에서 토큰을 꺼내 검증하고, 로그인 회원을 SecurityContext에 넣는다. */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -52,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
             return token.isEmpty() ? null : token;
         }
-        // 브라우저는 토큰을 HttpOnly 쿠키로 보낸다. 헤더 방식은 Swagger와 테스트를 위해 남겨 둔다.
+        // 브라우저는 쿠키로 토큰을 보낸다. Swagger와 테스트가 헤더를 쓰므로 헤더를 먼저 본다.
         return resolveCookieToken(request);
     }
 

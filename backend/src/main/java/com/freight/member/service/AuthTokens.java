@@ -2,5 +2,5 @@ package com.freight.member.service;
 
 import com.freight.member.dto.MemberResponse;
 
-/** 로그인·토큰 갱신 결과. 컨트롤러가 두 토큰은 HttpOnly 쿠키로, 회원 정보는 응답 본문으로 내려준다. */
+/** 로그인·토큰 갱신 결과. 컨트롤러는 두 토큰을 HttpOnly 쿠키에, 회원 정보를 응답 본문에 담는다. */
 public record AuthTokens(String accessToken, String refreshToken, MemberResponse member) {}

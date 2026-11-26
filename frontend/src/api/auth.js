@@ -5,7 +5,7 @@ export function signup({ email, password, name, phone, role }) {
   return apiClient.post('/auth/signup', { email, password, name, phone, role });
 }
 
-// 로그인. 서버가 토큰을 HttpOnly 쿠키로 심고, 회원 정보(id, email, name, phone, role)를 돌려준다.
+// 로그인. 서버가 토큰 쿠키를 설정하고 회원 정보(id, email, name, phone, role)를 돌려준다.
 export function login(email, password) {
   return apiClient.post('/auth/login', { email, password });
 }
