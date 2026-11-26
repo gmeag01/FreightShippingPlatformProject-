@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
         return toResponse(ErrorCode.INVALID_INPUT);
     }
 
-    /** 설계 문서 5장: 낙관적 락(@Version) 충돌. 도메인에서 더 구체적인 코드로 바꾸지 않은 충돌은 여기서 409로 처리한다. */
+    /** 낙관적 락(@Version) 충돌. 도메인에서 더 구체적인 코드로 바꾸지 않은 충돌은 여기서 409로 처리한다. */
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(ObjectOptimisticLockingFailureException exception) {
         return toResponse(ErrorCode.CONCURRENT_MODIFICATION);
