@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.freight.global.security.AuthCookies;
 import com.freight.member.dto.LoginRequest;
 import com.freight.member.dto.SignupRequest;
 import com.freight.member.entity.Role;
@@ -56,11 +57,17 @@ final class ScenarioApi {
         return new Account(signup.data().path("id").asLong(), email, login(email));
     }
 
-    /** 로그인 API로 토큰을 받는다. */
+    /** 로그인 API를 호출하고 응답의 access_token 쿠키에서 토큰을 꺼낸다. */
     String login(String email) throws Exception {
-        ApiResult result = tryLogin(email);
-        assertThat(result.status()).as(result.body().toString()).isEqualTo(200);
-        return result.data().path("accessToken").asText();
+        MockHttpServletResponse response = mvc.perform(request(HttpMethod.POST, "/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LoginRequest(email, PASSWORD))))
+                .andReturn()
+                .getResponse();
+        assertThat(response.getStatus())
+                .as(response.getContentAsString(StandardCharsets.UTF_8))
+                .isEqualTo(200);
+        return response.getCookie(AuthCookies.ACCESS_TOKEN_COOKIE).getValue();
     }
 
     /** 실패 응답을 확인할 수 있도록 로그인 결과를 그대로 돌려준다. */
