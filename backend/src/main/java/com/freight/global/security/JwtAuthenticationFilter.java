@@ -2,6 +2,7 @@ package com.freight.global.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -10,8 +11,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
-/** 요청의 Bearer 토큰을 해석해 로그인 회원을 SecurityContext에 넣는 필터. */
+/** 요청의 Bearer 토큰이나 액세스 토큰 쿠키를 해석해 로그인 회원을 SecurityContext에 넣는 필터. */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -50,6 +52,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
             return token.isEmpty() ? null : token;
         }
-        return null;
+        // 브라우저는 토큰을 HttpOnly 쿠키로 보낸다. 헤더 방식은 Swagger와 테스트를 위해 남겨 둔다.
+        return resolveCookieToken(request);
+    }
+
+    private String resolveCookieToken(HttpServletRequest request) {
+        Cookie cookie = WebUtils.getCookie(request, AuthCookies.ACCESS_TOKEN_COOKIE);
+        return cookie == null || cookie.getValue().isBlank() ? null : cookie.getValue();
     }
 }

@@ -1,36 +1,36 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as authApi from '../api/auth';
-import { ACCESS_TOKEN_KEY } from '../api/client';
+import { setSessionExpiredHandler } from '../api/client';
 import { AuthContext } from './useAuth';
 
 // 로그인 상태(me)와 로그인·로그아웃 함수를 앱 전체에 내려 준다.
 export function AuthProvider({ children }) {
   const [me, setMe] = useState(null);
-  // 토큰이 있으면 회원 정보를 받아 올 때까지 화면을 그리지 않아야 로그인 화면이 잠깐 보이지 않는다.
-  const [isLoading, setIsLoading] = useState(() => Boolean(localStorage.getItem(ACCESS_TOKEN_KEY)));
+  // 토큰이 HttpOnly 쿠키라 화면에서는 로그인 여부를 알 수 없다. 회원 정보를 받아 볼 때까지 화면을 그리지 않아야
+  // 로그인 화면이 잠깐 보이지 않는다.
+  const [isLoading, setIsLoading] = useState(true);
 
-  // 새로고침해도 저장된 토큰으로 로그인 상태를 되살린다. 토큰이 만료됐으면 지운다.
+  // 새로고침해도 쿠키의 토큰으로 로그인 상태를 되살린다. 토큰 갱신까지 실패하면 비로그인 상태로 둔다.
   useEffect(() => {
-    if (!localStorage.getItem(ACCESS_TOKEN_KEY)) return;
+    setSessionExpiredHandler(() => setMe(null));
     authApi
       .fetchMe()
       .then(setMe)
-      .catch(() => localStorage.removeItem(ACCESS_TOKEN_KEY))
+      .catch(() => setMe(null))
       .finally(() => setIsLoading(false));
   }, []);
 
-  // 토큰을 저장한 뒤 회원 정보를 받아 온다. 화면이 역할별 첫 화면으로 이동할 수 있게 회원 정보를 돌려준다.
+  // 로그인하면 서버가 토큰 쿠키를 심고 회원 정보를 돌려준다. 화면이 역할별 첫 화면으로 이동할 수 있게 회원 정보를 돌려준다.
   const login = useCallback(async (email, password) => {
-    const { accessToken } = await authApi.login(email, password);
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    const loggedInMember = await authApi.fetchMe();
+    const loggedInMember = await authApi.login(email, password);
     setMe(loggedInMember);
     return loggedInMember;
   }, []);
 
+  // 화면은 바로 비로그인 상태로 바꾸고, 서버의 토큰 폐기는 기다리지 않는다. 실패해도 액세스 토큰은 곧 만료된다.
   const logout = useCallback(() => {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
     setMe(null);
+    authApi.logout().catch(() => {});
   }, []);
 
   // 회원 정보가 수정되었을 때 최신 정보를 다시 불러와 동기화한다.

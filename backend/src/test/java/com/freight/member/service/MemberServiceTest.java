@@ -8,7 +8,6 @@ import com.freight.global.exception.ErrorCode;
 import com.freight.member.dto.LoginRequest;
 import com.freight.member.dto.MemberResponse;
 import com.freight.member.dto.SignupRequest;
-import com.freight.member.dto.TokenResponse;
 import com.freight.member.dto.UpdateProfileRequest;
 import com.freight.member.entity.Member;
 import com.freight.member.entity.Role;
@@ -90,15 +89,16 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("올바른 정보로 로그인 시 JWT 액세스 토큰을 반환한다")
-    void login_success_returnsToken() {
+    @DisplayName("올바른 정보로 로그인 시 액세스·리프레시 토큰과 회원 정보를 반환한다")
+    void login_success_returnsTokens() {
         authService.signup(new SignupRequest("user@x.com", "password123!", "유저", "010-3333-4444", Role.SHIPPER));
 
         LoginRequest loginRequest = new LoginRequest("user@x.com", "password123!");
-        TokenResponse tokenResponse = authService.login(loginRequest);
+        AuthTokens tokens = authService.login(loginRequest);
 
-        assertThat(tokenResponse.accessToken()).isNotBlank();
-        assertThat(tokenResponse.role()).isEqualTo(Role.SHIPPER);
+        assertThat(tokens.accessToken()).isNotBlank();
+        assertThat(tokens.refreshToken()).isNotBlank();
+        assertThat(tokens.member().role()).isEqualTo(Role.SHIPPER);
     }
 
     @Test

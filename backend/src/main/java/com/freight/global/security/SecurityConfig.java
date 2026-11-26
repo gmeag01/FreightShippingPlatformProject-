@@ -39,6 +39,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // 토큰 쿠키가 SameSite=Strict라 다른 사이트에서 보낸 요청에는 실리지 않으므로 CSRF 토큰은 쓰지 않는다(AuthCookies).
         http.csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
