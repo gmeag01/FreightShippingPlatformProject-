@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
-/** 액세스·리프레시 토큰을 담을 HttpOnly 쿠키를 만든다. 화면의 JS가 토큰을 읽을 수 없어서 XSS가 생겨도 토큰이 새지 않는다. */
+/** 액세스·리프레시 토큰을 담을 HttpOnly 쿠키를 만든다. */
 @Component
 public class AuthCookies {
 
