@@ -3,6 +3,9 @@ import client from './client';
 // 도로명 또는 지번 주소를 위도·경도 좌표로 변환한다.
 export const geocodeAddress = (address) => client.get('/fares/geocode', { params: { address } });
 
+// 메인 페이지 등 비로그인 화면에서 차종별 기준 단가표와 할증률 전체 목록을 조회한다.
+export const fetchPublicFareTable = () => client.get('/fares/table');
+
 // 출발지·도착지 좌표, 중량, 차종, 상차 조건으로 추천 차종과 추천 운임을 계산한다.
 export const estimateFare = (payload) => client.post('/fares/estimate', payload);
 

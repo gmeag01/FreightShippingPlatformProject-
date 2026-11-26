@@ -3,6 +3,7 @@ package com.freight.fare.controller;
 import com.freight.fare.dto.Coordinates;
 import com.freight.fare.dto.EstimateFareRequest;
 import com.freight.fare.dto.FareEstimate;
+import com.freight.fare.dto.FareTableResponse;
 import com.freight.fare.service.FareService;
 import com.freight.fare.service.GeocodingService;
 import com.freight.global.common.ApiResponse;
@@ -41,5 +42,12 @@ public class FareController {
     @GetMapping("/geocode")
     public ApiResponse<Coordinates> geocode(@RequestParam("address") String address) {
         return ApiResponse.ok(geocodingService.geocode(address));
+    }
+
+    /** 비로그인 사용자도 확인할 수 있는 기준 단가표와 할증률 전체 목록을 조회한다. */
+    @Operation(summary = "기준 단가표 및 할증률 공개 조회", description = "차종별 기본요금·km당 단가와 4종 할증률 기준을 조회합니다.")
+    @GetMapping("/table")
+    public ApiResponse<FareTableResponse> getFareTable() {
+        return ApiResponse.ok(fareService.getFareTable());
     }
 }
