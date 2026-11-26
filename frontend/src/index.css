@@ -116,3 +116,10 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.fare-progressive-blur {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+}

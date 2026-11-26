@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { fetchPublicFareTable } from '../api/fare';
 import { ROLE_HOME, ROLE_LABEL } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
+import { formatNumber } from '../order/presentation';
 
 // 기존 화물 중개에서 자주 겪는 문제 두 가지.
 const PAIN_POINTS = [
@@ -77,6 +79,14 @@ const VEHICLE_SPECS = [
 ];
 
 const CAROUSEL_SCROLL_STEP = 360;
+
+// 할증 종류별 사용자 안내 조건 문구 (설계 문서 4장 기준).
+const SURCHARGE_CONDITIONS = {
+  NIGHT: '상차 희망 시각 22:00 ~ 익일 06:00 미만',
+  WEEKEND: '상차 희망일이 토요일 또는 일요일',
+  MANUAL_LOADING: '상하차 방식을 수작업으로 선택한 경우',
+  URGENT: '등록 시각으로부터 상차까지 24시간 이내',
+};
 
 // 스크롤로 화면에 들어오면 한 번만 노출 상태를 true로 바꾼다.
 function useScrollReveal() {
@@ -423,9 +433,8 @@ function VehicleShowcaseSection() {
             onMouseMove={handleMouseMove}
             onMouseUp={stopDragging}
             onMouseLeave={stopDragging}
-            className={`no-scrollbar flex gap-5 overflow-x-auto py-2 select-none ${
-              isDragging ? 'cursor-grabbing' : 'cursor-grab snap-x snap-mandatory'
-            }`}
+            className={`no-scrollbar flex gap-5 overflow-x-auto py-2 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab snap-x snap-mandatory'
+              }`}
           >
             {VEHICLE_SPECS.map((vehicle) => (
               <VehicleCarouselCard key={vehicle.code} vehicle={vehicle} />
@@ -441,6 +450,192 @@ function VehicleShowcaseSection() {
             &gt;
           </button>
         </div>
+      </div>
+    </section>
+  );
+}
+
+// 비로그인 시 블러 처리된 통합 운임·할증 본문 위에 표시하는 로그인 유도 오버레이.
+function FareLockOverlay() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-white/15 px-4">
+      <div className="border-line inline-flex flex-col items-center gap-3 rounded-xl border bg-white/95 px-6 py-4 text-center shadow-lg backdrop-blur-sm">
+        <p className="text-ink text-sm font-bold sm:text-base">
+          기준 운임표와 할증 적용 기준은 로그인 후 확인할 수 있습니다.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Link
+            to="/login"
+            className="bg-primary hover:bg-primary-dark inline-flex min-h-10 items-center justify-center rounded-md px-4 text-sm font-semibold text-white shadow-xs transition-colors"
+          >
+            로그인 후 확인하기
+          </Link>
+          <Link
+            to="/signup"
+            className="border-line-strong text-ink inline-flex min-h-10 items-center justify-center rounded-md border bg-white px-3.5 text-sm font-semibold transition-colors hover:bg-slate-50"
+          >
+            회원가입
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 통합 카드 좌측 본문: DB에서 불러온 차종별 기준 운임표.
+function FareRateTableBody({ rates }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-left text-sm">
+        <thead>
+          <tr className="border-line text-muted border-b text-xs">
+            <th className="py-2.5 pr-3 font-semibold">차종</th>
+            <th className="px-3 py-2.5 text-right font-semibold">최대 적재량</th>
+            <th className="px-3 py-2.5 text-right font-semibold">기본요금</th>
+            <th className="py-2.5 pl-3 text-right font-semibold">km당 단가</th>
+          </tr>
+        </thead>
+        <tbody className="divide-line divide-y">
+          {rates.map((rate) => (
+            <tr key={rate.vehicleType} className="hover:bg-ground/60 transition-colors">
+              <td className="text-ink py-3 pr-3 font-bold whitespace-nowrap">
+                {rate.vehicleTypeName}
+              </td>
+              <td className="text-muted px-3 py-3 text-right whitespace-nowrap">
+                <span className="font-num">{formatNumber(rate.maxLoadKg)}</span>kg
+              </td>
+              <td className="text-ink px-3 py-3 text-right font-semibold whitespace-nowrap">
+                <span className="font-num">{formatNumber(rate.baseFare)}</span>원
+              </td>
+              <td className="text-primary py-3 pl-3 text-right font-bold whitespace-nowrap">
+                <span className="font-num">{formatNumber(rate.perKmFare)}</span>원
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// 통합 카드 우측 본문: DB에서 불러온 4종 할증률과 계산 공식 안내.
+function FareSurchargeBody({ surcharges }) {
+  return (
+    <div className="border-line flex flex-col justify-between gap-5 border-t pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
+      <ul className="divide-line divide-y">
+        {surcharges.map((surcharge) => {
+          const percent = Math.round(Number(surcharge.rate) * 100);
+          return (
+            <li
+              key={surcharge.type}
+              className="flex items-center justify-between gap-3 py-3 first:pt-1 last:pb-1"
+            >
+              <div className="flex flex-col gap-0.5">
+                <span className="text-ink text-sm font-bold">{surcharge.label} 할증</span>
+                <span className="text-muted text-xs">
+                  {SURCHARGE_CONDITIONS[surcharge.type] ?? '관리자 설정 기준 적용'}
+                </span>
+              </div>
+              <span className="bg-primary-soft text-primary shrink-0 rounded-full px-3 py-1 text-sm font-bold whitespace-nowrap">
+                +<span className="font-num">{percent}</span>%
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <p className="bg-ground text-muted rounded-xl px-4 py-3 text-xs leading-relaxed">
+        추천 운임은 <strong className="text-ink">(기본요금 + 거리 × km당 단가)</strong>에 해당
+        할증률의 합을 적용한 뒤 <strong className="text-ink">1,000원 단위로 반올림</strong>해
+        계산합니다.
+      </p>
+    </div>
+  );
+}
+
+// 백엔드 DB의 단가표·할증률을 하나의 카드로 통합해 표시하는 섹션. 비로그인 시 본문만 아래로 갈수록 자연스럽게 블러 처리한다.
+function FareGuideSection({ isLoggedIn }) {
+  const { elementRef, isVisible } = useScrollReveal();
+  const [fareTable, setFareTable] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    fetchPublicFareTable()
+      .then((data) => {
+        if (!isCancelled) setFareTable(data);
+      })
+      .catch(() => {
+        if (!isCancelled) setHasError(true);
+      })
+      .finally(() => {
+        if (!isCancelled) setIsLoading(false);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  return (
+    <section id="fares" ref={elementRef} className="border-line border-t bg-white py-20 sm:py-24">
+      <div
+        className={`mx-auto flex max-w-280 flex-col gap-8 px-4 sm:px-6 ${revealClass(isVisible)}`}
+      >
+        <div className="border-ink/80 flex items-baseline gap-3 border-b-2 pb-4">
+          <span className="text-primary font-num text-xl font-bold sm:text-2xl">02</span>
+          <h2 className="text-ink text-xl font-bold sm:text-2xl">기준 운임 및 할증 안내</h2>
+        </div>
+
+        {isLoading && (
+          <div className="border-line bg-ground text-muted rounded-2xl border p-8 text-center text-sm">
+            기준 운임표를 불러오는 중입니다…
+          </div>
+        )}
+
+        {!isLoading && hasError && (
+          <div className="border-line bg-ground text-muted rounded-2xl border p-8 text-center text-sm">
+            기준 운임표를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.
+          </div>
+        )}
+
+        {!isLoading && !hasError && fareTable && (
+          <div className="border-line flex flex-col gap-5 overflow-hidden rounded-2xl border bg-white p-6 shadow-xs sm:p-8">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.25fr_1fr] lg:gap-8">
+              <div className="flex items-baseline justify-between gap-2">
+                <h3 className="text-ink text-lg font-bold">차종별 기준 운임</h3>
+                <span className="text-subtle text-xs">관리자 단가표 실시간 반영</span>
+              </div>
+              <div className="hidden items-baseline justify-between gap-2 lg:flex lg:pl-8">
+                <h3 className="text-ink text-lg font-bold">할증 적용 기준</h3>
+                <span className="text-subtle text-xs">중복 시 할증률 합산</span>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div
+                aria-hidden={!isLoggedIn || undefined}
+                className={`grid grid-cols-1 gap-8 lg:grid-cols-[1.25fr_1fr] ${isLoggedIn ? '' : 'pointer-events-none blur-[4.5px] select-none'
+                  }`}
+              >
+                <FareRateTableBody rates={fareTable.rates ?? []} />
+                <FareSurchargeBody surcharges={fareTable.surcharges ?? []} />
+              </div>
+
+              {!isLoggedIn && (
+                <>
+                  <div
+                    aria-hidden="true"
+                    className="fare-progressive-blur pointer-events-none absolute -inset-3"
+                  />
+                  <FareLockOverlay />
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -511,6 +706,7 @@ export default function LandingPage() {
         <HeroBannerSection me={me} />
         <ProblemSection />
         <VehicleShowcaseSection />
+        <FareGuideSection isLoggedIn={Boolean(me)} />
       </main>
       <LandingFooter me={me} />
     </div>
