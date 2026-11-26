@@ -407,7 +407,8 @@ git commit -am "feat: 오더 상태 전이 메서드와 전이 규칙 테스트"
 - Create: `member/repository/MemberRepository.java`
 - Create: `member/service/MemberService.java`, `AuthService.java`
 - Create: `member/controller/AuthController.java`, `MemberController.java`
-- Create: `member/dto/SignupRequest.java`, `LoginRequest.java`, `TokenResponse.java`, `MemberResponse.java`
+- Create: `member/dto/SignupRequest.java`, `LoginRequest.java`, `MemberResponse.java` (`TokenResponse.java`는 4주차에 쿠키 방식으로 바꾸며 지웠다)
+- Create(4주차 추가): `global/security/AuthCookies.java`, `member/entity/RefreshToken.java`, `member/repository/RefreshTokenRepository.java`, `member/service/AuthTokens.java`
 - Test: `member/service/MemberServiceTest.java`, `member/controller/AuthControllerTest.java`
 
 **Interfaces:**
@@ -417,7 +418,18 @@ git commit -am "feat: 오더 상태 전이 메서드와 전이 규칙 테스트"
   - `JwtTokenProvider`: `String createToken(Long memberId, Role role)`, `AuthMember parse(String token)`(실패 시 `BusinessException(UNAUTHORIZED)`)
   - `MemberService.getById(Long id): Member` (없으면 `NOT_FOUND`). 다른 도메인은 회원이 필요하면 이 메서드를 쓴다.
   - 권한: `@EnableMethodSecurity`. 메서드에 `@PreAuthorize("hasRole('SHIPPER')")` 식으로 단다. URL 규칙은 `/api/auth/**`, `/swagger-ui/**`, `/v3/api-docs/**` 허용, `/api/admin/**`는 `hasRole('ADMIN')`, 나머지 인증 필요.
-  - API: `POST /api/auth/signup` `{email, password, name, phone, role}` → `MemberResponse{id, email, name, phone, role}`; `POST /api/auth/login` `{email, password}` → `TokenResponse{accessToken, role}`; `GET /api/members/me` → `MemberResponse`
+  - API
+    - `POST /api/auth/signup` `{email, password, name, phone, role}` → `MemberResponse{id, email, name, phone, role}`
+    - `POST /api/auth/login` `{email, password}` → `MemberResponse`. 토큰은 본문에 넣지 않고 쿠키 두 개로 내려준다.
+    - `POST /api/auth/refresh` → 새 토큰 쿠키와 `MemberResponse`. 리프레시 토큰이 없거나 만료·폐기됐으면 `INVALID_REFRESH_TOKEN`(401)
+    - `POST /api/auth/logout` → 리프레시 토큰을 폐기하고 두 쿠키를 지운다
+    - `GET /api/members/me` → `MemberResponse`
+  - 토큰과 쿠키 (4주차에 localStorage 방식에서 바꿈)
+    - `access_token`: JWT, 30분, `Path=/api`
+    - `refresh_token`: 임의 문자열, 14일, `Path=/api/auth`. DB(`refresh_tokens`)에는 SHA-256 해시만 저장한다. 갱신할 때마다 새 토큰을 주고 쓴 토큰은 지운다.
+    - 두 쿠키 모두 `HttpOnly`, `Secure`, `SameSite=Strict`다. 화면의 JS가 토큰을 읽을 수 없고, 다른 사이트에서 보낸 요청에는 쿠키가 실리지 않는다. 그래서 CSRF 토큰은 따로 쓰지 않는다.
+    - 정지된 회원은 갱신도 `ACCOUNT_SUSPENDED`로 막는다.
+    - 설정값: `app.jwt.validity-ms`, `app.jwt.refresh-validity-ms`, `app.auth.cookie-secure`. `cookie-secure`는 localhost가 아닌 http 주소로 접속할 때만 `false`로 둔다.
   - 검증: email `@Email @NotBlank`, password 8자 이상, role은 SHIPPER 또는 DRIVER만(ADMIN은 시드로만 만든다)
 
 - [ ] **Step 1: Write the failing tests**
@@ -433,7 +445,7 @@ git commit -am "feat: 오더 상태 전이 메서드와 전이 규칙 테스트"
 `AuthControllerTest`(`@SpringBootTest @AutoConfigureMockMvc @ActiveProfiles("test")`):
 ```java
 @Test void signupLoginMe_flow() {
-    // signup 200 -> login 200, $.data.accessToken 존재 -> GET /api/members/me with Bearer -> $.data.email
+    // signup 200 -> login 200, access_token·refresh_token 쿠키(HttpOnly) 존재 -> 쿠키로 GET /api/members/me -> $.data.email
 }
 @Test void me_withoutToken_returns401Json() {
     mvc.perform(get("/api/members/me"))
@@ -444,6 +456,11 @@ git commit -am "feat: 오더 상태 전이 메서드와 전이 규칙 테스트"
 @Test void me_withExpiredToken_returns401Json()            // validity -1초로 만든 토큰 -> 401
 @Test void adminPath_withShipperToken_returns403Json()     // GET /api/admin/ping(테스트 전용 컨트롤러) -> 403, FORBIDDEN
 @Test void signup_invalidEmail_returns400()                // INVALID_INPUT, fieldErrors.email
+// 4주차 추가
+@Test void refresh_withValidToken_rotatesTokens()          // 갱신 성공 후 쓴 토큰으로 다시 갱신하면 INVALID_REFRESH_TOKEN
+@Test void refresh_withExpiredToken_fails()                // 401, INVALID_REFRESH_TOKEN
+@Test void refresh_bySuspendedMember_fails()               // 403, ACCOUNT_SUSPENDED
+@Test void logout_clearsCookiesAndRevokesRefreshToken()    // 두 쿠키 Max-Age=0, 이후 갱신은 401
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -453,7 +470,7 @@ Expected: 컴파일 실패
 
 - [ ] **Step 3: 구현**
 
-`SecurityConfig`: CSRF 끔, 세션 STATELESS, `JwtAuthenticationFilter`를 `UsernamePasswordAuthenticationFilter` 앞에 둔다. 권한 이름은 `ROLE_` + role. 인증 실패와 권한 부족은 각각 `JsonAuthEntryPoint`, `JsonAccessDeniedHandler`가 `ApiResponse.fail(UNAUTHORIZED|FORBIDDEN)` JSON으로 쓴다. 필터는 토큰이 없으면 통과시키고, 있는데 틀리면 인증 없이 통과시켜 EntryPoint가 401을 내게 한다. `PasswordEncoder`는 `BCryptPasswordEncoder`. jjwt는 `Keys.hmacShaKeyFor(secret.getBytes(UTF_8))`, HS256, subject=memberId, claim `role`.
+`SecurityConfig`: CSRF 끔(토큰 쿠키가 `SameSite=Strict`라서), 세션 STATELESS, `JwtAuthenticationFilter`를 `UsernamePasswordAuthenticationFilter` 앞에 둔다. 권한 이름은 `ROLE_` + role. 인증 실패와 권한 부족은 각각 `JsonAuthEntryPoint`, `JsonAccessDeniedHandler`가 `ApiResponse.fail(UNAUTHORIZED|FORBIDDEN)` JSON으로 쓴다. 필터는 `Authorization: Bearer` 헤더를 먼저 보고, 없으면 `access_token` 쿠키를 읽는다(헤더 방식은 Swagger와 테스트용). 토큰이 없으면 통과시키고, 있는데 틀리면 인증 없이 통과시켜 EntryPoint가 401을 내게 한다. `PasswordEncoder`는 `BCryptPasswordEncoder`. jjwt는 `Keys.hmacShaKeyFor(secret.getBytes(UTF_8))`, HS256, subject=memberId, claim `role`.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
@@ -527,8 +544,11 @@ git commit -m "chore: 시드 데이터, AI 규칙 파일, README"
 **Interfaces:**
 - Consumes: Task 5 API, `ApiResponse` 형식
 - Produces:
-  - `client`(axios 인스턴스): baseURL `/api`, 요청마다 `localStorage.accessToken`을 `Authorization: Bearer`로 붙인다. 응답이 401이면 토큰을 지우고 `/login`으로 보낸다. 성공 시 `response.data.data`를, 실패 시 `{ code, message, fieldErrors }`를 담은 Error를 던진다.
-  - `useAuth()`: `{ me: {id, email, name, role} | null, login(email, password), logout() }`
+  - `client`(axios 인스턴스): baseURL `/api`. 토큰은 서버가 HttpOnly 쿠키로 주고받으므로 화면 코드는 토큰을 다루지 않는다(4주차에 바꿈). 성공 시 `response.data.data`를, 실패 시 `{ code, message, fieldErrors }`를 담은 Error를 던진다.
+    - 401을 받으면 `POST /auth/refresh`를 한 번 부르고 원래 요청을 다시 보낸다. 여러 요청이 동시에 401을 받아도 갱신 요청은 하나만 나간다.
+    - 갱신도 실패하면 `me`를 비운다. 그러면 `RequireRole`이 `/login`으로 보낸다.
+    - `/auth/`로 시작하는 요청의 401(로그인 실패 등)은 갱신하지 않고 그대로 오류로 돌려준다.
+  - `useAuth()`: `{ me: {id, email, name, role} | null, isLoading, login(email, password), logout() }`. 첫 화면을 열 때 `fetchMe()`로 로그인 상태를 되살리고, `logout()`은 서버의 리프레시 토큰도 폐기한다.
   - `<RequireRole role="SHIPPER|DRIVER|ADMIN">`: 로그인하지 않았으면 `/login`, 역할이 다르면 그 역할의 첫 화면으로 보낸다.
   - 라우트(설계 문서 6장): `/login`, `/signup`, `/shipper/orders/new`, `/shipper/orders`, `/shipper/orders/:id`, `/driver/vehicle`, `/driver/orders`, `/driver/jobs`, `/admin`, `/admin/fares`, `/admin/orders`, `/admin/disputes`, `/admin/members`. 이 Task에서는 로그인·회원가입 외 화면은 제목만 있는 자리 표시 페이지다.
   - 역할별 첫 화면: SHIPPER → `/shipper/orders`, DRIVER → `/driver/orders`, ADMIN → `/admin`
@@ -545,13 +565,13 @@ npm i -D tailwindcss @tailwindcss/vite prettier-plugin-tailwindcss
 
 - [ ] **Step 2: 구현**
 
-위 Interfaces대로 만든다. 레이아웃은 360px 폭에서 가로 스크롤이 생기지 않게 한다. 상단에 역할 이름과 로그아웃 버튼을 둔다. 스타일은 Tailwind CSS 클래스로만 쓴다(팀 결정). 토큰이 있는 상태에서 받은 401만 로그인 화면으로 보내고, 토큰 없이 받은 401(로그인 실패)은 메시지로 보여 준다.
+위 Interfaces대로 만든다. 레이아웃은 360px 폭에서 가로 스크롤이 생기지 않게 한다. 상단에 역할 이름과 로그아웃 버튼을 둔다. 스타일은 Tailwind CSS 클래스로만 쓴다(팀 결정). 로그인 실패(401)는 메시지로 보여 주고, 토큰 갱신까지 실패한 경우에만 로그인 화면으로 보낸다.
 
 - [ ] **Step 3: 확인**
 
 Run: `npm run lint && npm run build`
 Expected: 오류 0, 빌드 성공.
-수동 확인(백엔드 실행 중): `npm run dev` → 각 시드 계정으로 로그인하면 역할별 첫 화면으로 이동한다 / 차주로 로그인한 상태에서 `/admin` 주소를 직접 열면 `/driver/orders`로 돌아간다 / localStorage의 토큰을 아무 문자열로 바꾸고 새로고침하면 `/login`으로 간다.
+수동 확인(백엔드 실행 중): `npm run dev` → 각 시드 계정으로 로그인하면 역할별 첫 화면으로 이동한다 / 차주로 로그인한 상태에서 `/admin` 주소를 직접 열면 `/driver/orders`로 돌아간다 / 개발자 도구에서 `access_token`, `refresh_token` 쿠키를 지우고 보호된 화면을 새로고침하면 `/login`으로 간다.
 
 - [ ] **Step 4: Commit**
 
